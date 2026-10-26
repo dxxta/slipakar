@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.2 (2026-10-26)
+
+### Build
+
+* add Makefile with documented targets (d4635d4)
+
 ## 0.1.1 (2026-10-26)
 
 ### Documentation
