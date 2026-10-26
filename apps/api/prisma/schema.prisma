@@ -1,0 +1,325 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id             String    @id @default(uuid())
+  email          String    @unique
+  name           String
+  emailVerified  Boolean   @default(false)
+  image          String?
+  role           String    @default("user")
+  disabledAt     DateTime?
+  disabledReason String?
+  themeMode      String    @default("system")
+  themeAccent    String    @default("slate")
+  projects       Project[]
+  sessions       Session[]
+  accounts       Account[]
+  loginEvents    LoginEvent[]
+  userNotices    UserNotice[]
+  broadcasts     Broadcast[]
+  integrationConfigs IntegrationConfig[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id @default(uuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(uuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+model Project {
+  id                 String           @id @default(uuid())
+  ownerId            String
+  owner              User             @relation(fields: [ownerId], references: [id])
+  name               String
+  rateLimitPerMinute Int              @default(5)
+  maxUploadBytes     Int              @default(5242880)
+  maxRows            Int              @default(10000)
+  storageQuotaBytes  BigInt           @default(1073741824)
+  smtpConnections    SmtpConnection[]
+  emailTemplates     EmailTemplate[]
+  pdfTemplates       PdfTemplate[]
+  dataUploads        DataUpload[]
+  campaigns          Campaign[]
+  attachments        Attachment[]
+  notifications      Notification[]
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+}
+
+model SmtpConnection {
+  id                String     @id @default(uuid())
+  projectId         String
+  project           Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  host              String
+  port              Int
+  username          String
+  passwordEncrypted String
+  secure            Boolean
+  // From header of campaign emails; connections created before this field fall back to the username.
+  fromAddress       String?
+  campaigns         Campaign[]
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+}
+
+model EmailTemplate {
+  id           String         @id @default(uuid())
+  projectId    String
+  project      Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name         String
+  subject      String
+  bodyHtml     String
+  fieldMappings FieldMapping[]
+  campaigns    Campaign[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model PdfTemplate {
+  id        String     @id @default(uuid())
+  projectId String
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name      String
+  nodeTree  Json
+  campaigns Campaign[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model DataUpload {
+  id            String         @id @default(uuid())
+  projectId     String
+  project       Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  fileName      String
+  columns       Json
+  rows          Json
+  rowCount      Int
+  fieldMappings FieldMapping[]
+  campaigns     Campaign[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+model FieldMapping {
+  id        String        @id @default(uuid())
+  templateId String
+  template  EmailTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  uploadId  String
+  upload    DataUpload    @relation(fields: [uploadId], references: [id], onDelete: Cascade)
+  mapping   Json
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+model Campaign {
+  id               String              @id @default(uuid())
+  projectId        String
+  project          Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  emailTemplateId  String
+  emailTemplate    EmailTemplate       @relation(fields: [emailTemplateId], references: [id])
+  pdfTemplateId    String?
+  pdfTemplate      PdfTemplate?        @relation(fields: [pdfTemplateId], references: [id])
+  smtpConnectionId String
+  smtpConnection   SmtpConnection      @relation(fields: [smtpConnectionId], references: [id])
+  uploadId         String
+  upload           DataUpload          @relation(fields: [uploadId], references: [id])
+  // Column of the uploaded data that holds each recipient's email address.
+  emailColumn      String
+  status           String              @default("draft")
+  recipients       CampaignRecipient[]
+  notifications    Notification[]
+  attachments      Attachment[]
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
+}
+
+enum RecipientStatus {
+  pending
+  sent
+  failed
+}
+
+model CampaignRecipient {
+  id           String          @id @default(uuid())
+  campaignId   String
+  campaign     Campaign        @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  rowIndex     Int
+  email        String
+  status       RecipientStatus @default(pending)
+  errorMessage String?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  @@unique([campaignId, rowIndex])
+}
+
+model Notification {
+  id         String    @id @default(uuid())
+  projectId  String
+  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  campaignId String?
+  campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  // campaign_finished | send_failed
+  type       String
+  message    String
+  createdAt  DateTime  @default(now())
+  // null until the project owner marks it read
+  readAt     DateTime?
+
+  @@index([projectId, createdAt])
+  @@index([projectId, readAt])
+}
+
+model Attachment {
+  id         String    @id @default(uuid())
+  projectId  String
+  project    Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  campaignId String?
+  campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  objectKey  String
+  fileName   String
+  sizeBytes  BigInt
+  kind       String
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+}
+
+model SystemConfig {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum AuditAction {
+  create
+  update
+  delete
+  read
+}
+
+model AuditLog {
+  id         String      @id @default(uuid())
+  entity     String
+  entityId   String
+  action     AuditAction
+  fieldName  String
+  fieldValue Json?
+  userId     String
+  createdAt  DateTime    @default(now())
+
+  @@index([entity, entityId])
+}
+
+model LoginEvent {
+  id         String   @id @default(uuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ipAddress  String?
+  proxy      Boolean  @default(false)
+  browser    String?
+  os         String?
+  deviceType String?
+  country    String?
+  region     String?
+  city       String?
+  latitude   Float?
+  longitude  Float?
+  createdAt  DateTime @default(now())
+
+  @@index([userId, createdAt])
+  @@index([createdAt])
+}
+
+model Broadcast {
+  id             String       @id @default(uuid())
+  subject        String
+  bodyText       String
+  audience       String
+  audienceFilter Json?
+  status         String       @default("draft")
+  sentAt         DateTime?
+  createdBy      String
+  creator        User         @relation(fields: [createdBy], references: [id])
+  counts         Json         @default("{\"total\":0,\"sent\":0,\"failed\":0}")
+  notices        UserNotice[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([createdAt])
+}
+
+model UserNotice {
+  id          String     @id @default(uuid())
+  userId      String
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  broadcastId String?
+  broadcast   Broadcast? @relation(fields: [broadcastId], references: [id], onDelete: SetNull)
+  title       String
+  message     String
+  readAt      DateTime?
+  createdAt   DateTime   @default(now())
+
+  @@index([userId, createdAt])
+  @@index([userId, readAt])
+}
+
+model IntegrationConfig {
+  id                   String    @id @default(uuid())
+  key                  String    @unique
+  baseUrl              String
+  credentialsEncrypted String
+  lastTestedAt         DateTime?
+  lastStatus           String?
+  lastError            String?
+  updatedAt            DateTime  @updatedAt
+  updatedBy            String
+  updater              User      @relation(fields: [updatedBy], references: [id])
+}
