@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.0 (2026-10-26)
+
+### Features
+
+* **api:** core library, configuration, error handling and database schema (6bd8935)
+
 ## 0.1.2 (2026-10-26)
 
 ### Build
