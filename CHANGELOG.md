@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.1 (2026-10-27)
+
+### Build
+
+* **api:** add production Dockerfile and entrypoint (c103907)
+
 ## 0.4.0 (2026-10-27)
 
 ### Features
