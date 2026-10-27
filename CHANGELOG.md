@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0 (2026-10-27)
+
+### Features
+
+* **auth:** Google sign-in with better-auth and session guard (359ad03)
+
 ## 0.2.1 (2026-10-27)
 
 ### Tests
