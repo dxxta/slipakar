@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0 (2026-10-27)
+
+### Features
+
+* **projects:** project CRUD with ownership checks and audit log (8a62eeb)
+
 ## 0.3.0 (2026-10-27)
 
 ### Features
