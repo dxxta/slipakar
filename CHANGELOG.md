@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1 (2026-10-27)
+
+### Tests
+
+* add Nginx, Prometheus and Grafana configuration checks (93f7975)
+
 ## 0.2.0 (2026-10-26)
 
 ### Features
