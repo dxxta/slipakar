@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.2 (2026-10-28)
+
+### Chores
+
+* **infra:** add Prometheus, Grafana and Garage configuration (609cafe)
+
 ## 0.4.1 (2026-10-27)
 
 ### Build
