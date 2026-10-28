@@ -1,0 +1,251 @@
+{
+  "annotations": {
+    "list": []
+  },
+  "editable": false,
+  "fiscalYearStartMonth": 0,
+  "graphTooltip": 0,
+  "id": null,
+  "links": [],
+  "liveNow": false,
+  "panels": [
+    {
+      "id": 1,
+      "title": "API Up",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lokaslip-prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lokaslip-prometheus"
+          },
+          "expr": "up{job=\"lokaslip-api\"}",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Campaigns Finished",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lokaslip-prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lokaslip-prometheus"
+          },
+          "expr": "increase(lokaslip_campaigns_finished_total[1h])",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "API Process Memory",
+      "type": "stat",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lokaslip-prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lokaslip-prometheus"
+          },
+          "expr": "process_resident_memory_bytes",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Node Event Loop Lag",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lokaslip-prometheus"
+      },
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 0
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lokaslip-prometheus"
+          },
+          "expr": "nodejs_eventloop_lag_seconds",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "HTTP Requests Per Second by Status",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lokaslip-prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lokaslip-prometheus"
+          },
+          "expr": "sum by (status) (rate(lokaslip_http_requests_total[5m]))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "HTTP p95 Latency by Route",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lokaslip-prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 4
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lokaslip-prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le, route) (rate(lokaslip_http_request_duration_seconds_bucket[5m])))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Emails Sent vs Failed per Minute",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lokaslip-prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 12
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lokaslip-prometheus"
+          },
+          "expr": "sum by (result) (increase(lokaslip_emails_total[1m]))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Queue Messages by Queue and Outcome",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lokaslip-prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 12
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lokaslip-prometheus"
+          },
+          "expr": "sum by (queue, outcome) (increase(lokaslip_queue_messages_total[5m]))",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Rate Limit Wait p95",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "lokaslip-prometheus"
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 12
+      },
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "lokaslip-prometheus"
+          },
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(lokaslip_rate_limit_wait_seconds_bucket[5m])))",
+          "refId": "A"
+        }
+      ]
+    }
+  ],
+  "refresh": "30s",
+  "schemaVersion": 39,
+  "style": "dark",
+  "tags": ["lokaslip", "production"],
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "timepicker": {},
+  "timezone": "browser",
+  "title": "LokaSlip overview",
+  "uid": "lokaslip-overview",
+  "version": 1
+}
