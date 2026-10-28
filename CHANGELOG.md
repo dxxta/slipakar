@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.1 (2026-10-28)
+
+### Tests
+
+* **api:** add end-to-end send pipeline test (505a03c)
+
 ## 0.6.0 (2026-10-28)
 
 ### Features
