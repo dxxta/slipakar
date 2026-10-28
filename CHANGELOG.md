@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.0 (2026-10-28)
+
+### Features
+
+* **smtp:** encrypted SMTP connections with connection test (3ac46c8)
+
 ## 0.4.2 (2026-10-28)
 
 ### Chores
