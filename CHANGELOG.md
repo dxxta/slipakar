@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.0 (2026-10-28)
+
+### Features
+
+* **storage:** Garage object storage, data file uploads and attachments (f12196a)
+
 ## 0.6.1 (2026-10-28)
 
 ### Tests
