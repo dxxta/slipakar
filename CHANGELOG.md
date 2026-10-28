@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.6.0 (2026-10-28)
+
+### Features
+
+* **admin:** feature flags and system configuration (6d5e758)
+
 ## 0.5.0 (2026-10-28)
 
 ### Features
