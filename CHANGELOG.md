@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.1 (2026-10-29)
+
+### Documentation
+
+* add self-hosting guide (7a540a5)
+
 ## 0.10.0 (2026-10-29)
 
 ### Features
