@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.11.0 (2026-10-29)
+
+### Features
+
+* **notifications:** project notifications with unread tracking (3d29beb)
+
 ## 0.10.1 (2026-10-29)
 
 ### Documentation
