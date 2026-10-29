@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.9.0 (2026-10-29)
+
+### Features
+
+* **sending:** RabbitMQ queue and SMTP sending worker (e9631dc)
+
 ## 0.8.0 (2026-10-29)
 
 ### Features
