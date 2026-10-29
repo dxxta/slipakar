@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.0 (2026-10-29)
+
+### Features
+
+* **campaigns:** campaigns, recipients and retry flow (28c93c7)
+
 ## 0.9.0 (2026-10-29)
 
 ### Features
