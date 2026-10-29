@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.0 (2026-10-29)
+
+### Features
+
+* **templates:** column mapping and email templates with placeholder validation (39a0601)
+
 ## 0.7.0 (2026-10-28)
 
 ### Features
