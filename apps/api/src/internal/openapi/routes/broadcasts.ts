@@ -1,0 +1,76 @@
+import { z } from 'zod';
+import type { RouteDoc } from '../../../domain/openapi/interface.js';
+import {
+  createBroadcastDto,
+  updateBroadcastDto,
+  broadcastViewDto,
+  broadcastPreviewDto,
+} from '../../../domain/broadcasts/dto.js';
+
+export const broadcastRoutes: RouteDoc[] = [
+  {
+    method: 'post',
+    path: '/admin/broadcasts',
+    summary: 'Create a draft broadcast (admin only)',
+    tag: 'Broadcasts',
+    auth: 'admin',
+    body: createBroadcastDto,
+    status: 201,
+    data: broadcastViewDto,
+  },
+  {
+    method: 'get',
+    path: '/admin/broadcasts',
+    summary: 'List broadcasts (admin only)',
+    tag: 'Broadcasts',
+    auth: 'admin',
+    status: 200,
+    data: z.array(broadcastViewDto),
+  },
+  {
+    method: 'get',
+    path: '/admin/broadcasts/:id',
+    summary: 'Get a broadcast by id (admin only)',
+    tag: 'Broadcasts',
+    auth: 'admin',
+    status: 200,
+    data: broadcastViewDto,
+  },
+  {
+    method: 'patch',
+    path: '/admin/broadcasts/:id',
+    summary: 'Update a draft broadcast (admin only)',
+    tag: 'Broadcasts',
+    auth: 'admin',
+    body: updateBroadcastDto,
+    status: 200,
+    data: broadcastViewDto,
+  },
+  {
+    method: 'delete',
+    path: '/admin/broadcasts/:id',
+    summary: 'Delete a draft broadcast (admin only)',
+    tag: 'Broadcasts',
+    auth: 'admin',
+    status: 200,
+    data: z.null(),
+  },
+  {
+    method: 'post',
+    path: '/admin/broadcasts/:id/preview',
+    summary: 'Preview a broadcast recipient count and sample (admin only)',
+    tag: 'Broadcasts',
+    auth: 'admin',
+    status: 200,
+    data: broadcastPreviewDto,
+  },
+  {
+    method: 'post',
+    path: '/admin/broadcasts/:id/send',
+    summary: 'Send a broadcast (admin only)',
+    tag: 'Broadcasts',
+    auth: 'admin',
+    status: 200,
+    data: broadcastViewDto,
+  },
+];
