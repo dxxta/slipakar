@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.14.0 (2026-10-31)
+
+### Features
+
+* **admin:** admin user management with disable and enable (ca7486c)
+
 ## 0.13.0 (2026-10-31)
 
 ### Features
