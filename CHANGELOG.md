@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.12.0 (2026-10-31)
+
+### Features
+
+* **pdf:** PDF templates and PDFKit renderer (97e52ae)
+
 ## 0.11.0 (2026-10-29)
 
 ### Features
