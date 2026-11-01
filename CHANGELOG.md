@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.0.0 (2026-11-01)
+
+### Features
+
+* **api:** compose all modules into the production server and end-to-end send pipeline (078abcf)
+
 ## 0.16.0 (2026-11-01)
 
 ### Features
