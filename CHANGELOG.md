@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.16.0 (2026-11-01)
+
+### Features
+
+* **admin:** broadcasts, integration setup gate and example project seed (d8423b2)
+
 ## 0.15.0 (2026-11-01)
 
 ### Features
