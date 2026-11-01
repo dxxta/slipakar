@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.15.0 (2026-11-01)
+
+### Features
+
+* **account:** avatar upload, theme preferences, user notices and login activity (a36bb70)
+
 ## 0.14.0 (2026-10-31)
 
 ### Features
