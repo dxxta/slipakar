@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0 (2026-11-02)
+
+### Features
+
+* **user-web:** login pages, projects list and project overview (050ee3b)
+
 ## 1.2.0 (2026-11-02)
 
 ### Features
