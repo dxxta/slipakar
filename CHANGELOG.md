@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.1 (2026-11-02)
+
+### Tests
+
+* **web:** add placeholder guard specs for both web apps (53d5b01)
+
 ## 1.3.0 (2026-11-02)
 
 ### Features
