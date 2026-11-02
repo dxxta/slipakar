@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.2.0 (2026-11-02)
+
+### Features
+
+* **user-web:** shared UI primitives and application layout (f4c3733)
+
 ## 1.1.0 (2026-11-02)
 
 ### Features
