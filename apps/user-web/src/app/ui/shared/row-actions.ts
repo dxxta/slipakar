@@ -1,0 +1,112 @@
+import { CommonModule, DOCUMENT } from '@angular/common';
+import { Component, ElementRef, HostListener, inject, input, output, signal } from '@angular/core';
+
+export type RowActionIcon = 'eye' | 'pencil' | 'trash' | 'power';
+export type RowActionItem = { id: string; label: string; icon: RowActionIcon; destructive?: boolean; disabled?: boolean };
+type MenuPosition = { top: number; left: number };
+
+@Component({
+  selector: 'app-row-actions',
+  standalone: true,
+  imports: [CommonModule],
+  template: `
+    <button #trigger data-row-action-trigger type="button" class="grid size-11 shrink-0 place-items-center rounded-ui-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" [attr.aria-label]="label()" aria-haspopup="menu" [attr.aria-expanded]="open()" (click)="toggle()">
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" class="size-5"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>
+    </button>
+    @if (open()) {
+      <div role="menu" [attr.aria-label]="label()" class="fixed z-[80] min-w-48 rounded-ui-md border border-border bg-popover p-1 text-popover-foreground shadow-lg" [style.top.px]="position().top" [style.left.px]="position().left" (keydown)="onMenuKeydown($event)">
+        @for (item of items(); track item.id; let index = $index) {
+          <button type="button" role="menuitem" [attr.tabindex]="activeIndex() === index ? 0 : -1" [disabled]="item.disabled ?? false" class="flex min-h-11 w-full items-center gap-2 rounded-ui-sm px-3 text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50" [ngClass]="item.destructive ? 'text-destructive hover:bg-destructive/10' : 'hover:bg-muted'" (focus)="activeIndex.set(index)" (click)="choose(item)">
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" class="size-4 shrink-0"><path stroke-linecap="round" stroke-linejoin="round" [attr.d]="iconPath(item.icon)" /></svg>
+            <span>{{ item.label }}</span>
+          </button>
+        }
+      </div>
+    }
+  `,
+})
+export class RowActions {
+  readonly label = input('Row actions');
+  readonly items = input.required<RowActionItem[]>();
+  readonly actionSelect = output<RowActionItem>();
+  protected readonly open = signal(false);
+  protected readonly activeIndex = signal(0);
+  protected readonly position = signal<MenuPosition>({ top: 0, left: 0 });
+
+  private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly document = inject(DOCUMENT);
+
+  protected toggle(): void {
+    if (this.open()) { this.close(true); return; }
+    this.position.set(this.calculatePosition());
+    this.activeIndex.set(0);
+    this.open.set(true);
+    queueMicrotask(() => this.focusItem(0));
+  }
+
+  protected choose(item: RowActionItem): void {
+    if (item.disabled) return;
+    this.actionSelect.emit(item);
+    this.close(true);
+  }
+
+  protected iconPath(icon: RowActionIcon): string {
+    const paths: Record<RowActionIcon, string> = {
+      eye: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z',
+      pencil: 'm15.2 5.8 3 3M4 20l4.2-.8L19 7.4a2.1 2.1 0 0 0-3-3L5.2 15.2 4 20Z',
+      trash: 'M4 7h16m-10 4v5m4-5v5M6 7l1 13h10l1-13M9 7V4h6v3',
+      power: 'M12 2v10m6.4-6.4a9 9 0 1 1-12.8 0',
+    };
+    return paths[icon];
+  }
+
+  @HostListener('document:pointerdown', ['$event'])
+  protected closeOutside(event: PointerEvent): void {
+    if (this.open() && !this.host.nativeElement.contains(event.target as Node)) this.close(false);
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  protected closeOnEscape(event: KeyboardEvent): void {
+    if (this.open() && event.key === 'Escape') { event.preventDefault(); this.close(true); }
+  }
+
+  protected onMenuKeydown(event: KeyboardEvent): void {
+    const count = this.items().length;
+    if (!count) return;
+    let next = this.activeIndex();
+    if (event.key === 'ArrowDown') next = (next + 1) % count;
+    else if (event.key === 'ArrowUp') next = (next - 1 + count) % count;
+    else if (event.key === 'Home') next = 0;
+    else if (event.key === 'End') next = count - 1;
+    else return;
+    event.preventDefault();
+    this.activeIndex.set(next);
+    this.focusItem(next);
+  }
+
+  private calculatePosition(): MenuPosition {
+    const root = this.host.nativeElement as HTMLElement;
+    const trigger = root.querySelector('[data-row-action-trigger]') as HTMLElement | null;
+    const bounds = trigger?.getBoundingClientRect();
+    const view = this.document.defaultView;
+    if (!bounds || !view) return { top: 8, left: 8 };
+    const menuWidth = 192;
+    const menuHeight = Math.min(this.items().length * 44 + 8, 240);
+    const left = Math.max(8, Math.min(bounds.right - menuWidth, view.innerWidth - menuWidth - 8));
+    const top = bounds.bottom + menuHeight + 8 <= view.innerHeight
+      ? bounds.bottom + 4
+      : Math.max(8, bounds.top - menuHeight - 4);
+    return { top, left };
+  }
+
+  private focusItem(index: number): void {
+    const root = this.host.nativeElement as HTMLElement;
+    const items = root.querySelectorAll('[role="menuitem"]') as NodeListOf<HTMLButtonElement>;
+    items.item(index)?.focus();
+  }
+
+  private close(returnFocus: boolean): void {
+    this.open.set(false);
+    if (returnFocus) queueMicrotask(() => (this.host.nativeElement as HTMLElement).querySelector<HTMLElement>('[data-row-action-trigger]')?.focus());
+  }
+}
