@@ -1,0 +1,44 @@
+/* To learn more about Typescript configuration file: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html. */
+/* To learn more about Angular compiler options: https://angular.dev/reference/configs/angular-compiler-options. */
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "preserve",
+    "paths": {
+      "@lokaslip/ui/button": ["./src/app/ui/button/src/index.ts"],
+      "@lokaslip/ui/utils": ["./src/app/ui/utils/src/index.ts"],
+      "@lokaslip/ui/card": ["./src/app/ui/card/src/index.ts"],
+      "@lokaslip/ui/input": ["./src/app/ui/input/src/index.ts"],
+      "@lokaslip/ui/label": ["./src/app/ui/label/src/index.ts"],
+      "@lokaslip/ui/badge": ["./src/app/ui/badge/src/index.ts"],
+      "@lokaslip/ui/switch": ["./src/app/ui/switch/src/index.ts"],
+      "@lokaslip/ui/alert": ["./src/app/ui/alert/src/index.ts"],
+      "@lokaslip/ui/sonner": ["./src/app/ui/sonner/src/index.ts"],
+      "@lokaslip/ui/avatar": ["../../packages/ui/src/avatar.ts"],
+      "@lokaslip/ui/private-ip": ["../../packages/ui/src/private-ip.ts"]
+    }
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.spec.json"
+    }
+  ]
+}

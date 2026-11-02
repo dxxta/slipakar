@@ -1,0 +1,7 @@
+{
+  "name": "@lokaslip/ui",
+  "version": "0.0.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "description": "Shared Spartan NG based UI components (source package, consumed through a tsconfig path alias)"
+}
