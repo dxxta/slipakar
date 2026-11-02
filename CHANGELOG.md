@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.1.0 (2026-11-02)
+
+### Features
+
+* **user-web:** shared UI package and Angular application shell (5ef513f)
+
 ## 1.0.0 (2026-11-01)
 
 ### Features
