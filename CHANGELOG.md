@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.0 (2026-11-04)
+
+### Features
+
+* **user-web:** SMTP connections and email template editor (e92ad64)
+
 ## 1.3.1 (2026-11-02)
 
 ### Tests
