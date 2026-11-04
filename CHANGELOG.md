@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.2 (2026-11-04)
+
+### Tests
+
+* add Playwright admin flows (6a17610)
+
 ## 1.4.1 (2026-11-04)
 
 ### Tests
