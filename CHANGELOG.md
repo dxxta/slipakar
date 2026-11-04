@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.1 (2026-11-04)
+
+### Tests
+
+* add Playwright user flows (3ca84ee)
+
 ## 1.4.0 (2026-11-04)
 
 ### Features
