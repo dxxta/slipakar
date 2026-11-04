@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.5.0 (2026-11-04)
+
+### Features
+
+* **user-web:** data upload and mapping wizard (53886d7)
+
 ## 1.4.2 (2026-11-04)
 
 ### Tests
