@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.0 (2026-11-05)
+
+### Features
+
+* **user-web:** PDF template list, editor and builder canvas (530515c)
+
 ## 1.7.0 (2026-11-05)
 
 ### Features
