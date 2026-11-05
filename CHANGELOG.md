@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.0 (2026-11-05)
+
+### Features
+
+* **user-web:** campaign creation, sending and recipients (d336e9a)
+
 ## 1.5.0 (2026-11-04)
 
 ### Features
