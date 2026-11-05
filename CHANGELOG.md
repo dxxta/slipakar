@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.1 (2026-11-05)
+
+### Tests
+
+* add Playwright config, mobile and visual review checks (6d6088d)
+
 ## 1.6.0 (2026-11-05)
 
 ### Features
