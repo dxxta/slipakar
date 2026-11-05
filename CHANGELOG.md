@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.7.0 (2026-11-05)
+
+### Features
+
+* **user-web:** notifications and announcements (a91b096)
+
 ## 1.6.1 (2026-11-05)
 
 ### Tests
