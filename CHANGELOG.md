@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.8.1 (2026-11-06)
+
+### Documentation
+
+* add README (e9e7067)
+
 ## 1.8.0 (2026-11-05)
 
 ### Features
