@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.10.0 (2026-11-06)
+
+### Features
+
+* **admin-web:** Angular application shell, layout and shared UI (4a82002)
+
 ## 1.9.0 (2026-11-06)
 
 ### Features
