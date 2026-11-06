@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.11.0 (2026-11-06)
+
+### Features
+
+* **admin-web:** users, feature flags and monitoring pages (8bdcf6f)
+
 ## 1.10.0 (2026-11-06)
 
 ### Features
