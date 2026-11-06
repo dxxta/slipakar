@@ -1,0 +1,69 @@
+@layer theme, base, components, utilities;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/preflight.css' layer(base);
+@import 'tailwindcss/utilities.css';
+
+@import '@spartan-ng/brain/hlm-tailwind-preset.css';
+@import '../../../packages/ui/src/theme.css';
+
+@theme inline {
+  --spacing-control-8: var(--ui-control-8);
+  --spacing-control-9: var(--ui-control-9);
+  --spacing-control-10: var(--ui-control-10);
+  --spacing-page: var(--ui-page-padding);
+  --spacing-page-lg: var(--ui-page-padding-lg);
+  --spacing-section: var(--ui-section-gap);
+  --spacing-card: var(--ui-card-padding);
+  --radius-ui-sm: var(--ui-radius-sm);
+  --radius-ui-md: var(--ui-radius-md);
+  --radius-ui-lg: var(--ui-radius-lg);
+}
+
+:root {
+  color-scheme: light;
+
+  --ui-control-8: 2rem;
+  --ui-control-9: 2.25rem;
+  --ui-control-10: 2.5rem;
+  --ui-page-padding: 1.5rem;
+  --ui-page-padding-lg: 2.5rem;
+  --ui-section-gap: 1.5rem;
+  --ui-card-padding: 1.25rem;
+  --ui-radius-sm: 0.375rem;
+  --ui-radius-md: 0.5rem;
+  --ui-radius-lg: 0.75rem;
+
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue',
+    Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+    'Segoe UI Symbol', 'Noto Color Emoji';
+
+}
+
+:root.dark {
+  color-scheme: dark;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  select:not([size]) {
+    min-height: var(--ui-control-8);
+    border-radius: var(--ui-radius-md);
+  }
+}
+
+@layer components {
+  select.app-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%2364748b' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 7 5 5 5-5'/%3E%3C/svg%3E");
+    background-position: right 0.75rem center;
+    background-repeat: no-repeat;
+    background-size: 1rem 1rem;
+    padding-right: 2.5rem;
+  }
+}
