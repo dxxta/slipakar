@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.9.0 (2026-11-06)
+
+### Features
+
+* **user-web:** profile with avatar and verified email change, login activity (b5ae621)
+
 ## 1.8.1 (2026-11-06)
 
 ### Documentation
