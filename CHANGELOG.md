@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.0.0 (2026-11-08)
+
+### Features
+
+* **admin-web:** setup gate for Uptime Kuma, Grafana and mail (6fdf8d0)
+
 ## 1.13.0 (2026-11-08)
 
 ### Features
