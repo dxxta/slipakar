@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.13.0 (2026-11-08)
+
+### Features
+
+* **infra:** Docker Compose stack with single Nginx web container (cf08f12)
+
 ## 1.12.0 (2026-11-08)
 
 ### Features
