@@ -1,0 +1,191 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      garage:
+        condition: service_healthy
+      garage-init:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: "postgresql://lokaslip:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/lokaslip"
+      REDIS_URL: "redis://redis:6379"
+      RABBITMQ_URL: "amqp://lokaslip:${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}@rabbitmq:5672"
+      S3_ENDPOINT: "garage"
+      S3_PORT: 3900
+      S3_USE_SSL: "false"
+      S3_ACCESS_KEY: "${S3_ACCESS_KEY:?S3_ACCESS_KEY is required}"
+      S3_SECRET_KEY: "${S3_SECRET_KEY:?S3_SECRET_KEY is required}"
+      S3_BUCKET: "lokaslip"
+      S3_REGION: "garage"
+      S3_PATH_STYLE: "true"
+      APP_ENCRYPTION_KEY: "${APP_ENCRYPTION_KEY:?APP_ENCRYPTION_KEY is required}"
+      BETTER_AUTH_SECRET: "${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET is required}"
+      BETTER_AUTH_URL: "${BETTER_AUTH_URL:?BETTER_AUTH_URL is required}"
+      TRUSTED_ORIGINS: "${TRUSTED_ORIGINS:-http://localhost:8080,http://localhost:8081}"
+      GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID:?GOOGLE_CLIENT_ID is required}"
+      GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET:?GOOGLE_CLIENT_SECRET is required}"
+      ADMIN_EMAILS: "${ADMIN_EMAILS:-}"
+      METRICS_TOKEN: "${METRICS_TOKEN:?METRICS_TOKEN is required}"
+      PORT: 3000
+      AUTH_SMTP_HOST: "${AUTH_SMTP_HOST:-}"
+      AUTH_SMTP_PORT: "${AUTH_SMTP_PORT:-587}"
+      AUTH_SMTP_SECURE: "${AUTH_SMTP_SECURE:-false}"
+      AUTH_SMTP_USER: "${AUTH_SMTP_USER:-}"
+      AUTH_SMTP_PASS: "${AUTH_SMTP_PASS:-}"
+      AUTH_MAIL_FROM: "${AUTH_MAIL_FROM:-}"
+      APP_URL: "${APP_URL:-}"
+      LOGIN_EVENT_RETENTION_DAYS: "${LOGIN_EVENT_RETENTION_DAYS:-90}"
+      TRUST_PROXY: "${TRUST_PROXY:-1}"
+
+  web:
+    build:
+      context: .
+      dockerfile: infra/web/Dockerfile
+      args:
+        SENTRY_DSN_USER: "${SENTRY_DSN_USER:-}"
+        SENTRY_DSN_ADMIN: "${SENTRY_DSN_ADMIN:-}"
+    restart: unless-stopped
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:${WEB_USER_PORT:-8080}:8080"
+      - "${BIND_ADDRESS:-127.0.0.1}:${WEB_ADMIN_PORT:-8081}:8081"
+    healthcheck:
+      test: ["CMD", "busybox", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  postgres:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: lokaslip
+      POSTGRES_DB: lokaslip
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lokaslip -d lokaslip"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.13-alpine
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: lokaslip
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "check_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  garage:
+    image: dxflrs/garage:v1.0.1
+    restart: unless-stopped
+    command: ["/garage", "-c", "/etc/garage/garage.toml", "server"]
+    environment:
+      GARAGE_RPC_SECRET: "${GARAGE_RPC_SECRET:?GARAGE_RPC_SECRET is required}"
+      GARAGE_ADMIN_TOKEN: "${GARAGE_ADMIN_TOKEN:?GARAGE_ADMIN_TOKEN is required}"
+      GARAGE_METRICS_TOKEN: "${GARAGE_METRICS_TOKEN:-}"
+    volumes:
+      - garage_meta:/var/lib/garage/meta
+      - garage_data:/var/lib/garage/data
+      - ./infra/garage/garage.toml:/etc/garage/garage.toml:ro
+    healthcheck:
+      test: ["CMD", "/garage", "-c", "/etc/garage/garage.toml", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  garage-init:
+    image: curlimages/curl
+    restart: "no"
+    entrypoint: ["/bin/sh", "/bootstrap.sh"]
+    depends_on:
+      garage:
+        condition: service_healthy
+    environment:
+      GARAGE_ADMIN_TOKEN: "${GARAGE_ADMIN_TOKEN:?GARAGE_ADMIN_TOKEN is required}"
+      S3_ACCESS_KEY: "${S3_ACCESS_KEY:?S3_ACCESS_KEY is required}"
+      S3_SECRET_KEY: "${S3_SECRET_KEY:?S3_SECRET_KEY is required}"
+      S3_BUCKET: "lokaslip"
+    volumes:
+      - ./infra/garage/bootstrap.sh:/bootstrap.sh:ro
+
+  prometheus:
+    image: prom/prometheus
+    restart: unless-stopped
+    entrypoint:
+      - /bin/sh
+      - -c
+      - |
+        echo "$$METRICS_TOKEN" > /tmp/metrics_token
+        exec /bin/prometheus --config.file=/etc/prometheus/prometheus.yml --storage.tsdb.path=/prometheus
+    environment:
+      METRICS_TOKEN: "${METRICS_TOKEN:?METRICS_TOKEN is required}"
+    volumes:
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    depends_on:
+      - api
+
+  grafana:
+    image: grafana/grafana-oss
+    restart: unless-stopped
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: "${GRAFANA_ADMIN_USER:-admin}"
+      GF_SECURITY_ADMIN_PASSWORD: "${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infra/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./infra/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
+
+  uptime-kuma:
+    image: louislam/uptime-kuma:1
+    restart: unless-stopped
+    ports:
+      - "${BIND_ADDRESS:-127.0.0.1}:3002:3001"
+    volumes:
+      - uptime_kuma_data:/app/data
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  garage_meta:
+  garage_data:
+  prometheus_data:
+  grafana_data:
+  uptime_kuma_data:
