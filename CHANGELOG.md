@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.12.0 (2026-11-08)
+
+### Features
+
+* **admin-web:** broadcasts, preferences and login activity of all users (8abab0d)
+
 ## 1.11.0 (2026-11-06)
 
 ### Features
