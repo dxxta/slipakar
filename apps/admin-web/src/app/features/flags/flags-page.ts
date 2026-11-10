@@ -56,7 +56,7 @@ import { Ripple } from '../../ui/shared/ripple';
       </div>
     } @else if (loadError()) {
       <div data-testid="flags-error-state" class="flex flex-col items-center justify-center rounded-lg border border-dashed p-8 text-center" aria-live="polite">
-        <p class="text-sm font-medium text-destructive mb-1">Failed to load feature flags</p>
+        <p class="text-sm font-medium text-[#E5484D] mb-1">Failed to load feature flags</p>
         <p class="text-xs text-muted-foreground mb-4">{{ loadError() }}</p>
         <button hlmBtn variant="outline" (click)="loadFlags()">Retry</button>
       </div>

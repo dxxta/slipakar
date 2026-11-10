@@ -36,7 +36,7 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
       badge="Admin"
       [topLevel]="true"
     />
-    @if (error()) { <p role="alert" class="rounded-ui-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">{{ error() }}</p> }
+    @if (error()) { <p role="alert" class="rounded-ui-md border border-[#E5484D]/30 bg-[#E5484D]/10 p-3 text-sm text-[#E5484D]">{{ error() }}</p> }
     @if (loading()) { <p role="status">Loading integration settings…</p> }
     @if (setup.view(); as state) {
       @if (state.complete) { <div class="flex flex-wrap items-center justify-between gap-3 rounded-ui-md border border-emerald-500/30 bg-emerald-500/10 p-4"><p class="text-sm">All integrations are configured and passing their connection tests.</p><a routerLink="/flags" class="inline-flex min-h-10 items-center rounded-ui-md bg-primary px-4 py-2 text-sm text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Continue to admin</a></div> }
@@ -67,7 +67,7 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
                   </div>
                 }
                 @if (integration.lastError) {
-                  <p role="alert" class="mt-3 text-sm text-destructive">{{ integration.lastError }}</p>
+                  <p role="alert" class="mt-3 rounded-ui-md border border-[#E5484D]/30 bg-[#E5484D]/10 px-3 py-2 text-sm text-[#E5484D]">{{ integration.lastError }}</p>
                 }
               </div>
               <div class="flex shrink-0 flex-wrap items-center gap-2 md:justify-end">
@@ -141,7 +141,7 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
             <label class="grid gap-1.5 text-sm font-medium" for="mail-username">Username (optional)<input id="mail-username" name="username" [(ngModel)]="form().username" placeholder="Username" class="h-control-9 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
             <label class="grid gap-1.5 text-sm font-medium" for="mail-password">Password (write only)<input id="mail-password" name="password" type="password" autocomplete="new-password" [(ngModel)]="form().password" placeholder="Enter password" class="h-control-9 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /><span class="text-xs font-normal text-muted-foreground">{{ item.hasCredentials ? 'Saved. Enter a value only to replace it.' : 'Leave empty if this server does not require authentication.' }}</span></label>
           }
-          @if (actionError()) { <p role="alert" class="text-sm text-destructive">{{ actionError() }}</p> }
+          @if (actionError()) { <p role="alert" class="rounded-ui-md border border-[#E5484D]/30 bg-[#E5484D]/10 px-3 py-2 text-sm text-[#E5484D]">{{ actionError() }}</p> }
         </form>
         @if (item.configured) { <div class="mt-4 border-t border-border pt-4"><button hlmBtn variant="outline" type="button" [disabled]="busy()" (click)="testConnection(item.key)">Test connection</button>@if (testMessage()) { <p role="status" class="mt-2 text-sm">{{ testMessage() }}</p> }</div> }
       }

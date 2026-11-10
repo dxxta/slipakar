@@ -82,7 +82,7 @@ import { Ripple } from '../../ui/shared/ripple';
             <div class="grid gap-2"><label for="user-name" class="text-sm font-medium">Name</label><input id="user-name" class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" [value]="editName()" (input)="editName.set(inputValue($event))" maxlength="100" placeholder="User name" /></div>
             <div class="grid gap-2"><label for="user-image" class="text-sm font-medium">Image URL</label><input id="user-image" type="url" class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" [value]="editImage()" (input)="onImageInput($event)" placeholder="https://example.com" /></div>
             <p class="text-xs text-muted-foreground">Only absolute image URLs can be saved here. A blank image keeps the current value unless you edit this field.</p>
-            @if (error()) { <p role="alert" class="text-sm text-destructive">{{ error() }}</p> }
+            @if (error()) { <p role="alert" class="rounded-ui-md border border-[#E5484D]/30 bg-[#E5484D]/10 px-3 py-2 text-sm text-[#E5484D]">{{ error() }}</p> }
           </form>
         }
       }

@@ -40,7 +40,7 @@ import { Pressed } from '../../ui/shared/pressed';
                   <input type="color" class="base-color-picker" [value]="baseColorValue(field.key)" [attr.aria-label]="field.label + ' color picker'" (input)="changeBaseColor(field.key, $event)" />
                   <input type="text" class="base-color-hex min-w-0 flex-1" [value]="baseColorDraft(field.key)" [attr.aria-label]="field.label + ' hex value'" [attr.aria-invalid]="baseColorDraftInvalid(field.key) ? 'true' : null" placeholder="#D4F03C" pattern="^#[0-9A-Fa-f]{6}$" maxlength="7" spellcheck="false" (input)="changeBaseColorHex(field.key, $event)" />
                 </span>
-                @if (baseColorDraftInvalid(field.key)) { <span class="text-xs text-destructive">Enter a color in #RRGGBB format.</span> }
+                @if (baseColorDraftInvalid(field.key)) { <span class="text-xs text-[#E5484D]">Enter a color in #RRGGBB format.</span> }
               </label>
             }
           </div>
