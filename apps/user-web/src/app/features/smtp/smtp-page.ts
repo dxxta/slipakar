@@ -253,9 +253,6 @@ import { Ripple } from '../../ui/shared/ripple';
             <dd class="mt-1 tabular-nums">{{ conn.updatedAt ? (conn.updatedAt | date: 'medium') : '—' }}</dd>
           </div>
         </dl>
-        <div class="mt-6 flex justify-end">
-          <button hlmBtn variant="outline" type="button" (click)="detailConnection.set(null)">Close</button>
-        </div>
       }
     </app-drawer>
     }

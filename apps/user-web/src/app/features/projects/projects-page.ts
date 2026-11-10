@@ -232,9 +232,6 @@ type ProjectCounts = { campaigns: number; templates: number; uploads: number };
             </dd>
           </div>
         </dl>
-        <div class="mt-6 flex justify-end">
-          <button hlmBtn variant="outline" type="button" (click)="closeDetail()">Close</button>
-        </div>
       }
     </app-drawer>
 
