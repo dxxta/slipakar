@@ -6,10 +6,11 @@ import { HlmButton } from '../../ui/button/src';
 import { DataTableControls, Drawer, ListBody, PageHeader, Pagination, SelectControl } from '../../ui';
 import { getMapTiles, type LoginMapTile } from './map-tiles';
 import { LoginActivityService, type LoginActivityItem, type LoginActivitySort } from './login-activity.service';
+import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
   selector: 'app-login-activity-page',
-  imports: [CommonModule, DatePipe, HlmBadge, HlmButton, DataTableControls, Drawer, ListBody, PageHeader, Pagination, SelectControl],
+  imports: [Ripple, CommonModule, DatePipe, HlmBadge, HlmButton, DataTableControls, Drawer, ListBody, PageHeader, Pagination, SelectControl],
   template: `
     <app-page-header
       title="Login activity"
@@ -34,20 +35,20 @@ import { LoginActivityService, type LoginActivityItem, type LoginActivitySort } 
       (clearQuery)="search('')"
     >
       <div list-content class="overflow-x-auto rounded-ui-lg border border-border bg-card">
-        <table class="min-w-[68rem] w-full text-left text-sm" aria-label="Login activity">
+        <table data-responsive class="min-w-[68rem] w-full text-left text-sm" aria-label="Login activity">
           <thead class="border-b border-border bg-muted/40 text-xs uppercase text-muted-foreground">
             <tr><th class="px-4 py-3">Date</th><th class="px-4 py-3">User</th><th class="px-4 py-3">Device / browser</th><th class="px-4 py-3">IP address</th><th class="px-4 py-3">Proxy flag</th><th class="px-4 py-3">Location</th><th class="px-4 py-3">Map</th></tr>
           </thead>
           <tbody class="divide-y divide-border">
             @for (event of events(); track event.id) {
               <tr class="align-top hover:bg-muted/30">
-                <td class="whitespace-nowrap px-4 py-4 tabular-nums">{{ event.createdAt | date:'medium' }}</td>
-                <td class="px-4 py-4"><p class="font-medium">{{ event.userName || 'Unnamed user' }}</p><p class="text-xs text-muted-foreground">{{ event.userEmail || 'Unknown account' }}</p></td>
-                <td class="px-4 py-4"><p class="font-medium">{{ event.deviceType || 'Unknown device' }}</p><p class="mt-1 text-xs text-muted-foreground">{{ event.browser || 'Unknown browser' }} · {{ event.os || 'Unknown OS' }}</p></td>
-                <td class="px-4 py-4 font-mono text-xs tabular-nums">{{ event.ip || 'Unavailable' }}</td>
-                <td class="px-4 py-4">@if (event.proxy && !isPrivateIp(event.ip)) { <span hlmBadge variant="outline" aria-label="Possible proxy (best effort)" title="best effort">Possible proxy</span> } @else { <span class="text-muted-foreground">No proxy signal</span> }</td>
-                <td class="px-4 py-4">{{ locationLabel(event) }}</td>
-                <td class="px-4 py-4">@if (hasCoordinates(event)) { <button hlmBtn variant="outline" size="sm" type="button" [attr.aria-label]="'View map for ' + locationLabel(event)" (click)="openMap(event)">View map</button> } @else { <span class="text-xs text-muted-foreground" [title]="isPrivateIp(event.ip) ? 'Private network addresses cannot be located' : 'Location coordinates are unavailable'">No map</span> }</td>
+                <td data-label="Date" class="whitespace-nowrap px-4 py-4 tabular-nums">{{ event.createdAt | date:'medium' }}</td>
+                <td data-label="User" class="px-4 py-4"><p class="font-medium">{{ event.userName || 'Unnamed user' }}</p><p class="text-xs text-muted-foreground">{{ event.userEmail || 'Unknown account' }}</p></td>
+                <td data-label="Device / browser" class="px-4 py-4"><p class="font-medium">{{ event.deviceType || 'Unknown device' }}</p><p class="mt-1 text-xs text-muted-foreground">{{ event.browser || 'Unknown browser' }} · {{ event.os || 'Unknown OS' }}</p></td>
+                <td data-label="IP address" class="px-4 py-4 font-mono text-xs tabular-nums">{{ event.ip || 'Unavailable' }}</td>
+                <td data-label="Proxy flag" class="px-4 py-4">@if (event.proxy && !isPrivateIp(event.ip)) { <span hlmBadge variant="outline" aria-label="Possible proxy (best effort)" title="best effort">Possible proxy</span> } @else { <span class="text-muted-foreground">No proxy signal</span> }</td>
+                <td data-label="Location" class="px-4 py-4">{{ locationLabel(event) }}</td>
+                <td data-label="Map" class="px-4 py-4">@if (hasCoordinates(event)) { <button hlmBtn variant="outline" size="sm" type="button" [attr.aria-label]="'View map for ' + locationLabel(event)" (click)="openMap(event)">View map</button> } @else { <span class="text-xs text-muted-foreground" [title]="isPrivateIp(event.ip) ? 'Private network addresses cannot be located' : 'Location coordinates are unavailable'">No map</span> }</td>
               </tr>
             }
           </tbody>
