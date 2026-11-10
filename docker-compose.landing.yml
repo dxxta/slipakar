@@ -1,0 +1,23 @@
+# Landing site only: no database, API or secrets required.
+# Dokploy: Compose service, Compose Path ./docker-compose.landing.yml
+name: ${COMPOSE_PROJECT_NAME:-slipakar-landing}
+
+services:
+  landing:
+    build:
+      context: .
+      dockerfile: infra/landing/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${LANDING_BIND_ADDRESS:-127.0.0.1}:${LANDING_PORT:-8082}:8082"
+    environment:
+      PORT: 8082
+      LANDING_APP_URL: "${LANDING_APP_URL:-http://localhost:8080}"
+      LANDING_SITE_URL: "${LANDING_SITE_URL:-http://localhost:8082}"
+      LANDING_REPO_URL: "${LANDING_REPO_URL:-http://localhost:8082/#open-source}"
+      LANDING_DOCS_URL: "${LANDING_DOCS_URL:-http://localhost:8082/#self-host}"
+    healthcheck:
+      test: ["CMD", "busybox", "wget", "-q", "-O", "-", "http://127.0.0.1:8082/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
