@@ -95,3 +95,8 @@
   app-data-table-controls div[table-filters] select { width: 100%; }
 }
 
+/* Table headers use the accent color. */
+table:not(.preview-table) thead { background-color: var(--primary) !important; color: var(--primary-foreground) !important; }
+table:not(.preview-table) thead th,
+table:not(.preview-table) thead th button { color: inherit !important; }
+
