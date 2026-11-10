@@ -37,12 +37,10 @@ export function buildDemoProjectUseCase({
     }): Promise<ResponseTypeWithoutMetadata<{ projectId: string; created: boolean }>> {
       const projectName = 'Example payroll project';
 
-      // 1. Idempotency check: see if project already exists for this user
+      // 1. Keep one demo workspace per instance, including the startup system-owned copy.
       const existingProject = await prisma.project.findFirst({
-        where: {
-          name: projectName,
-          ownerId: userId,
-        },
+        where: { name: projectName },
+        orderBy: { createdAt: 'asc' },
       });
 
       if (existingProject) {

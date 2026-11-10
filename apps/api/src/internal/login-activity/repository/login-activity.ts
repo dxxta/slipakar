@@ -101,7 +101,7 @@ export class LoginActivityRepository implements LoginActivityRepositoryInterface
   async findAllEvents(
     query: ListAdminLoginActivityQueryDto,
   ): Promise<{ data: LoginEventView[]; total: number }> {
-    const where: Prisma.LoginEventWhereInput = {};
+    const where: Prisma.LoginEventWhereInput = { user: { is: { role: { not: 'system' } } } };
 
     if (query.q) {
       where.OR = [

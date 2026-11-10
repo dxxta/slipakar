@@ -69,6 +69,7 @@ import { createMappingRouter } from './internal/mapping/delivery/http/mapping.js
 import { buildMappingRepository } from './internal/mapping/repository/mapping.js';
 import { buildMappingUseCase } from './internal/mapping/usecase/mapping.js';
 import { buildDemoProjectUseCase } from './internal/demo-project/usecase/demo-project.js';
+import { seedSystemDemoProject } from './internal/demo-project/startup-seed.js';
 import { createDemoProjectRouter } from './internal/demo-project/delivery/http/demo-project.js';
 import { buildAvatarRepository } from './internal/avatar/repository/avatar.js';
 import { buildAvatarUseCase } from './internal/avatar/usecase/avatar.js';
@@ -123,6 +124,7 @@ export type Application = {
   // Prepares external resources: creates the bucket and subscribes to flag invalidations.
   start(): Promise<void>;
   stop(): Promise<void>;
+  seedSystemDemoProject(): Promise<void>;
 };
 
 export function buildApp(deps: CompositionDeps): Express {
@@ -187,6 +189,8 @@ export function buildApplication({
     },
     authEmailSender,
     loginActivityUseCase,
+    adminEmails: env.ADMIN_EMAILS,
+    errorReporter: errorReporterOverride,
   });
 
   const requireAuth =
@@ -467,6 +471,11 @@ export function buildApplication({
     cryptoService,
     envMailConfig,
     () => dynamicAuthEmailSender.invalidate(),
+    undefined,
+    {
+      grafana: env.SETUP_GRAFANA_URL ? { baseUrl: env.SETUP_GRAFANA_URL, apiToken: env.SETUP_GRAFANA_API_TOKEN } : undefined,
+      uptime: env.SETUP_UPTIME_URL ? { baseUrl: env.SETUP_UPTIME_URL, username: env.SETUP_UPTIME_USERNAME, password: env.SETUP_UPTIME_PASSWORD } : undefined,
+    },
   );
 
   const demoProjectUseCase = buildDemoProjectUseCase({
@@ -574,6 +583,9 @@ export function buildApplication({
   return {
     app,
     errorReporter,
+    async seedSystemDemoProject(): Promise<void> {
+      await seedSystemDemoProject({ prisma, demoProjectUseCase, errorReporter });
+    },
     async start(): Promise<void> {
       await storage.ensureBucket();
       errorLogSink.start();

@@ -31,7 +31,7 @@ export function buildAdminUsersRepository({
       sortBy: ListAdminUsersSortBy;
       sortDir: 'asc' | 'desc';
     }): Promise<RepositoryResponse<UserWithCount[]>> {
-      const where: Prisma.UserWhereInput = {};
+      const where: Prisma.UserWhereInput = { role: { not: 'system' } };
       if (q) {
         where.OR = [
           { name: { contains: q, mode: 'insensitive' } },
@@ -70,7 +70,7 @@ export function buildAdminUsersRepository({
 
     async findById(id: string): Promise<UserWithCount | null> {
       return prisma.user.findUnique({
-        where: { id },
+        where: { id, role: { not: 'system' } },
         include: {
           _count: {
             select: { projects: true },
@@ -91,6 +91,7 @@ export function buildAdminUsersRepository({
         where: {
           email: { in: lowercaseEmails, mode: 'insensitive' },
           disabledAt: null,
+          role: { not: 'system' },
         },
       });
     },

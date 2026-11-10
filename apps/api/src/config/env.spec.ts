@@ -54,6 +54,7 @@ describe('loadEnv', () => {
       PORT: 3000,
       LOGIN_EVENT_RETENTION_DAYS: 90,
       TRUST_PROXY: 'false',
+      SEED_DEMO_PROJECT: true,
       S3_PORT: 3900,
       S3_USE_SSL: false,
       S3_REGION: 'garage',
@@ -88,6 +89,35 @@ describe('loadEnv', () => {
 
   it('rejects a RABBITMQ_URL that is not an amqp(s) URL', () => {
     expect(() => loadEnv({ ...valid, RABBITMQ_URL: 'http://localhost:5672' })).toThrow();
+  });
+
+  it('defaults demo seeding on outside tests and off in tests', () => {
+    expect(loadEnv(valid).SEED_DEMO_PROJECT).toBe(true);
+    expect(loadEnv({ ...valid, NODE_ENV: 'test' }).SEED_DEMO_PROJECT).toBe(false);
+    expect(loadEnv({ ...valid, NODE_ENV: 'test', SEED_DEMO_PROJECT: 'true' }).SEED_DEMO_PROJECT).toBe(true);
+  });
+
+  it('rejects malformed optional monitoring URLs and treats empty optional values as unset', () => {
+    expect(() => loadEnv({ ...valid, SETUP_GRAFANA_URL: 'not-a-url' })).toThrow();
+    const env = loadEnv({ ...valid, SETUP_GRAFANA_URL: '', SETUP_UPTIME_URL: '', SETUP_UPTIME_PASSWORD: '', SETUP_UPTIME_USERNAME: '', SETUP_GRAFANA_API_TOKEN: '' });
+    expect(env.SETUP_GRAFANA_URL).toBeUndefined();
+    expect(env.SETUP_UPTIME_URL).toBeUndefined();
+  });
+
+  it('parses optional monitoring integration environment values', () => {
+    const env = loadEnv({
+      ...valid,
+      SETUP_GRAFANA_URL: 'http://grafana:3000',
+      SETUP_UPTIME_URL: 'http://uptime-kuma:3001',
+      SETUP_UPTIME_USERNAME: 'admin',
+      SETUP_UPTIME_PASSWORD: 'secret',
+      SETUP_GRAFANA_API_TOKEN: 'token',
+    });
+    expect(env.SETUP_GRAFANA_URL).toBe('http://grafana:3000');
+    expect(env.SETUP_UPTIME_URL).toBe('http://uptime-kuma:3001');
+    expect(env.SETUP_UPTIME_USERNAME).toBe('admin');
+    expect(env.SETUP_UPTIME_PASSWORD).toBe('secret');
+    expect(env.SETUP_GRAFANA_API_TOKEN).toBe('token');
   });
 
   it('leaves METRICS_TOKEN undefined when it is not set', () => {

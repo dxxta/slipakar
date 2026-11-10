@@ -154,6 +154,7 @@ export class BroadcastRepository implements BroadcastRepositoryInterface {
   ): Promise<TargetRecipient[]> {
     const where: Prisma.UserWhereInput = {
       disabledAt: null, // Always exclude disabled users
+      role: { not: 'system' },
     };
 
     if (audience === 'role') {
@@ -162,6 +163,7 @@ export class BroadcastRepository implements BroadcastRepositoryInterface {
         return []; // Safety: never fall through to all users if role filter is invalid
       }
       where.role = role.trim();
+      where.AND = [{ role: { not: 'system' } }];
     } else if (audience === 'users') {
       const userIds = audienceFilter?.userIds;
       if (!Array.isArray(userIds) || userIds.length === 0) {

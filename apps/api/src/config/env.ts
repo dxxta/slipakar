@@ -69,6 +69,12 @@ export const envSchema = z.object({
   LOGIN_EVENT_RETENTION_DAYS: z.coerce.number().int().min(1).max(3650).default(90),
   // Trust proxy setting for Express: 'false', hop count (e.g. '1'), or CIDR / IP list.
   TRUST_PROXY: z.string().trim().default('false'),
+  SEED_DEMO_PROJECT: z.enum(['true', 'false']).default('true').transform((value) => value === 'true'),
+  SETUP_GRAFANA_URL: z.string().url().optional(),
+  SETUP_UPTIME_URL: z.string().url().optional(),
+  SETUP_UPTIME_USERNAME: z.string().trim().min(1).optional(),
+  SETUP_UPTIME_PASSWORD: z.string().min(1).optional(),
+  SETUP_GRAFANA_API_TOKEN: z.string().trim().min(1).optional(),
 }).refine((data) => {
   const hasHost = Boolean(data.AUTH_SMTP_HOST);
   const hasFrom = Boolean(data.AUTH_MAIL_FROM);
@@ -88,12 +94,15 @@ export const envSchema = z.object({
 export type Env = z.infer<typeof envSchema>;
 
 // docker-compose passes unset optional variables as empty strings; treat those as absent.
-const optionalWhenEmpty = ['APP_URL', 'AUTH_SMTP_HOST', 'AUTH_SMTP_PORT', 'AUTH_SMTP_SECURE', 'AUTH_SMTP_USER', 'AUTH_SMTP_PASS', 'AUTH_MAIL_FROM', 'LOGIN_EVENT_RETENTION_DAYS', 'TRUST_PROXY'];
+const optionalWhenEmpty = ['APP_URL', 'AUTH_SMTP_HOST', 'AUTH_SMTP_PORT', 'AUTH_SMTP_SECURE', 'AUTH_SMTP_USER', 'AUTH_SMTP_PASS', 'AUTH_MAIL_FROM', 'LOGIN_EVENT_RETENTION_DAYS', 'TRUST_PROXY', 'SEED_DEMO_PROJECT', 'SETUP_GRAFANA_URL', 'SETUP_UPTIME_URL', 'SETUP_UPTIME_USERNAME', 'SETUP_UPTIME_PASSWORD', 'SETUP_GRAFANA_API_TOKEN'];
 
 export function loadEnv(source: Record<string, string | undefined>): Env {
   const cleaned = { ...source };
   for (const key of optionalWhenEmpty) {
     if (cleaned[key]?.trim() === '') delete cleaned[key];
+  }
+  if (cleaned.SEED_DEMO_PROJECT === undefined && cleaned.NODE_ENV === 'test') {
+    cleaned.SEED_DEMO_PROJECT = 'false';
   }
   return envSchema.parse(cleaned);
 }

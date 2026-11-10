@@ -3,6 +3,8 @@ import { APIError, betterAuth } from 'better-auth';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import type { AuthEmailSenderInterface } from '../domain/auth/sender.js';
 import type { LoginActivityUseCaseInterface } from '../domain/login-activity/interface.js';
+import { claimSystemDemoProject } from '../internal/demo-project/claim.js';
+import type { ErrorReporter } from '../domain/error-reporting/interface.js';
 
 export type AuthDeps = {
   prisma: PrismaClient;
@@ -16,9 +18,11 @@ export type AuthDeps = {
   };
   authEmailSender?: AuthEmailSenderInterface;
   loginActivityUseCase?: LoginActivityUseCaseInterface;
+  adminEmails?: string[];
+  errorReporter?: ErrorReporter;
 };
 
-function buildAuth({ prisma, env, authEmailSender, loginActivityUseCase }: AuthDeps) {
+function buildAuth({ prisma, env, authEmailSender, loginActivityUseCase, adminEmails = [], errorReporter }: AuthDeps) {
   const plugins = [];
 
   plugins.push({
@@ -60,6 +64,27 @@ function buildAuth({ prisma, env, authEmailSender, loginActivityUseCase }: AuthD
       session: {
         create: {
           after: async (session: { userId?: string; ipAddress?: string | null; userAgent?: string | null }, context?: unknown) => {
+            if (session?.userId) {
+              try {
+                const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { email: true } });
+                if (user) {
+                  await claimSystemDemoProject({
+                    prisma,
+                    userId: session.userId,
+                    userEmail: user.email,
+                    adminEmails,
+                    errorReporter: errorReporter ?? { capture: (error) => console.error('Demo project claim failed', error) },
+                  });
+                }
+              } catch (error: unknown) {
+                try {
+                  if (errorReporter) errorReporter.capture(error, { source: 'demo-project-claim' });
+                  else console.error('Demo project claim failed', error);
+                } catch {
+                  // Sign-in must not fail because demo ownership could not be updated.
+                }
+              }
+            }
             if (loginActivityUseCase && session?.userId) {
               try {
                 const ctx = context as { headers?: Record<string, string | string[] | undefined> & { get?: (k: string) => string | null }; request?: { headers?: { get?: (k: string) => string | null } } } | undefined;

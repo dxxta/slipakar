@@ -6,6 +6,9 @@ const env = loadEnv(process.env);
 const application = buildApplication({ env, prisma });
 
 await application.start();
+if (env.SEED_DEMO_PROJECT) {
+  await application.seedSystemDemoProject();
+}
 
 const server = application.app.listen(env.PORT, () => {
   console.log(`Slipakar API listening on port ${env.PORT}`);

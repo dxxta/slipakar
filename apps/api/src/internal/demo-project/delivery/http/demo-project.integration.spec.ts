@@ -23,6 +23,8 @@ import { createCryptoService } from '../../../../services/crypto.js';
 import { buildDemoProjectUseCase } from '../../usecase/demo-project.js';
 import { createDemoProjectRouter } from './demo-project.js';
 import { requireAdmin } from '../../../system-config/middleware/require-admin.js';
+import { seedSystemDemoProject } from '../../startup-seed.js';
+import type { ErrorReporter } from '../../../../domain/error-reporting/interface.js';
 
 describe('Demo Project Integration', () => {
   let pgContainer: StartedPostgreSqlContainer;
@@ -31,6 +33,7 @@ describe('Demo Project Integration', () => {
 
   const adminEmail = 'admin-demo@example.com';
   let adminId: string;
+  let demoProjectUseCase: ReturnType<typeof buildDemoProjectUseCase>;
 
   beforeAll(async () => {
     pgContainer = await startContainer(() => new PostgreSqlContainer('postgres:16').start());
@@ -101,7 +104,7 @@ describe('Demo Project Integration', () => {
       projectLookup: async (pid, uid) => (await prisma.project.findFirst({ where: { id: pid, ownerId: uid } })) !== null,
     });
 
-    const demoProjectUseCase = buildDemoProjectUseCase({
+    demoProjectUseCase = buildDemoProjectUseCase({
       prisma,
       projectsRepository,
       templatesRepository,
@@ -173,5 +176,47 @@ describe('Demo Project Integration', () => {
     expect(res2.status).toBe(200);
     expect(res2.body.data.projectId).toBe(projectId);
     expect(res2.body.data.created).toBe(false);
+  });
+
+
+  it('does not create a second instance-wide demo project for another administrator', async () => {
+    const otherAdmin = await prisma.user.create({ data: { email: 'second-admin@example.com', name: 'Second Admin', role: 'admin' } });
+    const existingProject = await prisma.project.findFirst({ where: { name: 'Example payroll project' } });
+    const result = await demoProjectUseCase.seedDemoProjectUseCase({ userId: otherAdmin.id });
+    expect(result.data.created).toBe(false);
+    expect(result.data.projectId).toBe(existingProject?.id);
+    expect(await prisma.project.count({ where: { name: 'Example payroll project' } })).toBe(1);
+  });
+
+
+  it('seeds one complete system-owned workspace once and retains the placeholder SMTP draft', async () => {
+    await prisma.project.deleteMany({ where: { name: 'Example payroll project' } });
+    const errorReporter: ErrorReporter = { capture: () => undefined };
+    await seedSystemDemoProject({ prisma, demoProjectUseCase, errorReporter });
+    await seedSystemDemoProject({ prisma, demoProjectUseCase, errorReporter });
+
+    const systemUser = await prisma.user.findUnique({ where: { email: 'demo-owner@system.invalid' } });
+    const project = await prisma.project.findFirst({
+      where: { name: 'Example payroll project' },
+      include: {
+        emailTemplates: true,
+        pdfTemplates: true,
+        dataUploads: { include: { fieldMappings: true } },
+        campaigns: true,
+        smtpConnections: true,
+      },
+    });
+    expect(systemUser).toMatchObject({ role: 'system', emailVerified: true, disabledReason: 'System account' });
+    expect(systemUser?.disabledAt).toBeInstanceOf(Date);
+    expect(project?.ownerId).toBe(systemUser?.id);
+    expect(await prisma.project.count({ where: { name: 'Example payroll project' } })).toBe(1);
+    expect(project?.emailTemplates).toHaveLength(1);
+    expect(project?.pdfTemplates).toHaveLength(1);
+    expect(project?.dataUploads).toHaveLength(1);
+    expect(project?.dataUploads[0].fieldMappings).toHaveLength(1);
+    expect(project?.campaigns).toHaveLength(1);
+    expect(project?.campaigns[0].status).toBe('draft');
+    expect(project?.smtpConnections).toHaveLength(1);
+    expect(project?.smtpConnections[0].host).toBe('smtp.example.com');
   });
 });

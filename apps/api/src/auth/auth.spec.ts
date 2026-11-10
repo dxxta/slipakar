@@ -28,6 +28,27 @@ describe('createAuth', () => {
     }));
   });
 
+  it('claims the demo project from the system owner after an administrator session is created', async () => {
+    const tx = {
+      user: { findUnique: vi.fn().mockResolvedValue({ id: 'system-owner' }) },
+      project: { findFirst: vi.fn().mockResolvedValue({ id: 'demo-project' }), updateMany: vi.fn().mockResolvedValue({ count: 1 }) },
+      auditLog: { createMany: vi.fn().mockResolvedValue({ count: 1 }) },
+    };
+    const prisma = {
+      user: { findUnique: vi.fn().mockResolvedValue({ email: 'admin@example.com' }) },
+      $transaction: vi.fn(async (callback: (client: typeof tx) => Promise<void>) => callback(tx)),
+    } as unknown as PrismaClient;
+    createAuth({
+      prisma,
+      env: { googleClientId: 'id', googleClientSecret: 'secret', secret: 'auth', baseUrl: 'http://localhost', trustedOrigins: [] },
+      adminEmails: ['admin@example.com'],
+    });
+    const config = betterAuthMock.mock.calls.at(-1)?.[0];
+    await config.databaseHooks.session.create.after({ userId: 'admin-id' });
+    expect(tx.project.updateMany).toHaveBeenCalledWith({ where: { id: 'demo-project', ownerId: 'system-owner' }, data: { ownerId: 'admin-id' } });
+    expect(tx.auditLog.createMany).toHaveBeenCalledOnce();
+  });
+
   it('configures changeEmail and emailVerification when authEmailSender is provided', async () => {
     const sendMail = vi.fn().mockResolvedValue({ ok: true });
     createAuth({
