@@ -17,7 +17,8 @@ import { Ripple } from '../../ui/shared/ripple';
       badge="Admin"
       [topLevel]="true"
     >
-      <button page-actions hlmBtn type="button" aria-label="Create broadcast" (click)="openComposer()">New broadcast</button>
+      <button page-actions hlmBtn type="button" class="max-md:hidden" aria-label="Create broadcast" (click)="openComposer()">New broadcast</button>
+      <app-row-actions page-actions class="md:hidden" [solid]="true" label="Page actions" [items]="pageActions" (actionSelect)="openComposer()" />
     </app-page-header>
     <app-data-table-controls [query]="query()" searchPlaceholder="Search broadcasts..." (queryChange)="search($event)"><div table-filters class="flex flex-wrap items-end gap-3">
       <label class="grid min-w-36 gap-1 text-xs font-medium text-muted-foreground">Sort by<select appSelect aria-label="Sort broadcasts" class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm" [value]="sortBy()" (change)="sort($event)"><option value="createdAt">Created</option><option value="subject">Subject</option><option value="status">Status</option><option value="sentAt">Sent date</option></select></label>
@@ -107,6 +108,7 @@ import { Ripple } from '../../ui/shared/ripple';
   `,
 })
 export class BroadcastsPage implements OnInit {
+  protected readonly pageActions: RowActionItem[] = [{ id: 'new', label: 'New broadcast', icon: 'plus' }];
   private readonly service = inject(BroadcastsService);
   private readonly usersService = inject(UsersService);
   readonly items = signal<BroadcastItem[]>([]);
