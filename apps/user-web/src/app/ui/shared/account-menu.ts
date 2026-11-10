@@ -1,14 +1,15 @@
 import { Component, ElementRef, HostListener, inject, input, output, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { tablerChevronDown } from '@ng-icons/tabler-icons';
+import { tablerChevronDown, tablerLogout } from '@ng-icons/tabler-icons';
 import { Avatar } from '@slipakar/ui/avatar';
 import { ThemeToggle } from './theme-toggle';
 import { Ripple } from './ripple';
+import { Pressed } from './pressed';
 
 @Component({
   selector: 'app-account-menu',
-  imports: [Ripple, Avatar, ThemeToggle, NgIcon],
-  providers: [provideIcons({ tablerChevronDown })],
+  imports: [Ripple, Pressed, Avatar, ThemeToggle, NgIcon],
+  providers: [provideIcons({ tablerChevronDown, tablerLogout })],
   template: `
     <div class="relative min-w-0 w-full">
       <button
@@ -28,7 +29,10 @@ import { Ripple } from './ripple';
       @if (open()) {
         <div role="menu" aria-label="Account actions" class="fixed z-[80] min-w-56 rounded-ui-md border border-border bg-popover p-1 text-popover-foreground shadow-lg" [style.left.px]="position().left" [style.bottom.px]="position().bottom">
           <app-theme-toggle />
-          <button role="menuitem" type="button" class="h-control-9 w-full rounded-ui-sm px-3 text-left text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" (click)="signOutRequested.emit(); open.set(false)">Sign out</button>
+          <button appPressed role="menuitem" type="button" class="account-menu-signout flex h-control-9 w-full items-center gap-2 px-3 text-left text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" (click)="signOutRequested.emit(); open.set(false)">
+            <ng-icon name="tablerLogout" aria-hidden="true" class="size-4" />
+            <span>Sign out</span>
+          </button>
         </div>
       }
     </div>

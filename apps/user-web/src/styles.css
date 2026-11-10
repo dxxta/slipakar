@@ -35,6 +35,7 @@
 
   --ink: #151513;
   --ink-fixed: #151513;
+  --lime: #D4F03C;
   --on-ink: #F7EFE7;
   --background: #F7EFE7;
   --foreground: #151513;
@@ -319,6 +320,19 @@ button[data-slot='button'] { border-radius: 999px !important; }
 }
 .avatar-url-group > button[data-slot='button']:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):hover:not(:disabled) { transform: none !important; box-shadow: none !important; }
 button:disabled { cursor: not-allowed; opacity: 0.55; }
+button.account-menu-signout {
+  border: 3px solid var(--ink-fixed) !important;
+  border-radius: 999px !important;
+  background: var(--lime) !important;
+  color: var(--ink-fixed) !important;
+  box-shadow: 4px 4px 0 var(--shadow-color) !important;
+  transition: transform 140ms ease-out, box-shadow 140ms ease-out;
+}
+button.account-menu-signout:hover:not(:disabled) { background: var(--lime) !important; transform: translateY(-2px); box-shadow: 4px 6px 0 var(--shadow-color) !important; }
+button.account-menu-signout:active:not(:disabled), button.account-menu-signout[data-pressed] {
+  transform: translate(var(--press-x), var(--press-y));
+  box-shadow: 0 0 0 var(--shadow-color) !important;
+}
 
 :is(.rounded-xl, .rounded-ui-lg, [data-slot='card']) { border-radius: 1rem; }
 [data-slot='card']:not(.border-0) { border: 2px solid var(--border); }
