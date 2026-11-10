@@ -69,13 +69,14 @@
   --shadow-color: var(--third-custom, #000000);
   --shadow-hard: 4px 4px 0 var(--shadow-color);
   --shadow-hover: 4px 6px 0 var(--shadow-color);
+  --shadow-pressed: 1px 1px 0 var(--shadow-color);
   --border-width-strong: 3px;
   --border-width-card: 2px;
   --radius-pill: 999px;
   --radius-card: 1rem;
   --radius-control: 0.85rem;
-  --press-x: 4px;
-  --press-y: 4px;
+  --press-x: 3px;
+  --press-y: 3px;
   --radius: 1rem;
 }
 
@@ -288,13 +289,13 @@ table:not(.preview-table) thead th button { color: inherit !important; }
 
 /* Tactile press state for the shared controls and explicitly marked surfaces. */
 [appPressed], [data-slot='button'] {
-  --press-x: 4px;
-  --press-y: 4px;
+  --press-x: 3px;
+  --press-y: 3px;
   transition: transform 140ms ease-out, box-shadow 140ms ease-out;
 }
 [appPressed][data-pressed], [data-slot='button'][data-pressed] {
   transform: translate(var(--press-x), var(--press-y));
-  box-shadow: 0 0 0 var(--shadow-color) !important;
+  box-shadow: var(--shadow-pressed) !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -317,7 +318,7 @@ a[data-slot='button']:hover:not([aria-disabled='true']) {
 button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.input-group-addon):not(.account-menu-signout):not(.sidebar-square-button):not(.account-menu-collapsed-trigger):not(.account-menu-expanded-trigger):not([appSortHeader]):active:not(:disabled),
 a[data-slot='button']:active:not([aria-disabled='true']) {
   transform: translate(var(--press-x), var(--press-y));
-  box-shadow: 0 0 0 var(--shadow-color) !important;
+  box-shadow: var(--shadow-pressed) !important;
 }
 /* Sort controls are ordinary text inside the header cell, not standalone action buttons. */
 button[appSortHeader] {
@@ -383,6 +384,8 @@ button.sidebar-square-button {
   border: 2px solid var(--ink-fixed) !important;
   border-radius: var(--ui-radius-md) !important;
   background: var(--card) !important;
+  --press-x: 3px;
+  --press-y: 3px;
   box-shadow: var(--shadow-hard) !important;
   transition: transform 140ms ease-out, box-shadow 140ms ease-out;
 }
@@ -403,6 +406,8 @@ button.account-menu-collapsed-trigger {
   border: 2px solid var(--ink-fixed) !important;
   border-radius: var(--ui-radius-md) !important;
   background: var(--card) !important;
+  --press-x: 3px;
+  --press-y: 3px;
   box-shadow: var(--shadow-hard) !important;
   transition: transform 140ms ease-out, box-shadow 140ms ease-out;
 }
@@ -423,7 +428,9 @@ button.account-menu-expanded-trigger {
   overflow: hidden;
   border: 2px solid var(--ink-fixed) !important;
   border-radius: 1rem !important;
-  box-shadow: 2px 2px 0 var(--shadow-color) !important;
+  --press-x: 3px;
+  --press-y: 3px;
+  box-shadow: var(--shadow-hard) !important;
   transition: transform 140ms ease-out, box-shadow 140ms ease-out;
 }
 button.account-menu-expanded-trigger app-avatar {
@@ -443,7 +450,7 @@ button.account-menu-expanded-trigger:hover:not(:disabled) {
   transform: translateY(-2px) !important;
 }
 button.sidebar-square-button[data-pressed], button.account-menu-collapsed-trigger[data-pressed], button.account-menu-expanded-trigger[data-pressed] {
-  box-shadow: 0 0 0 var(--shadow-color) !important;
+  box-shadow: var(--shadow-pressed) !important;
   transform: translate(var(--press-x), var(--press-y)) !important;
 }
 button.theme-accent-swatch {
