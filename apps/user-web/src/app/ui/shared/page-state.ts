@@ -1,8 +1,10 @@
 import { Component, input, output } from '@angular/core';
+import { Ripple } from './ripple';
 
 export type PageStateKind = 'loading' | 'empty' | 'error' | 'ready';
 
 @Component({
+  imports: [Ripple],
   selector: 'app-page-state',
   template: `
     @if (state() === 'loading') {

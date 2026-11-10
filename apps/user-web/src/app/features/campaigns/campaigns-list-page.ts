@@ -15,10 +15,11 @@ import {
   type CampaignItem,
   CampaignsService,
 } from './campaigns.service';
+import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
   selector: 'app-campaigns-list-page',
-  imports: [
+  imports: [Ripple, 
     RowActions,
     SelectControl, CommonModule, HlmButton, HlmBadge, DataTableControls, ListBody, PageHeader, Pagination],
   changeDetection: ChangeDetectionStrategy.OnPush,

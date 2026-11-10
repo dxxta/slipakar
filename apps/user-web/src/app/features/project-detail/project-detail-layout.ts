@@ -4,9 +4,10 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
 import { SegmentedTabs } from '../../ui/shared/segmented-tabs';
 import type { TabItem } from '../../ui/shared/tabs';
+import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
-  imports: [RouterLink, RouterOutlet, SegmentedTabs],
+  imports: [Ripple, RouterLink, RouterOutlet, SegmentedTabs],
   selector: 'app-project-detail-layout',
   template: `
     <section>

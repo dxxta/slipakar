@@ -1,7 +1,9 @@
 import { Component, ElementRef, inject, input, output } from '@angular/core';
 import type { TabItem } from './tabs';
+import { Ripple } from './ripple';
 
 @Component({
+  imports: [Ripple],
   selector: 'app-segmented-tabs',
   standalone: true,
   template: `

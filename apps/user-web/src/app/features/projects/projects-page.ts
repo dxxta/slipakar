@@ -17,6 +17,7 @@ import {
   type RowActionItem,
   SortHeader,
 } from '../../ui';
+import { Ripple } from '../../ui/shared/ripple';
 
 type Project = {
   id: string;
@@ -32,7 +33,7 @@ type ProjectSort = 'name' | 'createdAt' | 'updatedAt';
 type ProjectCounts = { campaigns: number; templates: number; uploads: number };
 
 @Component({
-  imports: [
+  imports: [Ripple, 
     CommonModule,
     HlmButton,
     Drawer,

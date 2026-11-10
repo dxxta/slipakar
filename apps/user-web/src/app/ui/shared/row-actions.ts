@@ -2,6 +2,7 @@ import { CommonModule, DOCUMENT } from '@angular/common';
 import { Component, ElementRef, HostListener, inject, input, output, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { tablerArrowLeft, tablerDeviceFloppy, tablerDots, tablerEye, tablerPencil, tablerPlus, tablerPower, tablerPrinter, tablerRefresh, tablerSend, tablerTrash, tablerX } from '@ng-icons/tabler-icons';
+import { Ripple } from './ripple';
 
 export type RowActionIcon = 'eye' | 'pencil' | 'trash' | 'power' | 'refresh' | 'plus' | 'send' | 'close' | 'save' | 'print' | 'back';
 export type RowActionItem = { id: string; label: string; icon: RowActionIcon; destructive?: boolean; disabled?: boolean };
@@ -11,7 +12,7 @@ type MenuPosition = { top: number; left: number };
   selector: 'app-row-actions',
   standalone: true,
   host: { class: 'flex justify-end' },
-  imports: [CommonModule, NgIcon],
+  imports: [Ripple, CommonModule, NgIcon],
   providers: [provideIcons({ tablerArrowLeft, tablerDeviceFloppy, tablerDots, tablerEye, tablerPencil, tablerPlus, tablerPower, tablerPrinter, tablerRefresh, tablerSend, tablerTrash, tablerX })],
   template: `
     <button #trigger data-row-action-trigger type="button" class="grid size-9 shrink-0 place-items-center rounded-ui-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

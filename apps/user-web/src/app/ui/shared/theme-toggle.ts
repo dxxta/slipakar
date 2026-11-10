@@ -3,11 +3,12 @@ import { Component, DestroyRef, Injector, computed, inject, signal } from '@angu
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { tablerMoon, tablerSun } from '@ng-icons/tabler-icons';
 import { ThemePreferencesService } from '../../core/theme-preferences.service';
+import { Ripple } from './ripple';
 
 @Component({
   selector: 'app-theme-toggle',
   standalone: true,
-  imports: [NgIcon],
+  imports: [Ripple, NgIcon],
   providers: [provideIcons({ tablerSun, tablerMoon })],
   template: `
     @if (hasPreferences) {

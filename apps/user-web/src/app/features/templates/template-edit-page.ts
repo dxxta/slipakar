@@ -7,6 +7,7 @@ import { BackButton } from '../../ui/shared/back-button';
 import { HlmButton } from '../../ui/button/src';
 import { HlmAlert, HlmAlertDescription, HlmAlertTitle } from '../../ui/alert/src';
 import { TemplatesService, type CreateTemplatePayload, type UpdateTemplatePayload } from './templates.service';
+import { Ripple } from '../../ui/shared/ripple';
 
 function unsafeSyntaxMessage(text: string): string | null {
   if (!text) return null;
@@ -19,7 +20,7 @@ function unsafeSyntaxMessage(text: string): string | null {
 
 @Component({
   selector: 'app-template-edit-page',
-  imports: [RowActions, BackButton, HlmButton, HlmAlert, HlmAlertTitle, HlmAlertDescription],
+  imports: [Ripple, RowActions, BackButton, HlmButton, HlmAlert, HlmAlertTitle, HlmAlertDescription],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="space-y-6">

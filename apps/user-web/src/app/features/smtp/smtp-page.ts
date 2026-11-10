@@ -12,10 +12,11 @@ import { DataTableControls } from '../../ui/shared/data-table-controls';
 import { Pagination } from '../../ui/shared/pagination';
 import { ConfirmModal, Drawer, ListBody, PageHeader, RowActions, type RowActionItem } from '../../ui';
 import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSmtpPayload } from './smtp.service';
+import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
   selector: 'app-smtp-page',
-  imports: [
+  imports: [Ripple, 
     SelectControl,
     CommonModule,
     HlmButton,

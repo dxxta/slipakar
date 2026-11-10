@@ -19,11 +19,12 @@ import { BrnSonnerImports, type ToasterProps } from '@spartan-ng/brain/sonner';
 import { HlmButtonImports } from '@slipakar/ui/button';
 import { hlm } from '@slipakar/ui/utils';
 import type { ClassValue } from 'clsx';
+import { Ripple } from '../../../shared/ripple';
 
 @Component({
   selector: 'hlm-toaster',
   exportAs: 'hlmToaster',
-  imports: [BrnSonnerImports, HlmButtonImports, NgIcon],
+  imports: [Ripple, BrnSonnerImports, HlmButtonImports, NgIcon],
   providers: [
     provideIcons({
       tablerCircleCheck,

@@ -13,6 +13,7 @@ import { HlmButton } from '../../ui/button/src';
 import { ListBody, PageHeader, SegmentedTabs, type TabItem } from '../../ui';
 import { type NotificationItem, NotificationsService } from './notifications.service';
 import { type UserNoticeItem, UserNoticesService } from './user-notices.service';
+import { Ripple } from '../../ui/shared/ripple';
 
 interface Project {
   id: string;
@@ -21,7 +22,7 @@ interface Project {
 
 @Component({
   selector: 'app-notifications-page',
-  imports: [
+  imports: [Ripple, 
     SelectControl,
     CommonModule,
     HlmButton,

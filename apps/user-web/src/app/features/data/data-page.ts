@@ -24,6 +24,7 @@ import {
   type UploadItem,
   type UploadPreview,
 } from './data.service';
+import { Ripple } from '../../ui/shared/ripple';
 
 function extractPlaceholders(text: string): string[] {
   if (!text) return [];
@@ -33,7 +34,7 @@ function extractPlaceholders(text: string): string[] {
 
 @Component({
   selector: 'app-data-page',
-  imports: [
+  imports: [Ripple, 
     SelectControl,
     CommonModule,
     HlmButton,

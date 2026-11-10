@@ -9,6 +9,7 @@ import { HlmButton } from '../../ui/button/src';
 import { HlmCard, HlmCardContent, HlmCardDescription, HlmCardHeader, HlmCardTitle } from '../../ui/card/src';
 import { Drawer } from '../../ui/shared/drawer';
 import { CampaignsService, type CreateCampaignPayload } from './campaigns.service';
+import { Ripple } from '../../ui/shared/ripple';
 
 interface EmailTemplateSummary {
   id: string;
@@ -44,7 +45,7 @@ interface FieldMappingSummary {
 
 @Component({
   selector: 'app-campaign-create-page',
-  imports: [
+  imports: [Ripple, 
     SelectControl,
     CommonModule,
     HlmButton,

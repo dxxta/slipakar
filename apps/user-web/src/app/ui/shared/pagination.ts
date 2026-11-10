@@ -1,8 +1,10 @@
 import { Component, computed, input, output } from '@angular/core';
+import { Ripple } from './ripple';
 
 export type PaginationMetadata = { page: number; limit: number; total: number };
 
 @Component({
+  imports: [Ripple],
   selector: 'app-pagination',
   host: { class: 'block mt-4' },
   template: `

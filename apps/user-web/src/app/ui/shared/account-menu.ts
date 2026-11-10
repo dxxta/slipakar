@@ -3,10 +3,11 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import { tablerChevronDown } from '@ng-icons/tabler-icons';
 import { Avatar } from '@slipakar/ui/avatar';
 import { ThemeToggle } from './theme-toggle';
+import { Ripple } from './ripple';
 
 @Component({
   selector: 'app-account-menu',
-  imports: [Avatar, ThemeToggle, NgIcon],
+  imports: [Ripple, Avatar, ThemeToggle, NgIcon],
   providers: [provideIcons({ tablerChevronDown })],
   template: `
     <div class="relative min-w-0 w-full">

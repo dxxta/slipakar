@@ -11,10 +11,11 @@ import type { ThemeAccent, ThemeMode } from '../../core/theme-preferences';
 import { Avatar } from '@slipakar/ui/avatar';
 import { HlmButton } from '../../ui/button/src';
 import { PageHeader, SelectControl } from '../../ui';
+import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
   selector: 'app-profile-page',
-  imports: [CommonModule, Avatar, HlmButton, PageHeader, SelectControl, NgIcon],
+  imports: [Ripple, CommonModule, Avatar, HlmButton, PageHeader, SelectControl, NgIcon],
   providers: [provideIcons({ tablerPencil })],
   template: `
     <div class="space-y-6">

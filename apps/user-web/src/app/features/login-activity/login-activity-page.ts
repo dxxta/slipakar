@@ -6,10 +6,11 @@ import { HlmButton } from '../../ui/button/src';
 import { DataTableControls, Drawer, ListBody, PageHeader, Pagination, SelectControl } from '../../ui';
 import { getMapTiles, type LoginMapTile } from './map-tiles';
 import { LoginActivityService, type LoginActivityItem, type LoginActivitySort } from './login-activity.service';
+import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
   selector: 'app-login-activity-page',
-  imports: [
+  imports: [Ripple, 
     CommonModule,
     DatePipe,
     HlmBadge,

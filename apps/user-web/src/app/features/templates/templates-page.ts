@@ -7,10 +7,11 @@ import { HlmBadge } from '../../ui/badge/src';
 import { HlmButton } from '../../ui/button/src';
 import { ConfirmModal, DataTableControls, Drawer, ListBody, PageHeader, Pagination, RowActions, type RowActionItem, SelectControl } from '../../ui';
 import { type EmailTemplate, TemplatesService } from './templates.service';
+import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
   selector: 'app-templates-page',
-  imports: [CommonModule, SelectControl, HlmButton, HlmAlert, HlmAlertTitle, HlmAlertDescription, DataTableControls, ListBody, PageHeader, RowActions, Drawer, ConfirmModal, Pagination],
+  imports: [Ripple, CommonModule, SelectControl, HlmButton, HlmAlert, HlmAlertTitle, HlmAlertDescription, DataTableControls, ListBody, PageHeader, RowActions, Drawer, ConfirmModal, Pagination],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="app-list-layout">

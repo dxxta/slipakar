@@ -16,10 +16,11 @@ import { HlmBadge } from '../../ui/badge/src';
 import type { PageMetadata } from '../../core/api-client';
 import { type PdfTemplateItem, PdfTemplatesService } from './pdf-templates.service';
 import { Pagination } from '../../ui/shared/pagination';
+import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
   selector: 'app-pdf-templates-list-page',
-  imports: [
+  imports: [Ripple, 
     SelectControl, CommonModule, HlmButton, HlmBadge, DataTableControls, ListBody, PageHeader, RowActions, ConfirmModal, Drawer, Pagination, NgIcon],
   providers: [provideIcons({ tablerAlertTriangle })],
   changeDetection: ChangeDetectionStrategy.OnPush,

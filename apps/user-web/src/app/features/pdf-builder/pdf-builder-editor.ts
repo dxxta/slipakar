@@ -31,10 +31,11 @@ const RESIZE_HANDLES: PdfResizeHandle[] = ['n', 'ne', 'e', 'se', 's', 'sw', 'w',
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { tablerLetterT, tablerPhoto, tablerSeparatorHorizontal, tablerSquare, tablerTable } from '@ng-icons/tabler-icons';
+import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
   selector: 'app-pdf-builder-editor',
-  imports: [CommonModule, NgIcon],
+  imports: [Ripple, CommonModule, NgIcon],
   providers: [provideIcons({ tablerLetterT, tablerTable, tablerPhoto, tablerSeparatorHorizontal, tablerSquare })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `

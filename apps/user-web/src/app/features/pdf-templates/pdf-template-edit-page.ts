@@ -33,10 +33,11 @@ import {
   type CreatePdfTemplatePayload,
   PdfTemplatesService,
 } from './pdf-templates.service';
+import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
   selector: 'app-pdf-template-edit-page',
-  imports: [
+  imports: [Ripple, 
     CommonModule,
     FormsModule,
     HlmButton,

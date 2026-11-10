@@ -31,10 +31,11 @@ import {
   CampaignsService,
   type RecipientStatus,
 } from './campaigns.service';
+import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
   selector: 'app-campaign-detail-page',
-  imports: [
+  imports: [Ripple, 
     RowActions,
     SelectControl,
     CommonModule,

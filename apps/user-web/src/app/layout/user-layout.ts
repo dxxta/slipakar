@@ -9,9 +9,10 @@ import { SessionService } from '../core/session.service';
 import { ThemePreferencesService } from '../core/theme-preferences.service';
 import { UnreadNotificationsStore } from '../core/unread-notifications.store';
 import { AccountMenu, ConfirmModal, Drawer, PageLayout } from '../ui';
+import { Ripple } from '../ui/shared/ripple';
 
 @Component({
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, AccountMenu, ConfirmModal, Drawer, PageLayout, NgIcon],
+  imports: [Ripple, RouterLink, RouterLinkActive, RouterOutlet, AccountMenu, ConfirmModal, Drawer, PageLayout, NgIcon],
   providers: [provideIcons({ tablerBell, tablerFolder, tablerHistory, tablerLayoutSidebarLeftCollapse, tablerLayoutSidebarLeftExpand, tablerMenu2, tablerUser })],
   selector: 'app-user-layout',
   template: `

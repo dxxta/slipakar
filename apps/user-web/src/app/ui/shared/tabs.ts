@@ -1,8 +1,10 @@
 import { Component, ElementRef, inject, input, output } from '@angular/core';
+import { Ripple } from './ripple';
 
 export type TabItem = { id: string; label: string; disabled?: boolean };
 
 @Component({
+  imports: [Ripple],
   selector: 'app-tabs',
   standalone: true,
   template: `

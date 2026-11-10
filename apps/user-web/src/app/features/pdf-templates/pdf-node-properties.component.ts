@@ -17,10 +17,11 @@ import {
   type PdfTextNode,
 } from '../pdf-builder/pdf-node.types';
 import type { AttachmentItem } from './pdf-templates.service';
+import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
   selector: 'app-pdf-node-properties',
-  imports: [
+  imports: [Ripple, 
     SelectControl,CommonModule, FormsModule, HlmButton, HlmBadge, NgIcon],
   providers: [provideIcons({ tablerCopy, tablerTrash })],
   template: `

@@ -1,8 +1,10 @@
 import { Component, input, output } from '@angular/core';
+import { Ripple } from './ripple';
 
 export type ListBodyState = 'loading' | 'error' | 'ready';
 
 @Component({
+  imports: [Ripple],
   selector: 'app-list-body',
   standalone: true,
   template: `

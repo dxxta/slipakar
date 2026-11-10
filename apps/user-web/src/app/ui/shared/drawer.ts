@@ -2,10 +2,11 @@ import { Component, HostListener, input, output } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { tablerX } from '@ng-icons/tabler-icons';
+import { Ripple } from './ripple';
 
 @Component({
   selector: 'app-drawer',
-  imports: [CdkTrapFocus, NgIcon],
+  imports: [Ripple, CdkTrapFocus, NgIcon],
   providers: [provideIcons({ tablerX })],
   template: `
     @if (open()) {
