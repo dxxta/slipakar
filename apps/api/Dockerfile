@@ -27,7 +27,8 @@ COPY apps/api ./apps/api
 
 # Generate Prisma Client and build packages/apps
 RUN npx prisma generate --config apps/api/prisma.config.ts && \
-    npm run build
+    npm run build --workspace=@slipakar/shared && \
+    npm run build --workspace=@slipakar/api
 
 # ==========================================
 # Stage 3: Runtime
