@@ -8,10 +8,11 @@ import { HlmCard, HlmCardContent, HlmCardDescription, HlmCardHeader, HlmCardTitl
 import { HlmSwitch } from '../../ui/switch/src';
 import { PageHeader } from '../../ui/shared/page-header';
 import { FEATURE_FLAG_DEFINITIONS, type FeatureFlagKey, type FeatureFlags, FlagsService } from './flags.service';
+import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
   selector: 'app-flags-page',
-  imports: [
+  imports: [Ripple, 
     CommonModule,
     HlmCard,
     HlmCardHeader,
