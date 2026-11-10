@@ -1,6 +1,34 @@
 # Changelog
 
 
+## [3.1.3](https://github.com/dxxta/slipakar/compare/v3.1.2...v3.1.3) (2026-11-10)
+
+### Features
+
+* **admin-web:** add tactile pressed feedback ([c0d949a](https://github.com/dxxta/slipakar/commit/c0d949a24d7966475a10cdac2ee23bbacd2c2814))
+* **admin-web:** align theme tokens and fonts ([1c39395](https://github.com/dxxta/slipakar/commit/1c393958d45aec89dbd1591652fecb0b7695818e))
+* **admin-web:** apply shared tactile UI surfaces ([bea42c9](https://github.com/dxxta/slipakar/commit/bea42c9219d2829ad338983141f204e3e6280ae1))
+* **admin-web:** restyle responsive sidebar controls ([6a0dc54](https://github.com/dxxta/slipakar/commit/6a0dc5436089fc5c62890d7ea5a029546bffe0d1))
+* **admin-web:** unify feature page appearance ([8298c3a](https://github.com/dxxta/slipakar/commit/8298c3a748033c108d326ef4f9d679aabb4fd6b6))
+* **infra:** add a landing-only compose file ([3dfefdd](https://github.com/dxxta/slipakar/commit/3dfefdd23c5384ce6b122421903a2c515e4eefb1))
+* **infra:** make API, Grafana and Uptime Kuma host ports configurable ([d61fcb8](https://github.com/dxxta/slipakar/commit/d61fcb8af2a0cd37122c6cf060521e6e6f5dfd5a))
+* use the Slipakar app icon as favicon for landing, user and admin web ([d53fd7a](https://github.com/dxxta/slipakar/commit/d53fd7a11fc2aeb1d79a3e6c603b25b57f147d79))
+* **web:** toast every form result in the top right and fix the admin error message style ([a5ab385](https://github.com/dxxta/slipakar/commit/a5ab3855b5a3cd35d45a2ba8ad9f5da79365fd2b))
+
+### Bug Fixes
+
+* **admin-web:** open the user app on the same origin and show test results in the setup badge ([d9e4b45](https://github.com/dxxta/slipakar/commit/d9e4b459f71f3a42438dc347f946d3f56c399860))
+* **admin-web:** use the accent colour and a visible error colour for the setup test badge ([a672f14](https://github.com/dxxta/slipakar/commit/a672f14b3a97f464b6c60dc6b6f57e0803ca8b6f))
+* **api:** build the shared package before the API in the Docker image ([2d3918b](https://github.com/dxxta/slipakar/commit/2d3918b7bbaa82aa3e2ef4faa74f86975ae242c7))
+* **landing-web:** drop the stale Content-Length after rewriting runtime URLs so the page is not truncated ([7447b3c](https://github.com/dxxta/slipakar/commit/7447b3cfcc4a5fbf72b35a445b3a03ffa1905cef))
+* **web:** build the shared package before the Angular apps in the web image ([f2ff64a](https://github.com/dxxta/slipakar/commit/f2ff64a9a79e49d1231fcb79b0e8039c6aa123a9))
+* **web:** use relative redirects so /console redirects work behind a proxy ([8652e8e](https://github.com/dxxta/slipakar/commit/8652e8e15a45f774c13f90208fd01d03eec49fcd))
+
+### Documentation
+
+* add Slipakar branding guide, logo assets and default design system ([fcc5cdd](https://github.com/dxxta/slipakar/commit/fcc5cdd7cd91808d11dd43c02ba1ba367ac89177))
+* remove the Open Graph image to-do ([d0a5316](https://github.com/dxxta/slipakar/commit/d0a5316801a188517ae98ed5f1bb1215e9e77d24))
+
 ## [3.1.2](///compare/v3.1.1...v3.1.2) (2026-11-10)
 
 ### Features
