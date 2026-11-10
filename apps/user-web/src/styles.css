@@ -302,19 +302,19 @@ table:not(.preview-table) thead th button { color: inherit !important; }
 }
 
 /* Standalone actions share the landing page's tactile control treatment. */
-button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.account-menu-signout):not(.sidebar-square-button):not(.account-menu-collapsed-trigger):not([appSortHeader]),
+button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.account-menu-signout):not(.sidebar-square-button):not(.account-menu-collapsed-trigger):not(.account-menu-expanded-trigger):not([appSortHeader]),
 a[data-slot='button'] {
   border: var(--border-width-strong) solid var(--ink-fixed) !important;
   border-radius: var(--radius-pill) !important;
   box-shadow: var(--shadow-hard) !important;
   transition: transform 140ms ease-out, box-shadow 140ms ease-out;
 }
-button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.account-menu-signout):not(.sidebar-square-button):not(.account-menu-collapsed-trigger):not([appSortHeader]):hover:not(:disabled),
+button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.account-menu-signout):not(.sidebar-square-button):not(.account-menu-collapsed-trigger):not(.account-menu-expanded-trigger):not([appSortHeader]):hover:not(:disabled),
 a[data-slot='button']:hover:not([aria-disabled='true']) {
   transform: translateY(-2px);
   box-shadow: var(--shadow-hover) !important;
 }
-button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.account-menu-signout):not(.sidebar-square-button):not(.account-menu-collapsed-trigger):not([appSortHeader]):active:not(:disabled),
+button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.account-menu-signout):not(.sidebar-square-button):not(.account-menu-collapsed-trigger):not(.account-menu-expanded-trigger):not([appSortHeader]):active:not(:disabled),
 a[data-slot='button']:active:not([aria-disabled='true']) {
   transform: translate(var(--press-x), var(--press-y));
   box-shadow: 0 0 0 var(--shadow-color) !important;
@@ -380,14 +380,14 @@ button.sidebar-square-button {
   min-width: 2.75rem;
   padding: 0 !important;
   overflow: hidden;
-  border: 2px solid var(--border) !important;
+  border: 2px solid var(--ink-fixed) !important;
   border-radius: var(--ui-radius-md) !important;
   box-shadow: 2px 2px 0 var(--shadow-color) !important;
-  transform: none !important;
+  transition: transform 140ms ease-out, box-shadow 140ms ease-out;
 }
-button.sidebar-square-button:hover:not(:disabled), button.sidebar-square-button:active:not(:disabled) {
-  box-shadow: 2px 2px 0 var(--shadow-color) !important;
-  transform: none !important;
+button.sidebar-square-button:hover:not(:disabled) {
+  box-shadow: 3px 3px 0 var(--shadow-color) !important;
+  transform: translateY(-2px) !important;
 }
 button.account-menu-collapsed-trigger {
   box-sizing: border-box;
@@ -398,14 +398,46 @@ button.account-menu-collapsed-trigger {
   padding: 0 !important;
   overflow: hidden;
   place-items: center;
-  border: 2px solid var(--border) !important;
+  border: 2px solid var(--ink-fixed) !important;
   border-radius: 50% !important;
   box-shadow: 2px 2px 0 var(--shadow-color) !important;
-  transform: none !important;
+  transition: transform 140ms ease-out, box-shadow 140ms ease-out;
 }
-button.account-menu-collapsed-trigger:hover:not(:disabled), button.account-menu-collapsed-trigger:active:not(:disabled) {
+button.account-menu-collapsed-trigger:hover:not(:disabled) {
+  box-shadow: 3px 3px 0 var(--shadow-color) !important;
+  transform: translateY(-2px) !important;
+}
+button.account-menu-expanded-trigger {
+  box-sizing: border-box;
+  height: auto !important;
+  min-height: 3.5rem;
+  padding: 0.625rem !important;
+  gap: 0.625rem !important;
+  overflow: hidden;
+  border: 2px solid var(--ink-fixed) !important;
+  border-radius: 1rem !important;
   box-shadow: 2px 2px 0 var(--shadow-color) !important;
-  transform: none !important;
+  transition: transform 140ms ease-out, box-shadow 140ms ease-out;
+}
+button.account-menu-expanded-trigger app-avatar {
+  display: grid;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 2.25rem;
+  place-items: center;
+}
+button.account-menu-expanded-trigger app-avatar [data-avatar] {
+  width: 2.25rem !important;
+  height: 2.25rem !important;
+  font-size: 0.75rem !important;
+}
+button.account-menu-expanded-trigger:hover:not(:disabled) {
+  box-shadow: 3px 3px 0 var(--shadow-color) !important;
+  transform: translateY(-2px) !important;
+}
+button.sidebar-square-button[data-pressed], button.account-menu-collapsed-trigger[data-pressed], button.account-menu-expanded-trigger[data-pressed] {
+  box-shadow: 0 0 0 var(--shadow-color) !important;
+  transform: translate(var(--press-x), var(--press-y)) !important;
 }
 button.theme-accent-swatch {
   width: 2.25rem;

@@ -4,10 +4,11 @@ import { tablerChevronDown, tablerLogout } from '@ng-icons/tabler-icons';
 import { Avatar } from '@slipakar/ui/avatar';
 import { ThemeToggle } from './theme-toggle';
 import { Ripple } from './ripple';
+import { Pressed } from './pressed';
 
 @Component({
   selector: 'app-account-menu',
-  imports: [Ripple, Avatar, ThemeToggle, NgIcon],
+  imports: [Ripple, Pressed, Avatar, ThemeToggle, NgIcon],
   providers: [provideIcons({ tablerChevronDown, tablerLogout })],
   template: `
     <div class="relative min-w-0" [class.w-full]="!collapsed()" [class.w-11]="collapsed()" [class.mx-auto]="collapsed()" [class.account-menu-collapsed]="collapsed()">
@@ -16,14 +17,16 @@ import { Ripple } from './ripple';
         aria-haspopup="menu"
         [attr.aria-expanded]="open()"
         aria-label="Account menu"
+        appPressed
         class="account-menu-trigger flex h-control-9 w-full min-w-0 items-center gap-2 rounded-ui-md px-2 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         [class.account-menu-collapsed-trigger]="collapsed()"
+        [class.account-menu-expanded-trigger]="!collapsed()"
         (click)="toggle()"
       >
         <app-avatar size="sm" [name]="name() || email()" [imageUrl]="imageUrl()" />
         @if (!collapsed()) {
           <span class="flex min-w-0 flex-1 flex-col truncate"><span class="truncate text-sm font-medium">{{ name() || email() || 'Account' }}</span>@if (name() && email()) { <span class="truncate text-xs text-muted-foreground">{{ email() }}</span> }</span>
-          <span class="text-muted-foreground" aria-hidden="true"><ng-icon name="tablerChevronDown" class="size-4 transition-transform" [class.rotate-180]="open()" /></span>
+          <span class="ml-auto shrink-0 text-muted-foreground" aria-hidden="true"><ng-icon name="tablerChevronDown" class="size-4 transition-transform" [class.rotate-180]="open()" /></span>
         }
       </button>
       @if (open()) {

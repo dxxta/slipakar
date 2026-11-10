@@ -10,15 +10,16 @@ import { ThemePreferencesService } from '../core/theme-preferences.service';
 import { UnreadNotificationsStore } from '../core/unread-notifications.store';
 import { AccountMenu, ConfirmModal, Drawer, PageLayout } from '../ui';
 import { Ripple } from '../ui/shared/ripple';
+import { Pressed } from '../ui/shared/pressed';
 
 @Component({
-  imports: [Ripple, RouterLink, RouterLinkActive, RouterOutlet, AccountMenu, ConfirmModal, Drawer, PageLayout, NgIcon],
+  imports: [Ripple, Pressed, RouterLink, RouterLinkActive, RouterOutlet, AccountMenu, ConfirmModal, Drawer, PageLayout, NgIcon],
   providers: [provideIcons({ tablerBell, tablerFolder, tablerHistory, tablerLayoutSidebarLeftCollapse, tablerLayoutSidebarLeftExpand, tablerMenu2, tablerUser })],
   selector: 'app-user-layout',
   template: `
     <div class="min-h-dvh min-w-0 bg-background text-foreground md:grid transition-[grid-template-columns] duration-200 motion-reduce:transition-none" [style.grid-template-columns]="sidebarCollapsed() ? '4.5rem minmax(0,1fr)' : '15rem minmax(0,1fr)'">
       <header class="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-border bg-card px-3 py-2 md:hidden">
-        <button type="button" class="sidebar-square-button grid size-11 shrink-0 place-items-center rounded-ui-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Open navigation" [attr.aria-expanded]="navigationOpen()" (click)="navigationOpen.set(true)"><ng-icon name="tablerMenu2" aria-hidden="true" class="size-5" /></button>
+        <button appPressed type="button" class="sidebar-square-button grid size-11 shrink-0 place-items-center rounded-ui-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Open navigation" [attr.aria-expanded]="navigationOpen()" (click)="navigationOpen.set(true)"><ng-icon name="tablerMenu2" aria-hidden="true" class="size-5" /></button>
         <a routerLink="/projects" class="brand-link text-sm font-semibold">Slipakar</a>
         <span class="h-5 w-px bg-border" aria-hidden="true"></span>
         <span class="min-w-0 truncate text-sm font-medium" aria-live="polite">{{ mobileTitle() }}</span>
@@ -28,7 +29,7 @@ import { Ripple } from '../ui/shared/ripple';
           <a routerLink="/projects" class="flex min-w-0 items-center gap-3 rounded-md text-lg font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Slipakar home" title="Slipakar">
             @if (!sidebarCollapsed()) { <a class="wordmark" href="/" aria-label="Slipakar home">Slipakar<span class="wordmark-dot">.</span></a> }
           </a>
-          <button type="button" class="sidebar-square-button grid size-11 shrink-0 place-items-center rounded-ui-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" [attr.aria-label]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'" [attr.title]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'" [attr.aria-expanded]="!sidebarCollapsed()" (click)="toggleSidebar()">
+          <button appPressed type="button" class="sidebar-square-button grid size-11 shrink-0 place-items-center rounded-ui-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" [attr.aria-label]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'" [attr.title]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'" [attr.aria-expanded]="!sidebarCollapsed()" (click)="toggleSidebar()">
             <ng-icon [name]="sidebarCollapsed() ? 'tablerLayoutSidebarLeftExpand' : 'tablerLayoutSidebarLeftCollapse'" aria-hidden="true" class="size-5" />
           </button>
         </div>
