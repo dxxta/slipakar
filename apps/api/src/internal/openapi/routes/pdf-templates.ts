@@ -1,7 +1,16 @@
-import { createPdfTemplatesDto, listPdfTemplatesQueryDto, updatePdfTemplatesDto } from '../../../domain/pdf-templates/dto.js';
+import { createPdfTemplatesDto, listPdfTemplatesQueryDto, previewPdfTemplatesDto, updatePdfTemplatesDto } from '../../../domain/pdf-templates/dto.js';
 import type { RouteDoc } from '../../../domain/openapi/interface.js';
 
 export const pdfTemplatesRoutes: RouteDoc[] = [
+  {
+    method: 'post',
+    path: '/projects/:projectId/pdf-templates/preview',
+    tag: 'PDF Templates',
+    summary: 'Render a PDF preview of an unsaved node tree',
+    auth: 'session',
+    status: 200,
+    body: previewPdfTemplatesDto,
+  },
   {
     method: 'post',
     path: '/projects/:projectId/pdf-templates',

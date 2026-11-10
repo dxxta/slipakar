@@ -46,6 +46,7 @@ import { tablerLetterT, tablerPhoto, tablerSeparatorHorizontal, tablerSquare, ta
       tabindex="0"
       (keydown)="onKeydown($event)"
     >
+      <div class="border-b border-border pb-4 lg:col-span-2"><ng-content select="[header]"></ng-content></div>
       <aside class="flex flex-wrap items-start gap-x-8 gap-y-4 lg:col-span-2" aria-label="PDF elements">
         <div>
           <h2 class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Add element</h2>
@@ -162,10 +163,14 @@ import { tablerLetterT, tablerPhoto, tablerSeparatorHorizontal, tablerSquare, ta
                     </tbody>
                   </table>
                 } @else if (node.type === 'image') {
-                  <div class="image-placeholder" [attr.aria-label]="'Image attachment ' + node.attachmentId">
-                    <span aria-hidden="true" class="text-3xl">▧</span>
-                    <span>Image · {{ node.attachmentId }}</span>
-                  </div>
+                  @if (attachmentBase() && !failedImages().has(node.attachmentId)) {
+                    <img class="image-preview" [src]="attachmentBase() + '/' + node.attachmentId + '/content'" crossorigin="use-credentials" draggable="false" [attr.alt]="'Image attachment ' + node.attachmentId" (error)="markImageFailed(node.attachmentId)" />
+                  } @else {
+                    <div class="image-placeholder" [attr.aria-label]="'Image attachment ' + node.attachmentId">
+                      <span aria-hidden="true" class="text-3xl">▧</span>
+                      <span>Image · {{ node.attachmentId }}</span>
+                    </div>
+                  }
                 } @else if (node.type === 'sheet') {
                   <div class="sheet-preview" [style.background-color]="node.style.color"></div>
                 } @else {
@@ -207,6 +212,7 @@ import { tablerLetterT, tablerPhoto, tablerSeparatorHorizontal, tablerSquare, ta
     .placeholder-chip { background: #dbeafe; color: #1d4ed8; border-radius: 2px; padding: 0 2px; font: 10px ui-monospace, monospace; }
     .preview-table { width: 100%; height: 100%; border-collapse: collapse; table-layout: fixed; }
     .preview-table td { border: 1px solid; border-color: inherit; padding: 2px; overflow: hidden; overflow-wrap: anywhere; }
+    .image-preview { width: 100%; height: 100%; object-fit: contain; display: block; user-select: none; pointer-events: none; }
     .image-placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; border: 1px dashed #94a3b8; background: #f1f5f9; color: #475569; font: 10px ui-monospace, monospace; }
     .sheet-preview { width: 100%; height: 100%; }
     .divider-preview { width: 100%; border-top-style: solid; }
@@ -223,6 +229,9 @@ import { tablerLetterT, tablerPhoto, tablerSeparatorHorizontal, tablerSquare, ta
 })
 export class PdfBuilderEditor implements OnChanges, AfterViewInit, OnDestroy {
   readonly nodes = input<PdfNode[]>([]);
+  readonly attachmentBase = input('');
+  protected readonly failedImages = signal<ReadonlySet<string>>(new Set());
+  protected markImageFailed(id: string): void { this.failedImages.update((set) => new Set(set).add(id)); }
   readonly placeholders = input<string[]>([]);
   readonly nodesChange = output<PdfNodeTree>();
   readonly valid = output<boolean>();

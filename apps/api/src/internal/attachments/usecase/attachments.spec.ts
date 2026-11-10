@@ -403,4 +403,35 @@ describe('attachments usecase', () => {
       success: true,
     });
   });
+
+  it('serves image attachments inline and other files as downloads', async () => {
+    const storage = makeFakeStorage({ getObject: vi.fn().mockResolvedValue(Buffer.from('bytes')) });
+    const build = (fileName: string) =>
+      buildAttachmentsUseCase({
+        repository: makeFakeRepository({
+          findByIdAttachmentsRepository: vi.fn().mockResolvedValue({ data: { ...mockAttachmentView, fileName, objectKey: 'k' } }),
+        }),
+        prisma: fakePrisma,
+        storage,
+        projectLookup: vi.fn().mockResolvedValue(true),
+        quotaLookup: vi.fn().mockResolvedValue({ storageQuotaBytes: 1000n }),
+      });
+    const image = await build('logo.PNG').getContentAttachmentsUseCase({ projectId: 'proj-1', id: 'attach-1', auditUserId: 'u-1' });
+    expect(image).toMatchObject({ contentType: 'image/png', inline: true });
+    const other = await build('page.html').getContentAttachmentsUseCase({ projectId: 'proj-1', id: 'attach-1', auditUserId: 'u-1' });
+    expect(other).toMatchObject({ contentType: 'application/octet-stream', inline: false });
+  });
+
+  it('does not read content for a project the user does not own', async () => {
+    const storage = makeFakeStorage();
+    const useCase = buildAttachmentsUseCase({
+      repository: makeFakeRepository(),
+      prisma: fakePrisma,
+      storage,
+      projectLookup: vi.fn().mockResolvedValue(false),
+      quotaLookup: vi.fn().mockResolvedValue(null),
+    });
+    await expect(useCase.getContentAttachmentsUseCase({ projectId: 'x', id: 'attach-1', auditUserId: 'u-1' })).rejects.toMatchObject({ status: 404 });
+    expect(storage.getObject).not.toHaveBeenCalled();
+  });
 });

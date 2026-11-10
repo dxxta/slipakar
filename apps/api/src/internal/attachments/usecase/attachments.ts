@@ -121,6 +121,23 @@ export function buildAttachmentsUseCase({
       };
     },
 
+    async getContentAttachmentsUseCase({ projectId, id, auditUserId }) {
+      await assertProject(projectId, auditUserId);
+      const { data } = await repository.findByIdAttachmentsRepository({ filter: { projectId, id } });
+      if (!data) {
+        throw new AppError(404, 'NOT_FOUND', 'Attachment not found');
+      }
+      const extension = data.fileName.split('.').pop()?.toLowerCase() ?? '';
+      const imageTypes: Record<string, string> = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif' };
+      const imageType = imageTypes[extension];
+      return {
+        buffer: await storage.getObject(data.objectKey),
+        fileName: data.fileName,
+        contentType: imageType ?? 'application/octet-stream',
+        inline: imageType !== undefined,
+      };
+    },
+
     async deleteAttachmentsUseCase({ projectId, id, auditUserId }) {
       await assertProject(projectId, auditUserId);
       await store.removeAttachment({ id, projectId, auditUserId });

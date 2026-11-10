@@ -158,4 +158,15 @@ describe('PdfTemplatesService', () => {
     request.flush({ data: { id: 'att-1', projectId: 'proj-1', fileName: 'logo.png', sizeBytes: '1', kind: 'extra', createdAt: '2026-11-10T00:00:00.000Z' } });
     expect(result?.id).toBe('att-1');
   });
+
+  it('requests a PDF preview of an unsaved node tree as a blob', () => {
+    let result: Blob | undefined;
+    service.previewPdf('proj-1', mockTemplate.nodeTree).subscribe((value) => (result = value));
+    const request = http.expectOne((req) => req.url.endsWith('/projects/proj-1/pdf-templates/preview'));
+    expect(request.request.method).toBe('POST');
+    expect(request.request.responseType).toBe('blob');
+    expect(request.request.body).toEqual({ nodeTree: mockTemplate.nodeTree });
+    request.flush(new Blob(['%PDF'], { type: 'application/pdf' }));
+    expect(result?.type).toBe('application/pdf');
+  });
 });

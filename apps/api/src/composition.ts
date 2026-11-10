@@ -328,6 +328,15 @@ export function buildApplication({
   // Errors always land in the MinIO log (source of truth); an external reporter such as Sentry is optional and may be rate limited.
   const errorLogSink = errorLogSinkOverride ?? buildErrorLogSink({ storage });
   const errorReporter = errorReporterOverride ?? buildErrorReporter({ sink: errorLogSink });
+  const pdfRenderer = buildPdfRenderer({
+    imageLoader: async (projectId, attachmentId) => {
+      const { data } =
+        await attachmentsRepository.findByIdAttachmentsRepository({
+          filter: { projectId, id: attachmentId },
+        });
+      return data ? storage.getObject(data.objectKey) : null;
+    },
+  });
   const pdfTemplatesUseCase = buildPdfTemplatesUseCase({
     repository: pdfTemplatesRepository,
     prisma,
@@ -338,15 +347,7 @@ export function buildApplication({
           filter: { projectId, id: attachmentId },
         })
       ).data !== null,
-  });
-  const pdfRenderer = buildPdfRenderer({
-    imageLoader: async (projectId, attachmentId) => {
-      const { data } =
-        await attachmentsRepository.findByIdAttachmentsRepository({
-          filter: { projectId, id: attachmentId },
-        });
-      return data ? storage.getObject(data.objectKey) : null;
-    },
+    renderer: pdfRenderer,
   });
   const attachmentStore = buildAttachmentStore({
     prisma,

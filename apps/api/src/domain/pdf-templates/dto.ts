@@ -177,6 +177,10 @@ export const createPdfTemplatesDto = z.strictObject({
   nodeTree: pdfNodeTreeSchema,
 });
 
+export const previewPdfTemplatesDto = z.strictObject({
+  nodeTree: pdfNodeTreeSchema,
+});
+
 export const updatePdfTemplatesDto = createPdfTemplatesDto
   .partial()
   .refine((val) => Object.keys(val).length > 0, {

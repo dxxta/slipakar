@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import {
   ChangeDetectionStrategy,
   Component,
+  ElementRef,
   HostListener,
   OnInit,
   computed,
@@ -11,7 +12,9 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { DomSanitizer, type SafeResourceUrl } from '@angular/platform-browser';
 import { ApiError } from '../../core/api-error';
+import { environment } from '../../../environments/environment';
 import { HlmBadge } from '../../ui/badge/src';
 import { HlmButton } from '../../ui/button/src';
 import { Drawer } from '../../ui/shared/drawer';
@@ -116,13 +119,18 @@ import {
         </div>
       }
 
-      <section aria-label="Template name" class="flex items-center justify-between gap-3 rounded-ui-lg border border-border bg-card p-card">
-        <div class="min-w-0">
-          <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Template name</p>
-          <p class="mt-1 truncate text-lg font-semibold">{{ name() || 'Untitled template' }}</p>
+      @if (previewUrl(); as url) {
+        <div class="fixed inset-0 z-[60] flex flex-col bg-background" role="dialog" aria-modal="true" aria-label="Print preview" data-testid="pdf-preview-dialog">
+          <header class="flex items-center justify-between gap-3 border-b border-border px-card py-3">
+            <h2 class="text-lg font-semibold">Print preview</h2>
+            <div class="flex items-center gap-2">
+              <button hlmBtn variant="outline" type="button" (click)="printPreview()">Print</button>
+              <button hlmBtn type="button" data-testid="close-preview-button" (click)="closePreview()">Close</button>
+            </div>
+          </header>
+          <iframe #previewFrame class="min-h-0 w-full flex-1 border-0 bg-muted" title="PDF print preview" [src]="url"></iframe>
         </div>
-        <button hlmBtn variant="outline" type="button" class="shrink-0" (click)="nameDrawerOpen.set(true)">Edit template name</button>
-      </section>
+      }
       <app-drawer [open]="nameDrawerOpen()" title="Template details" (closed)="nameDrawerOpen.set(false)">
         <form class="space-y-4" (submit)="$event.preventDefault(); nameDrawerOpen.set(false)">
           <label for="template-name" class="block text-sm font-medium">Template Name</label>
@@ -147,9 +155,20 @@ import {
             #editorComponent
             [nodes]="nodes()"
             [placeholders]="placeholders()"
+            [attachmentBase]="attachmentBase()"
             (nodesChange)="onNodesChange($event)"
             (valid)="onEditorValidChange($event)"
           >
+            <div header class="flex flex-wrap items-center justify-between gap-3" aria-label="Template name">
+              <div class="min-w-0">
+                <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Template name</p>
+                <p class="mt-1 truncate text-lg font-semibold">{{ name() || 'Untitled template' }}</p>
+              </div>
+              <div class="flex shrink-0 flex-wrap items-center gap-2">
+                <button hlmBtn variant="outline" type="button" data-testid="preview-print-button" [disabled]="previewLoading()" (click)="openPreview()">{{ previewLoading() ? 'Rendering…' : 'Preview print' }}</button>
+                <button hlmBtn variant="outline" type="button" (click)="nameDrawerOpen.set(true)">Edit template name</button>
+              </div>
+            </div>
             <div panel>
               @if (selectedNode(); as selNode) {
                 <app-pdf-node-properties
@@ -189,6 +208,12 @@ export class PdfTemplateEditPage implements OnInit {
   readonly nodes = signal<PdfNode[]>([]);
   readonly placeholders = signal<string[]>([]);
   readonly attachments = signal<AttachmentItem[]>([]);
+  readonly previewLoading = signal(false);
+  readonly previewUrl = signal<SafeResourceUrl | null>(null);
+  private previewObjectUrl: string | null = null;
+  private readonly sanitizer = inject(DomSanitizer);
+  private readonly previewFrame = viewChild<ElementRef<HTMLIFrameElement>>('previewFrame');
+  readonly attachmentBase = computed(() => `${environment.apiBase}/projects/${this.projectId()}/attachments`);
   readonly uploadingImage = signal(false);
   readonly uploadError = signal<string | null>(null);
 
@@ -334,6 +359,42 @@ export class PdfTemplateEditPage implements OnInit {
     if (editor) {
       editor.editor.selectedId.set(id);
     }
+  }
+
+  openPreview(): void {
+    if (this.previewLoading()) return;
+    if (!this.validateAllNodes()) return;
+    this.previewLoading.set(true);
+    this.apiError.set(null);
+    const nodeTree: PdfNodeTree = { page: { size: 'A4', margin: 20 }, nodes: this.getCurrentNodes() };
+    this.service.previewPdf(this.projectId(), nodeTree).subscribe({
+      next: (blob) => {
+        this.previewLoading.set(false);
+        this.revokePreview();
+        this.previewObjectUrl = URL.createObjectURL(blob);
+        this.previewUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(this.previewObjectUrl));
+      },
+      error: (error: unknown) => {
+        this.previewLoading.set(false);
+        this.apiError.set(error instanceof ApiError ? error.message : 'Could not render the preview.');
+      },
+    });
+  }
+
+  printPreview(): void {
+    const frame = this.previewFrame()?.nativeElement;
+    frame?.contentWindow?.focus();
+    frame?.contentWindow?.print();
+  }
+
+  closePreview(): void {
+    this.previewUrl.set(null);
+    this.revokePreview();
+  }
+
+  private revokePreview(): void {
+    if (this.previewObjectUrl) URL.revokeObjectURL(this.previewObjectUrl);
+    this.previewObjectUrl = null;
   }
 
   onImageUpload(file: File): void {

@@ -93,6 +93,30 @@ export function createAttachmentsRouter({
     }
   });
 
+  /** @route GET /projects/:projectId/attachments/:id/content
+   * @desc Stream an attachment's bytes. Images are served inline, everything else as a download. */
+  router.get(`${base}/:id/content`, async (request, response, next) => {
+    try {
+      const file = await useCase.getContentAttachmentsUseCase({
+        projectId: parameter(request, 'projectId'),
+        id: parameter(request, 'id'),
+        auditUserId: userId(response),
+      });
+      const safeName = file.fileName.replace(/[^a-zA-Z0-9._-]/g, '_');
+      response
+        .status(200)
+        .setHeader('Content-Type', file.contentType)
+        .setHeader('Content-Disposition', `${file.inline ? 'inline' : 'attachment'}; filename="${safeName}"`)
+        .setHeader('X-Content-Type-Options', 'nosniff')
+        .setHeader('Content-Security-Policy', "default-src 'none'; sandbox")
+        .setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
+        .setHeader('Cache-Control', 'private, max-age=300')
+        .send(file.buffer);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   /** @route DELETE /projects/:projectId/attachments/:id
    * @desc Delete an attachment file from a project. */
   router.delete(`${base}/:id`, async (request, response, next) => {

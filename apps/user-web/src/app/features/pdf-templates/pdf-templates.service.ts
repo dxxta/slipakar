@@ -98,6 +98,19 @@ export class PdfTemplatesService {
     return this.api.delete<null>(`/projects/${projectId}/pdf-templates/${id}`);
   }
 
+  previewPdf(projectId: string, nodeTree: PdfNodeTree): Observable<Blob> {
+    return this.http
+      .post(`${environment.apiBase}/projects/${projectId}/pdf-templates/preview`, { nodeTree }, { withCredentials: true, responseType: 'blob' })
+      .pipe(
+        catchError((error: unknown) => {
+          if (error instanceof HttpErrorResponse) {
+            return throwError(() => new ApiError(error.status, 'PREVIEW_FAILED', error.status === 400 ? 'The template has invalid elements; check the validation messages.' : 'Could not render the preview.'));
+          }
+          return throwError(() => new ApiError(0, 'NETWORK_ERROR', 'Could not render the preview.'));
+        }),
+      );
+  }
+
   uploadAttachment(projectId: string, file: File): Observable<AttachmentItem> {
     const formData = new FormData();
     formData.append('file', file, file.name);

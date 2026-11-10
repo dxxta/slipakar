@@ -18,6 +18,22 @@ describe('PdfBuilderEditor', () => {
     expect(fixture.nativeElement.textContent).toContain('Text');
   });
 
+  it('shows the uploaded picture on image nodes and falls back to a placeholder when it fails', () => {
+    const fixture = TestBed.createComponent(PdfBuilderEditor);
+    fixture.componentRef.setInput('attachmentBase', '/projects/p-1/attachments');
+    fixture.detectChanges();
+    fixture.nativeElement.querySelector('[data-testid="add-image-node"]').click();
+    fixture.detectChanges();
+
+    const image = fixture.nativeElement.querySelector('img.image-preview') as HTMLImageElement;
+    expect(image).not.toBeNull();
+    expect(image.getAttribute('src')).toBe('/projects/p-1/attachments/attachment-id/content');
+    image.dispatchEvent(new Event('error'));
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('img.image-preview')).toBeNull();
+    expect(fixture.nativeElement.querySelector('.image-placeholder')).not.toBeNull();
+  });
+
   it('selects a canvas node when clicked', () => {
     const fixture = TestBed.createComponent(PdfBuilderEditor);
     fixture.detectChanges();

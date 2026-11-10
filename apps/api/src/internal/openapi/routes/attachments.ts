@@ -21,6 +21,14 @@ export const attachmentsRoutes: RouteDoc[] = [
     status: 200,
   },
   {
+    method: 'get',
+    path: '/projects/:projectId/attachments/:id/content',
+    tag: 'Attachments',
+    summary: 'Download or display an attachment file',
+    auth: 'session',
+    status: 200,
+  },
+  {
     method: 'delete',
     path: '/projects/:projectId/attachments/:id',
     tag: 'Attachments',

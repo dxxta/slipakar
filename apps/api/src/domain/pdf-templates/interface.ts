@@ -148,6 +148,12 @@ export interface PdfTemplatesUseCaseInterface {
     auditUserId: string;
   }): Promise<ResponseTypeWithoutMetadata<PdfTemplateView>>;
 
+  previewPdfTemplatesUseCase(args: {
+    projectId: string;
+    payload: unknown;
+    auditUserId: string;
+  }): Promise<Buffer>;
+
   deletePdfTemplatesUseCase(args: {
     projectId: string;
     id: string;

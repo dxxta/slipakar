@@ -1,5 +1,7 @@
 import type { PrismaClient } from '@prisma/client';
-import { createPdfTemplatesDto, listPdfTemplatesQueryDto, updatePdfTemplatesDto } from '../../../domain/pdf-templates/dto.js';
+import type { PdfRendererInterface } from '../../../domain/pdf/interface.js';
+import { extractPdfPlaceholders } from '../placeholders.js';
+import { createPdfTemplatesDto, listPdfTemplatesQueryDto, previewPdfTemplatesDto, updatePdfTemplatesDto } from '../../../domain/pdf-templates/dto.js';
 import type {
   PdfNodeTree,
   PdfTemplatesRepositoryInterface,
@@ -17,11 +19,13 @@ export function buildPdfTemplatesUseCase({
   prisma,
   projectLookup,
   attachmentLookup,
+  renderer,
 }: {
   repository: PdfTemplatesRepositoryInterface;
   prisma: PrismaClient;
   projectLookup: ProjectLookup;
   attachmentLookup: AttachmentLookup;
+  renderer?: PdfRendererInterface;
 }): PdfTemplatesUseCaseInterface {
   const assertProject = async (projectId: string, auditUserId: string): Promise<void> => {
     if (!(await projectLookup(projectId, auditUserId))) {
@@ -41,6 +45,18 @@ export function buildPdfTemplatesUseCase({
   };
 
   return {
+    async previewPdfTemplatesUseCase({ projectId, payload, auditUserId }) {
+      const body = validateAndThrow({ schema: previewPdfTemplatesDto, data: payload });
+      if (!renderer) {
+        throw new AppError(501, 'NOT_IMPLEMENTED', 'PDF preview is not available');
+      }
+      await assertProject(projectId, auditUserId);
+      await validateImageAttachments(projectId, body.nodeTree);
+      // Fill every placeholder with a readable sample so the preview never fails on missing data.
+      const row = Object.fromEntries(extractPdfPlaceholders(body.nodeTree).map((key) => [key, `[${key}]`]));
+      return renderer.renderPdf({ projectId, tree: body.nodeTree, row });
+    },
+
     async createPdfTemplatesUseCase({ projectId, payload, auditUserId }) {
       const body = validateAndThrow({ schema: createPdfTemplatesDto, data: payload });
       await assertProject(projectId, auditUserId);

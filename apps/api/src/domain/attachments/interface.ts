@@ -74,6 +74,11 @@ export interface AttachmentsUseCaseInterface {
     id: string;
     auditUserId: string;
   }): Promise<ResponseTypeWithoutMetadata<AttachmentView>>;
+  getContentAttachmentsUseCase(args: {
+    projectId: string;
+    id: string;
+    auditUserId: string;
+  }): Promise<{ buffer: Buffer; fileName: string; contentType: string; inline: boolean }>;
   deleteAttachmentsUseCase(args: {
     projectId: string;
     id: string;

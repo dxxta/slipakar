@@ -53,6 +53,26 @@ export function createPdfTemplatesRouter({
     }
   });
 
+  /** @route POST /projects/:projectId/pdf-templates/preview
+   * @desc Render the unsaved node tree to a PDF with sample values for a print preview. */
+  router.post(`${base}/preview`, async (request, response, next) => {
+    try {
+      const pdf = await useCase.previewPdfTemplatesUseCase({
+        projectId: parameter(request, 'projectId'),
+        payload: request.body,
+        auditUserId: userId(response),
+      });
+      response
+        .status(200)
+        .setHeader('Content-Type', 'application/pdf')
+        .setHeader('Content-Disposition', 'inline; filename="preview.pdf"')
+        .setHeader('Cache-Control', 'no-store')
+        .send(pdf);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   /** @route GET /projects/:projectId/pdf-templates/:id
    * @desc Get a single PDF template by ID. */
   router.get(`${base}/:id`, async (request, response, next) => {

@@ -169,4 +169,37 @@ describe('pdf-templates usecase', () => {
 
     expect(repository.listPdfTemplatesRepository).not.toHaveBeenCalled();
   });
+
+  it('previews an unsaved tree with sample values for placeholders', async () => {
+    const renderPdf = vi.fn().mockResolvedValue(Buffer.from('%PDF-sample'));
+    const useCase = buildPdfTemplatesUseCase({
+      repository: makeFakeRepository(),
+      prisma: fakePrisma,
+      projectLookup: vi.fn().mockResolvedValue(true),
+      attachmentLookup: vi.fn().mockResolvedValue(true),
+      renderer: { renderPdf },
+    });
+    const tree: PdfNodeTree = {
+      page: { size: 'A4', margin: 10 },
+      nodes: [{ id: 'n1', type: 'text', x: 10, y: 10, width: 100, height: 20, content: 'Hi {{name}}', style: { fontSize: 12, bold: false, align: 'left', color: '#000000' } }],
+    };
+    const pdf = await useCase.previewPdfTemplatesUseCase({ projectId: 'proj-1', payload: { nodeTree: tree }, auditUserId: 'u-1' });
+    expect(pdf.toString()).toBe('%PDF-sample');
+    expect(renderPdf).toHaveBeenCalledWith({ projectId: 'proj-1', tree, row: { name: '[name]' } });
+  });
+
+  it('refuses to preview for a project the user does not own', async () => {
+    const renderPdf = vi.fn();
+    const useCase = buildPdfTemplatesUseCase({
+      repository: makeFakeRepository(),
+      prisma: fakePrisma,
+      projectLookup: vi.fn().mockResolvedValue(false),
+      attachmentLookup: vi.fn().mockResolvedValue(true),
+      renderer: { renderPdf },
+    });
+    await expect(
+      useCase.previewPdfTemplatesUseCase({ projectId: 'other', payload: { nodeTree: mockTree }, auditUserId: 'u-1' }),
+    ).rejects.toMatchObject({ status: 404 });
+    expect(renderPdf).not.toHaveBeenCalled();
+  });
 });
