@@ -45,6 +45,8 @@ export function createLandingApp(config: LandingRuntimeConfig = readLandingRunti
         if (!response) return next();
         if (response.headers.get('content-type')?.includes('text/html')) {
           const html = applyRuntimeConfigToHtml(await response.text(), config);
+          // The runtime URLs change the body length, so the original Content-Length would truncate the page.
+          response.headers.delete('Content-Length');
           response.headers.set('Cache-Control', 'no-cache');
           response.headers.set('X-Robots-Tag', INDEXABLE_PATHS.includes(req.path as (typeof INDEXABLE_PATHS)[number]) ? 'noai, noimageai' : 'noindex, nofollow, noai, noimageai');
           const updatedResponse = new Response(html, { status: response.status, statusText: response.statusText, headers: response.headers });
