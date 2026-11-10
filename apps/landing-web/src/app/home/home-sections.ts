@@ -8,12 +8,12 @@ import { Pressed } from '../ui/pressed';
 @Component({
   selector: 'landing-language-toggle',
   standalone: true,
-  imports: [...HlmToggleGroupImports, Pressed],
+  imports: [...HlmToggleGroupImports],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div hlmToggleGroup type="single" [value]="language()" [nullable]="false" class="language-toggle" [attr.aria-label]="language() === 'en' ? 'Language' : 'Bahasa'">
-      <button hlmToggleGroupItem appPressed class="language-option" [class.language-option-active]="language() === 'id'" value="id" lang="id" type="button" (click)="selectLanguage('id')">ID</button>
-      <button hlmToggleGroupItem appPressed class="language-option" [class.language-option-active]="language() === 'en'" value="en" lang="en" type="button" (click)="selectLanguage('en')">EN</button>
+    <div hlmToggleGroup role="group" type="single" [value]="language()" [nullable]="false" class="language-toggle" [attr.aria-label]="language() === 'en' ? 'Language' : 'Bahasa'">
+      <button hlmToggleGroupItem class="language-option" [class.language-option-active]="language() === 'id'" [attr.aria-current]="language() === 'id' ? 'page' : null" value="id" lang="id" type="button" (click)="selectLanguage('id')">ID</button>
+      <button hlmToggleGroupItem class="language-option" [class.language-option-active]="language() === 'en'" [attr.aria-current]="language() === 'en' ? 'page' : null" value="en" lang="en" type="button" (click)="selectLanguage('en')">EN</button>
     </div>
   `,
 })
@@ -108,13 +108,14 @@ export class LandingHeroComponent {
 @Component({
   selector: 'landing-audience',
   standalone: true,
+  imports: [Pressed],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="audience" aria-labelledby="audience-title">
       <div class="audience-inner section-shell">
         <h2 id="audience-title">{{ copy().audience.title }}</h2>
         <ul class="audience-list">
-          @for (item of copy().audience.items; track item) { <li>{{ item }}</li> }
+          @for (item of copy().audience.items; track item) { <li appPressed>{{ item }}</li> }
         </ul>
       </div>
     </section>
