@@ -76,7 +76,7 @@ cd apps/user-web && make dev       # http://localhost:4300
 cd apps/landing-web && make dev    # http://localhost:4302 (live reload)
 ```
 
-In local development, “Sign in” opens `http://localhost:4300`, and a development-only “Admin” link opens `http://localhost:4301`. Override the sign-in destination with `make dev LANDING_APP_URL=http://localhost:4999`. Other targets: `make build`, `make typecheck`, `make test`, `make clean`, `make help`. The `LANDING_*` values in `apps/landing-web/.env` (sign-in, site, repository and docs URLs) are read by the production server, so to check them, the sitemap, `robots.txt` or the AI-crawler block, build and run the production server:
+In local development, “Sign in” opens `http://localhost:4300`. Override the sign-in destination with `make dev LANDING_APP_URL=http://localhost:4999`. Other targets: `make build`, `make typecheck`, `make test`, `make clean`, `make help`. The `LANDING_*` values in `apps/landing-web/.env` (sign-in, site, repository and docs URLs) are read by the production server, so to check them, the sitemap, `robots.txt` or the AI-crawler block, build and run the production server:
 
 ```bash
 cd apps/landing-web && make build
@@ -85,7 +85,7 @@ curl -s -o /dev/null -w "%{http_code}\n" -A GPTBot http://localhost:8082/       
 curl -s -o /dev/null -w "%{http_code}\n" -A Googlebot http://localhost:8082/     # 200
 ```
 
-The production server still defaults to `http://localhost:8080` (the Compose web port) and shows no Admin link unless `LANDING_ADMIN_URL` is explicitly configured. Local `make dev` defaults to the user app on port 4300 and the admin app on port 4301.
+The production server still defaults to `http://localhost:8080` (the Compose web port). Local `make dev` defaults to the user app on port 4300. The landing site never links to the admin app or the API.
 
 ## Sign-in
 

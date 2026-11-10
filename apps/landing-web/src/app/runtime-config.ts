@@ -6,7 +6,6 @@ export interface LandingRuntimeConfig {
   siteUrl: string;
   repoUrl: string;
   docsUrl: string;
-  adminUrl?: string;
 }
 
 export const DEFAULT_LANDING_CONFIG: LandingRuntimeConfig = {
@@ -18,13 +17,11 @@ export const DEFAULT_LANDING_CONFIG: LandingRuntimeConfig = {
 
 export function createLandingRuntimeConfig(environment: Readonly<Record<string, string | undefined>>): LandingRuntimeConfig {
   const siteUrl = safeAbsoluteUrl(environment['LANDING_SITE_URL'], DEFAULT_LANDING_CONFIG.siteUrl).replace(/\/$/, '');
-  const adminUrl = safeAbsoluteUrl(environment['LANDING_ADMIN_URL'], '');
   return {
     appUrl: safeAbsoluteUrl(environment['LANDING_APP_URL'], DEFAULT_LANDING_CONFIG.appUrl),
     siteUrl,
     repoUrl: safeAbsoluteUrl(environment['LANDING_REPO_URL'], `${siteUrl}/#open-source`),
     docsUrl: safeAbsoluteUrl(environment['LANDING_DOCS_URL'], `${siteUrl}/#self-host`),
-    ...(adminUrl ? { adminUrl } : {}),
   };
 }
 
@@ -40,13 +37,7 @@ export function applyRuntimeConfigToHtml(html: string, config: LandingRuntimeCon
   const withConfig = configPattern.test(html)
     ? html.replace(configPattern, configMeta)
     : html.replace('</head>', `${configMeta}</head>`);
-  const adminLink = config.adminUrl
-    ? `<a class="dev-admin-link" href="${escapeHtmlAttribute(config.adminUrl)}" lang="en" rel="noopener noreferrer">Admin</a>`
-    : '';
-  const withAdminLink = adminLink
-    ? withConfig.replace(/(<landing-language-toggle\b[\s\S]*?<\/landing-language-toggle>)/, `$1${adminLink}`)
-    : withConfig;
-  return withAdminLink
+  return withConfig
     .replaceAll(DEFAULT_LANDING_CONFIG.appUrl, config.appUrl)
     .replaceAll(DEFAULT_LANDING_CONFIG.siteUrl, config.siteUrl)
     .replaceAll(DEFAULT_LANDING_CONFIG.repoUrl, config.repoUrl)
@@ -74,7 +65,6 @@ export function readLandingConfigFromDocument(document: Document): LandingRuntim
       LANDING_SITE_URL: value.siteUrl,
       LANDING_REPO_URL: value.repoUrl,
       LANDING_DOCS_URL: value.docsUrl,
-      LANDING_ADMIN_URL: value.adminUrl,
     });
   } catch {
     return DEFAULT_LANDING_CONFIG;

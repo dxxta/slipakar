@@ -13,8 +13,7 @@ endif
 PORT ?= 4302
 LANDING_APP_URL ?= http://localhost:4300
 LANDING_SITE_URL ?= http://localhost:$(PORT)
-LANDING_ADMIN_URL ?= http://localhost:4301
-export LANDING_APP_URL LANDING_SITE_URL LANDING_ADMIN_URL
+export LANDING_APP_URL LANDING_SITE_URL
 
 # Display this help summary listing available Makefile targets
 help: ## Display this help summary listing available Makefile targets
@@ -27,7 +26,7 @@ env: ## Create .env from .env.example
 # Serve the landing web app with live reload
 dev: ## Serve the landing web app with live reload on PORT
 	@if lsof -nP -iTCP:$(PORT) -sTCP:LISTEN >/dev/null 2>&1; then echo "Port $(PORT) is already in use."; exit 1; fi
-	@echo "Sign in -> $(LANDING_APP_URL), admin -> $(LANDING_ADMIN_URL)"
+	@echo "Sign in -> $(LANDING_APP_URL)"
 	npx ng serve --port $(PORT)
 
 # Build the production SSR bundle

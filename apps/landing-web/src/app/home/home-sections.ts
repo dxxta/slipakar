@@ -42,9 +42,6 @@ export class LandingLanguageToggleComponent {
       </nav>
       <div class="header-actions">
         <landing-language-toggle [language]="language()" [path]="path() ?? copy().metadata.path" />
-        @if (config.adminUrl) {
-          <a class="dev-admin-link" [href]="config.adminUrl" lang="en" rel="noopener noreferrer">Admin</a>
-        }
         <a class="button button-small button-dark" [href]="config.appUrl">{{ copy().nav.signIn }}</a>
       </div>
     </header>

@@ -95,7 +95,6 @@ import { PageHeader, SelectControl } from '../../ui';
             />
             <button
               hlmBtn
-              variant="destructive"
               size="sm"
               type="button"
               data-action="remove-avatar"
