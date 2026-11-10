@@ -15,12 +15,13 @@ import {
 } from '../../ui/card/src';
 import { getMonitoringLinks, type MonitoringServiceLink } from './monitoring-links';
 import { PageHeader } from '../../ui/shared/page-header';
+import { Ripple } from '../../ui/shared/ripple';
 
 export type HealthStatus = 'loading' | 'healthy' | 'unreachable';
 
 @Component({
   selector: 'app-monitoring-page',
-  imports: [
+  imports: [Ripple, 
     DatePipe,
     HlmBadge,
     HlmButton,
