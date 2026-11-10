@@ -47,7 +47,7 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
               <div class="min-w-0 flex-1">
                 <div class="flex flex-wrap items-center gap-2.5">
                   <h2 class="text-lg font-semibold">{{ integration.key === 'mail' ? 'Mail' : integration.label }}</h2>
-                  <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium" [ngClass]="statusClass(integration)">@if (testStatus()[integration.key]) { <span aria-hidden="true" class="size-1.5 rounded-full" [ngClass]="testStatus()[integration.key] === 'ok' ? 'bg-emerald-500' : 'bg-destructive'"></span> }{{ statusLabel(integration) }}</span>
+                  <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium" [ngClass]="statusClass(integration)">@if (testStatus()[integration.key]) { <span aria-hidden="true" class="size-1.5 rounded-full" [ngClass]="testStatus()[integration.key] === 'ok' ? 'bg-primary' : 'bg-[#E5484D]'"></span> }{{ statusLabel(integration) }}</span>
                 </div>
                 <p class="mt-1 text-sm text-muted-foreground">{{ description(integration.key) }}</p>
                 @if (integration.source || (integration.baseUrl && integration.key !== 'mail') || integration.credentialHint) {
@@ -221,8 +221,8 @@ export class SetupPage implements OnInit {
   }
   protected statusClass(item: IntegrationItem): string {
     const tested = this.testStatus()[item.key];
-    return tested === 'ok' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-      : tested === 'failed' ? 'border-destructive/40 bg-destructive/10 text-destructive'
+    return tested === 'ok' ? 'border-primary/40 bg-primary/10 text-foreground'
+      : tested === 'failed' ? 'border-[#E5484D]/40 bg-[#E5484D]/10 text-[#E5484D]'
       : 'border-border bg-muted text-muted-foreground';
   }
   protected drawerTitle(): string { const item = this.editing(); return item ? `Configure ${item.key === 'mail' ? 'Mail' : item.label}` : 'Configure integration'; }
