@@ -25,7 +25,7 @@
     const secondLight = luminance(second);
     return (Math.max(firstLight, secondLight) + 0.05) / (Math.min(firstLight, secondLight) + 0.05);
   };
-  const foreground = (color) => contrast(color, '#151513') >= contrast(color, '#FFFFFF') ? '#151513' : '#FFFFFF';
+  const foreground = (color, ink = '#151513') => contrast(color, ink) >= contrast(color, '#FFFFFF') ? ink : '#FFFFFF';
 
   try {
     // Deprecated: read-only fallback for the pre-Slipakar storage key. Remove in a future major release.
@@ -35,6 +35,7 @@
     const accents = Object.keys(presets);
     const mode = modes.includes(stored?.themeMode) ? stored.themeMode : 'system';
     const accent = accents.includes(stored?.themeAccent) ? stored.themeAccent : 'slate';
+    const appearanceStyle = stored?.appearanceStyle === 'unstyled' ? 'unstyled' : 'styled';
     const dark = mode === 'dark' || (mode === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
     const storedColors = stored?.themeColors;
     const colors = {
@@ -45,23 +46,25 @@
     root.classList.toggle('dark', dark);
     root.dataset.themeMode = mode;
     root.dataset.accent = accent;
+    root.dataset.style = appearanceStyle;
     root.style.setProperty('--accent-custom', active.accent);
     root.style.setProperty('--secondary-custom', active.secondary);
     root.style.setProperty('--third-custom', active.third);
-    root.style.setProperty('--primary-foreground', foreground(active.accent));
-    root.style.setProperty('--secondary-foreground', foreground(active.secondary));
-    root.style.setProperty('--accent-foreground', foreground(active.secondary));
+    root.style.setProperty('--primary-foreground', foreground(active.accent, active.third));
+    root.style.setProperty('--secondary-foreground', foreground(active.secondary, active.third));
+    root.style.setProperty('--accent-foreground', foreground(active.secondary, active.third));
   } catch {
     root.dataset.themeMode = 'system';
     root.dataset.accent = 'slate';
+    root.dataset.style = 'styled';
     const dark = matchMedia('(prefers-color-scheme: dark)').matches;
     const active = dark ? defaultColors.dark : defaultColors.light;
     root.classList.toggle('dark', dark);
     root.style.setProperty('--accent-custom', active.accent);
     root.style.setProperty('--secondary-custom', active.secondary);
     root.style.setProperty('--third-custom', active.third);
-    root.style.setProperty('--primary-foreground', foreground(active.accent));
-    root.style.setProperty('--secondary-foreground', foreground(active.secondary));
-    root.style.setProperty('--accent-foreground', foreground(active.secondary));
+    root.style.setProperty('--primary-foreground', foreground(active.accent, active.third));
+    root.style.setProperty('--secondary-foreground', foreground(active.secondary, active.third));
+    root.style.setProperty('--accent-foreground', foreground(active.secondary, active.third));
   }
 })();

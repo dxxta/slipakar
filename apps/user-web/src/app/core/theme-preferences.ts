@@ -2,6 +2,7 @@ export type ThemeMode = 'light' | 'dark' | 'system';
 export type ThemeAccent = 'slate' | 'blue' | 'green' | 'violet' | 'rose' | 'amber';
 export type ThemePreference = { themeMode: ThemeMode; themeAccent: ThemeAccent };
 export type ThemeScheme = 'light' | 'dark';
+export type AppearanceStyle = 'styled' | 'unstyled';
 export type BaseColorKey = 'accent' | 'secondary' | 'third';
 export type BaseColors = Record<BaseColorKey, string>;
 export type ThemeColors = Record<ThemeScheme, BaseColors>;
@@ -40,8 +41,8 @@ export function contrastRatio(first: string, second: string): number {
   return (brightest + 0.05) / (darkest + 0.05);
 }
 
-export function readableForeground(color: string): string {
-  return contrastRatio(color, '#151513') >= contrastRatio(color, '#FFFFFF') ? '#151513' : '#FFFFFF';
+export function readableForeground(color: string, ink = '#151513'): string {
+  return contrastRatio(color, ink) >= contrastRatio(color, '#FFFFFF') ? ink : '#FFFFFF';
 }
 
 export function applyThemePreference(
@@ -49,18 +50,20 @@ export function applyThemePreference(
   preference: ThemePreference,
   systemPrefersDark: boolean,
   themeColors: ThemeColors = defaultThemeColors(preference.themeAccent),
+  appearanceStyle: AppearanceStyle = 'styled',
 ): void {
   const useDark = preference.themeMode === 'dark' || (preference.themeMode === 'system' && systemPrefersDark);
   const colors = useDark ? themeColors.dark : themeColors.light;
   root.classList.toggle('dark', useDark);
   root.dataset['themeMode'] = preference.themeMode;
   root.dataset['accent'] = preference.themeAccent;
+  root.dataset['style'] = appearanceStyle;
   root.style.setProperty('--accent-custom', colors.accent);
   root.style.setProperty('--secondary-custom', colors.secondary);
   root.style.setProperty('--third-custom', colors.third);
-  root.style.setProperty('--primary-foreground', readableForeground(colors.accent));
-  root.style.setProperty('--secondary-foreground', readableForeground(colors.secondary));
-  root.style.setProperty('--accent-foreground', readableForeground(colors.secondary));
+  root.style.setProperty('--primary-foreground', readableForeground(colors.accent, colors.third));
+  root.style.setProperty('--secondary-foreground', readableForeground(colors.secondary, colors.third));
+  root.style.setProperty('--accent-foreground', readableForeground(colors.secondary, colors.third));
   root.style.setProperty('--ring', colors.third);
   root.style.setProperty('--sidebar-ring', colors.third);
 }

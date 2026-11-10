@@ -10,12 +10,13 @@ import { ThemePreferencesService } from '../../core/theme-preferences.service';
 import { contrastRatio, isHexColor, readableForeground, type BaseColorKey, type ThemeAccent, type ThemeMode } from '../../core/theme-preferences';
 import { Avatar } from '@slipakar/ui/avatar';
 import { HlmButton } from '../../ui/button/src';
-import { PageHeader, SelectControl } from '../../ui';
+import { PageHeader, SelectControl, SegmentedTabs } from '../../ui';
+import type { TabItem } from '../../ui';
 import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
   selector: 'app-profile-page',
-  imports: [Ripple, CommonModule, Avatar, HlmButton, PageHeader, SelectControl, NgIcon],
+  imports: [Ripple, CommonModule, Avatar, HlmButton, PageHeader, SelectControl, SegmentedTabs, NgIcon],
   providers: [provideIcons({ tablerPencil })],
   template: `
     <div class="space-y-6">
@@ -170,6 +171,10 @@ import { Ripple } from '../../ui/shared/ripple';
             <option value="dark">Dark</option>
           </select>
         </div>
+        <div class="grid content-start gap-2">
+          <span id="appearance-style-label" class="text-sm font-medium">Appearance style</span>
+          <app-segmented-tabs ariaLabel="Appearance style" [items]="appearanceStyleOptions" [selected]="themePreferences.appearanceStyle()" (selectedChange)="changeAppearanceStyle($event)" />
+        </div>
         <fieldset class="m-0 min-w-0 border-0 p-0 sm:col-span-2">
           <legend class="mb-2 p-0 text-sm font-medium">Base colours · {{ activeSchemeLabel() }} theme</legend>
           <div class="grid gap-4 sm:grid-cols-3">
@@ -227,7 +232,7 @@ import { Ripple } from '../../ui/shared/ripple';
       <div data-theme-preview aria-live="polite" class="flex flex-wrap items-center justify-between gap-4 rounded-ui-md border border-border bg-muted p-4">
         <div>
           <p class="text-sm font-medium">Live preview</p>
-          <p class="mt-1 text-xs text-muted-foreground">Your accent and theme are applied immediately.</p>
+          <p class="mt-1 text-xs text-muted-foreground">{{ appearanceStyleLabel() }} appearance is applied immediately.</p>
         </div>
         <button hlmBtn type="button">Preview action</button>
       </div>
@@ -250,6 +255,10 @@ export class ProfilePage {
   readonly avatarUploading = signal(false);
   readonly emailSending = signal(false);
   protected readonly accents: ThemeAccent[] = ['slate', 'blue', 'green', 'violet', 'rose', 'amber'];
+  protected readonly appearanceStyleOptions: TabItem[] = [
+    { id: 'styled', label: 'Styled' },
+    { id: 'unstyled', label: 'Unstyled' },
+  ];
   protected readonly baseColorFields: { key: BaseColorKey; label: string }[] = [
     { key: 'accent', label: 'Accent' },
     { key: 'secondary', label: 'Secondary' },
@@ -403,6 +412,14 @@ export class ProfilePage {
     return colors[accent];
   }
 
+  protected changeAppearanceStyle(style: string): void {
+    if (style === 'styled' || style === 'unstyled') this.themePreferences.setAppearanceStyle(style);
+  }
+
+  protected appearanceStyleLabel(): string {
+    return this.themePreferences.appearanceStyle() === 'styled' ? 'Styled' : 'Unstyled';
+  }
+
   protected activeSchemeLabel(): string {
     return this.themePreferences.activeScheme() === 'dark' ? 'Dark' : 'Light';
   }
@@ -437,7 +454,8 @@ export class ProfilePage {
 
   protected accentContrastWarning(): boolean {
     const accent = this.baseColorValue('accent');
-    return contrastRatio(accent, readableForeground(accent)) < 4.5;
+    const ink = this.themePreferences.themeColors()[this.themePreferences.activeScheme()].third;
+    return contrastRatio(accent, readableForeground(accent, ink)) < 4.5;
   }
 
   protected resetBaseColors(): void {

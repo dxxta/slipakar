@@ -6,6 +6,7 @@ import {
   applyThemePreference,
   defaultThemeColors,
   isHexColor,
+  type AppearanceStyle,
   type BaseColorKey,
   type ThemeAccent,
   type ThemeColors,
@@ -25,6 +26,7 @@ export class ThemePreferencesService {
   private readonly document = inject(DOCUMENT);
   readonly preference = signal<ThemePreference>(defaultPreference);
   readonly themeColors = signal<ThemeColors>(defaultThemeColors());
+  readonly appearanceStyle = signal<AppearanceStyle>('styled');
   private mediaQuery: MediaQueryList | null = null;
   private hasStoredColors = false;
 
@@ -77,6 +79,13 @@ export class ThemePreferencesService {
     this.setPreference({ ...this.preference(), themeAccent });
   }
 
+  setAppearanceStyle(style: AppearanceStyle): void {
+    if (style !== 'styled' && style !== 'unstyled') return;
+    this.appearanceStyle.set(style);
+    this.storePreference(this.preference());
+    this.apply(this.preference());
+  }
+
   activeScheme(): ThemeScheme {
     return this.document.documentElement?.classList.contains('dark') ? 'dark' : 'light';
   }
@@ -120,7 +129,8 @@ export class ThemePreferencesService {
     try {
       const parsed: unknown = JSON.parse(cached);
       if (!this.isThemePreference(parsed)) return null;
-      const candidate = parsed as ThemePreference & { themeColors?: unknown };
+      const candidate = parsed as ThemePreference & { themeColors?: unknown; appearanceStyle?: unknown };
+      this.appearanceStyle.set(candidate.appearanceStyle === 'unstyled' ? 'unstyled' : 'styled');
       if (this.isThemeColors(candidate.themeColors)) {
         this.themeColors.set(candidate.themeColors);
         this.hasStoredColors = true;
@@ -136,7 +146,7 @@ export class ThemePreferencesService {
 
   private storePreference(preference: ThemePreference): void {
     try {
-      this.document.defaultView?.localStorage.setItem(preferenceStorageKey, JSON.stringify({ ...preference, themeColors: this.themeColors() }));
+      this.document.defaultView?.localStorage.setItem(preferenceStorageKey, JSON.stringify({ ...preference, themeColors: this.themeColors(), appearanceStyle: this.appearanceStyle() }));
       this.hasStoredColors = true;
     } catch {
       return;
@@ -156,7 +166,7 @@ export class ThemePreferencesService {
   private apply(preference: ThemePreference): void {
     const prefersDark = this.mediaQuery?.matches ?? false;
     if (this.document.documentElement !== null) {
-      applyThemePreference(this.document.documentElement, preference, prefersDark, this.themeColors());
+      applyThemePreference(this.document.documentElement, preference, prefersDark, this.themeColors(), this.appearanceStyle());
     }
   }
 
