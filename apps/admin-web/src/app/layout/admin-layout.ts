@@ -22,7 +22,7 @@ import { AdminSetupService } from '../features/setup/admin-setup.service';
       <aside class="hidden flex-col border-r border-border bg-card px-5 py-6 md:flex">
         <a routerLink="/flags" class="mb-10 flex items-center gap-3 rounded-md text-lg font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <span class="grid size-9 place-items-center rounded-lg bg-primary text-primary-foreground" aria-hidden="true">L</span>
-          <span>Slipakar</span>
+          <a class="wordmark" href="/" aria-label="Slipakar home">Slipakar<span class="wordmark-dot">.</span></a>
         </a>
         <nav aria-label="Main navigation" class="grid gap-1">
           <a routerLink="/flags" routerLinkActive="bg-muted text-foreground" class="flex min-h-10 items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Feature flags</a>
