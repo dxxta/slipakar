@@ -143,7 +143,6 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
           }
           @if (actionError()) { <p role="alert" class="rounded-ui-md border border-[#E5484D]/30 bg-[#E5484D]/10 px-3 py-2 text-sm text-[#E5484D]">{{ actionError() }}</p> }
         </form>
-        @if (item.configured) { <div class="mt-4 border-t border-border pt-4"><button hlmBtn variant="outline" type="button" [disabled]="busy()" (click)="testConnection(item.key)">Test connection</button>@if (testMessage()) { <p role="status" class="mt-2 text-sm">{{ testMessage() }}</p> }</div> }
       }
       @if (editing()) {
         <div drawer-footer class="contents"><button hlmBtn variant="outline" type="button" (click)="editing.set(null)">Cancel</button><button hlmBtn type="submit" form="integration-form" [disabled]="busy()">{{ busy() ? 'Saving…' : 'Save settings' }}</button></div>
@@ -251,11 +250,10 @@ export class SetupPage implements OnInit {
         : item.key === 'grafana'
           ? { baseUrl: fields.baseUrl, apiToken: fields.apiToken || undefined }
           : { host: fields.host, port: Number(fields.port), secure: fields.secure, username: fields.username || undefined, password: fields.password || undefined, fromAddress: fields.fromAddress };
-      const updated = await this.setup.save(item.key, payload);
+      await this.setup.save(item.key, payload);
       this.testStatus.update((current) => ({ ...current, [item.key]: undefined }));
-      this.editing.set(updated);
-      this.form.update((current) => ({ ...current, password: '', apiKey: '', apiToken: '' }));
-      this.testMessage.set('Settings saved. Test the connection to complete setup.');
+      this.form.set(emptyForm());
+      this.editing.set(null);
     } catch (error: unknown) { this.actionError.set(this.errorMessage(error)); }
     finally { this.busy.set(false); }
   }
