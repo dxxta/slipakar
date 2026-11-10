@@ -5,10 +5,11 @@ import { HlmButton } from '../../ui/button/src';
 import { ConfirmModal, DataTableControls, Drawer, ListBody, PageHeader, Pagination, RowActions, type RowActionItem, SelectControl } from '../../ui';
 import { type AdminUser, UsersService } from '../users/users.service';
 import { type BroadcastAudience, type BroadcastItem, type BroadcastPayload, type BroadcastPreview, type BroadcastSort, BroadcastsService } from './broadcasts.service';
+import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
   selector: 'app-broadcasts-page',
-  imports: [CommonModule, HlmBadge, HlmButton, ConfirmModal, DataTableControls, Drawer, ListBody, PageHeader, Pagination, RowActions, SelectControl],
+  imports: [Ripple, CommonModule, HlmBadge, HlmButton, ConfirmModal, DataTableControls, Drawer, ListBody, PageHeader, Pagination, RowActions, SelectControl],
   template: `
     <app-page-header
       title="Broadcasts"
@@ -36,19 +37,19 @@ import { type BroadcastAudience, type BroadcastItem, type BroadcastPayload, type
     >
       <button empty-action hlmBtn class="mt-4" type="button" (click)="openComposer()">Create a broadcast</button>
       <div list-content class="overflow-x-auto rounded-ui-lg border border-border bg-card">
-        <table class="w-full min-w-[44rem] text-left text-sm" aria-label="Broadcast history">
+        <table data-responsive class="w-full min-w-[44rem] text-left text-sm" aria-label="Broadcast history">
           <thead class="border-b border-border bg-muted/40 text-xs uppercase text-muted-foreground">
             <tr><th class="px-4 py-3">Subject</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Audience</th><th class="px-4 py-3">Counts</th><th class="px-4 py-3">Updated</th><th class="px-4 py-3 text-right">Actions</th></tr>
           </thead>
           <tbody class="divide-y divide-border">
             @for (item of items(); track item.id) {
               <tr class="hover:bg-muted/30">
-                <td class="px-4 py-4 font-medium">{{ item.subject }}</td>
-                <td class="px-4 py-4"><span hlmBadge [variant]="item.status === 'sent' ? 'secondary' : 'outline'">{{ item.status === 'sent' ? 'Sent' : 'Draft' }}</span></td>
-                <td class="px-4 py-4">{{ audienceLabel(item) }}</td>
-                <td class="px-4 py-4 tabular-nums">{{ item.counts.sent }} sent · {{ item.counts.failed }} failed</td>
-                <td class="px-4 py-4 tabular-nums">{{ item.updatedAt | date:'mediumDate' }}</td>
-                <td class="px-4 py-4 text-right">
+                <td data-label="Subject" class="px-4 py-4 font-medium">{{ item.subject }}</td>
+                <td data-label="Status" class="px-4 py-4"><span hlmBadge [variant]="item.status === 'sent' ? 'secondary' : 'outline'">{{ item.status === 'sent' ? 'Sent' : 'Draft' }}</span></td>
+                <td data-label="Audience" class="px-4 py-4">{{ audienceLabel(item) }}</td>
+                <td data-label="Counts" class="px-4 py-4 tabular-nums">{{ item.counts.sent }} sent · {{ item.counts.failed }} failed</td>
+                <td data-label="Updated" class="px-4 py-4 tabular-nums">{{ item.updatedAt | date:'mediumDate' }}</td>
+                <td data-label="Actions" class="px-4 py-4 text-right">
                   <div class="flex justify-end">
                     @if (item.status === 'draft') {
                       <app-row-actions
@@ -97,7 +98,7 @@ import { type BroadcastAudience, type BroadcastItem, type BroadcastPayload, type
           <label class="grid gap-2 text-sm font-medium" for="broadcast-body">Plain-text message<textarea id="broadcast-body" class="min-h-40 rounded-ui-md border border-input bg-background p-3 text-sm font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" maxlength="10000" [value]="bodyText()" (input)="bodyText.set(inputValue($event))" placeholder="Write your message" required></textarea></label>
           <label class="grid gap-2 text-sm font-medium" for="broadcast-audience">Audience<select id="broadcast-audience" appSelect class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm font-normal" [value]="audience()" (change)="setAudience($event)"><option value="all">All users</option><option value="role">By role</option><option value="users">Choose users</option></select></label>
           @if (audience() === 'role') { <label class="grid gap-2 text-sm font-medium" for="broadcast-role">Role<select id="broadcast-role" appSelect class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm font-normal" [value]="role()" (change)="role.set(inputValue($event))"><option value="user">User</option><option value="admin">Admin</option></select></label> }
-          @if (audience() === 'users') { <fieldset class="grid gap-2"><legend class="text-sm font-medium">Choose users</legend>@if (usersLoading()) { <p role="status">Loading users…</p> } @else { @for (user of users(); track user.id) { <label class="flex min-h-11 items-center gap-3 rounded-ui-md border border-border px-3 text-sm"><input type="checkbox" [checked]="selectedUserIds().includes(user.id)" (change)="toggleUser(user.id, $event)" />{{ user.name || user.email }} <span class="text-muted-foreground">{{ user.email }}</span></label> } @if (selectedUserIds().length === 0) { <p class="text-xs text-muted-foreground">Select at least one recipient to preview this broadcast.</p> } }</fieldset> }
+          @if (audience() === 'users') { <fieldset class="grid gap-2"><legend class="text-sm font-medium">Choose users</legend>@if (usersLoading()) { <p role="status">Loading users…</p> } @else { @for (user of users(); track user.id) { <label class="flex h-control-9 items-center gap-3 rounded-ui-md border border-border px-3 text-sm"><input type="checkbox" [checked]="selectedUserIds().includes(user.id)" (change)="toggleUser(user.id, $event)" />{{ user.name || user.email }} <span class="text-muted-foreground">{{ user.email }}</span></label> } @if (selectedUserIds().length === 0) { <p class="text-xs text-muted-foreground">Select at least one recipient to preview this broadcast.</p> } }</fieldset> }
           @if (error()) { <p role="alert" class="text-sm text-destructive">{{ error() }}</p> }
           <div class="flex justify-end gap-2"><button hlmBtn variant="outline" type="button" (click)="closeComposer()">Cancel</button><button hlmBtn type="submit" aria-label="Preview broadcast" [disabled]="saving() || !subject().trim() || !bodyText().trim() || (audience() === 'users' && selectedUserIds().length === 0)">{{ saving() ? 'Saving…' : 'Preview' }}</button></div>
         </form>
