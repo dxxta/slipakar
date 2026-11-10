@@ -3,6 +3,7 @@ import { BrnButton } from '@spartan-ng/brain/button';
 import { classes } from '@slipakar/ui/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 import type { ClassValue } from 'clsx';
+import { Pressed } from '../../../shared/pressed';
 import { injectBrnButtonConfig } from './hlm-button.token';
 
 export const buttonVariants = cva(
@@ -49,7 +50,7 @@ export type ButtonVariants = VariantProps<typeof buttonVariants>;
 @Directive({
   selector: 'button[hlmBtn], a[hlmBtn]',
   exportAs: 'hlmBtn',
-  hostDirectives: [{ directive: BrnButton, inputs: ['disabled'] }],
+  hostDirectives: [{ directive: BrnButton, inputs: ['disabled'] }, Pressed],
   host: { 'data-slot': 'button' },
 })
 export class HlmButton {
