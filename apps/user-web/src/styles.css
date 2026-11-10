@@ -106,13 +106,16 @@ table:not(.preview-table) thead th button { color: inherit !important; }
   }
   table[data-responsive] tbody td,
   table[data-responsive] tbody th[scope='row'] {
-    grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    grid-column: 1 / -1; display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: start; column-gap: 1rem;
     padding: 0.5rem 0 !important; border: 0; border-top: 1px solid var(--border); min-width: 0; text-align: right; word-break: break-word;
   }
   table[data-responsive] tbody td[data-label]::before,
   table[data-responsive] tbody th[data-label]::before {
-    content: attr(data-label); flex-shrink: 0; text-align: left; font-size: 0.8125rem; color: var(--foreground);
+    content: attr(data-label); grid-column: 1; grid-row: 1; text-align: left; font-size: 0.8125rem; color: var(--foreground);
   }
+  /* Values made of several lines wrap below each other, all aligned to the right. */
+  table[data-responsive] tbody td[data-label] > *,
+  table[data-responsive] tbody th[data-label] > * { grid-column: 2; justify-self: end; text-align: right; margin: 0; }
   /* Main column */
   table[data-responsive] tbody tr:not(:has([data-main])) > :first-child,
   table[data-responsive] tbody [data-main] {
@@ -129,7 +132,7 @@ table:not(.preview-table) thead th button { color: inherit !important; }
   }
   table[data-responsive] tbody [data-aside]::before { content: none; }
   /* Actions */
-  table[data-responsive] tbody td[data-label='Actions'] { justify-content: stretch; padding: 0.75rem 0 0 !important; }
+  table[data-responsive] tbody td[data-label='Actions'] { display: flex; justify-content: stretch; padding: 0.75rem 0 0 !important; }
   table[data-responsive] tbody td[data-label='Actions']::before { content: none; }
   table[data-responsive] tbody td[data-label='Actions'] app-row-actions { width: 100%; }
   table[data-responsive] tbody td[data-label='Actions'] [data-row-action-trigger] {
