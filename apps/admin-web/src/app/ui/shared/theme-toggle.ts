@@ -3,19 +3,22 @@ import { Component, DestroyRef, Injector, computed, inject, signal } from '@angu
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { tablerMoon, tablerSun } from '@ng-icons/tabler-icons';
 import { ThemePreferencesService } from '../../core/theme-preferences.service';
+import { Ripple } from './ripple';
 
 @Component({
   selector: 'app-theme-toggle',
   standalone: true,
-  imports: [NgIcon],
+  imports: [Ripple, NgIcon],
   providers: [provideIcons({ tablerSun, tablerMoon })],
   template: `
     @if (hasPreferences) {
-      <button type="button" class="grid size-11 shrink-0 place-items-center rounded-ui-md border border-border text-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" [attr.aria-label]="label()" [attr.title]="label()" (click)="toggle()">
+      <button role="menuitem" type="button" class="flex h-control-9 w-full items-center gap-2 rounded-ui-sm px-3 text-left text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" [attr.aria-label]="label()" (click)="toggle()">
         @if (effectiveDark()) {
           <ng-icon name="tablerSun" aria-hidden="true" class="size-4" />
+          <span>Light theme</span>
         } @else {
           <ng-icon name="tablerMoon" aria-hidden="true" class="size-4" />
+          <span>Dark theme</span>
         }
       </button>
     }
