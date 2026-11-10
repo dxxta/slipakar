@@ -415,8 +415,6 @@ Slipakar stands on the work of many open-source projects and free services. Than
 
 Each project keeps its own license; please read them before redistributing or offering Slipakar as a hosted service.
 
-## Brand assets (TODO)
+## Branding
 
-- Create a Slipakar favicon for the three web apps: `apps/user-web/public`, `apps/admin-web/public`, and `apps/landing-web/public`.
-- Create a landing-page Open Graph image at 1200×630 pixels.
-- Create a Slipakar wordmark.
+Logo files, favicons and the default design system (colours, fonts, shapes, components) are documented in [docs/BRANDING.md](docs/BRANDING.md).
