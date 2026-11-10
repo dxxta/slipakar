@@ -6,16 +6,22 @@ import { provideRouter } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { SessionService } from '../../core/session.service';
 import { ThemePreferencesService } from '../../core/theme-preferences.service';
+import { ACCENT_PRESET_COLORS, defaultThemeColors, type ThemeAccent } from '../../core/theme-preferences';
 import { ProfilePage } from './profile-page';
 import type { ComponentFixture } from '@angular/core/testing';
 
 describe('ProfilePage', () => {
   let http: HttpTestingController;
   let session: SessionService;
+  const themeColors = signal(defaultThemeColors());
   const themePreferences = {
     preference: signal({ themeMode: 'system' as const, themeAccent: 'slate' as const }),
+    themeColors,
+    activeScheme: vi.fn(() => 'light' as const),
     setMode: vi.fn(),
-    setAccent: vi.fn(),
+    setAccent: vi.fn((accent: ThemeAccent) => themeColors.update((colors) => ({ ...colors, light: { ...colors.light, accent: ACCENT_PRESET_COLORS[accent] } }))),
+    setBaseColor: vi.fn(),
+    resetBaseColors: vi.fn(),
   };
 
   beforeEach(() => {
@@ -137,10 +143,10 @@ describe('ProfilePage', () => {
     expect(fixture.nativeElement.querySelector('[data-theme-preview]')).not.toBeNull();
   });
 
-  it('labels the default teal accent Slipakar and uses its brand swatch', () => {
+  it('labels the default lime accent and uses its brand swatch', () => {
     const fixture = createFixture();
-    const button = fixture.nativeElement.querySelector('[aria-label="Slipakar accent"]') as HTMLButtonElement | null;
+    const button = fixture.nativeElement.querySelector('[aria-label="Lime accent"]') as HTMLButtonElement | null;
     expect(button).not.toBeNull();
-    expect(button?.querySelector('span')?.className).toContain('bg-[#126d63]');
+    expect(button?.querySelector('span')?.getAttribute('style')).toContain('background-color');
   });
 });

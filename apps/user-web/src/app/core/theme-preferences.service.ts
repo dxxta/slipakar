@@ -2,10 +2,16 @@ import { DOCUMENT } from '@angular/common';
 import { Injectable, inject, signal } from '@angular/core';
 import { ApiClient } from './api-client';
 import {
+  ACCENT_PRESET_COLORS,
   applyThemePreference,
+  defaultThemeColors,
+  isHexColor,
+  type BaseColorKey,
   type ThemeAccent,
+  type ThemeColors,
   type ThemeMode,
   type ThemePreference,
+  type ThemeScheme,
 } from './theme-preferences';
 
 const preferenceStorageKey = 'slipakar.theme-preferences';
@@ -18,7 +24,9 @@ export class ThemePreferencesService {
   private readonly api = inject(ApiClient);
   private readonly document = inject(DOCUMENT);
   readonly preference = signal<ThemePreference>(defaultPreference);
+  readonly themeColors = signal<ThemeColors>(defaultThemeColors());
   private mediaQuery: MediaQueryList | null = null;
+  private hasStoredColors = false;
 
   initialize(): void {
     const cachedPreference = this.readCachedPreference();
@@ -28,6 +36,7 @@ export class ThemePreferencesService {
     this.api.get<ThemePreference>('/me/preferences').subscribe({
       next: (preference) => {
         if (!this.isThemePreference(preference)) return;
+        if (!this.hasStoredColors) this.themeColors.set(defaultThemeColors(preference.themeAccent));
         this.preference.set(preference);
         this.storePreference(preference);
         this.apply(preference);
@@ -37,6 +46,9 @@ export class ThemePreferencesService {
   }
 
   setPreference(preference: ThemePreference): void {
+    if (preference.themeAccent !== this.preference().themeAccent && !this.hasStoredColors) {
+      this.themeColors.set(defaultThemeColors(preference.themeAccent));
+    }
     this.preference.set(preference);
     this.storePreference(preference);
     this.apply(preference);
@@ -56,7 +68,34 @@ export class ThemePreferencesService {
   }
 
   setAccent(themeAccent: ThemeAccent): void {
+    const scheme = this.activeScheme();
+    this.themeColors.update((colors) => ({
+      ...colors,
+      [scheme]: { ...colors[scheme], accent: ACCENT_PRESET_COLORS[themeAccent] },
+    }));
+    this.hasStoredColors = true;
     this.setPreference({ ...this.preference(), themeAccent });
+  }
+
+  activeScheme(): ThemeScheme {
+    return this.document.documentElement?.classList.contains('dark') ? 'dark' : 'light';
+  }
+
+  setBaseColor(scheme: ThemeScheme, key: BaseColorKey, value: string): void {
+    if (!isHexColor(value)) return;
+    this.themeColors.update((colors) => ({
+      ...colors,
+      [scheme]: { ...colors[scheme], [key]: value.toUpperCase() },
+    }));
+    this.hasStoredColors = true;
+    this.storePreference(this.preference());
+    this.apply(this.preference());
+  }
+
+  resetBaseColors(scheme: ThemeScheme): void {
+    this.themeColors.update((colors) => ({ ...colors, [scheme]: defaultThemeColors('slate')[scheme] }));
+    this.hasStoredColors = true;
+    this.setPreference({ ...this.preference(), themeAccent: 'slate' });
   }
 
   private readCachedPreference(): ThemePreference {
@@ -80,7 +119,16 @@ export class ThemePreferencesService {
   private parseCachedPreference(cached: string): ThemePreference | null {
     try {
       const parsed: unknown = JSON.parse(cached);
-      return this.isThemePreference(parsed) ? parsed : null;
+      if (!this.isThemePreference(parsed)) return null;
+      const candidate = parsed as ThemePreference & { themeColors?: unknown };
+      if (this.isThemeColors(candidate.themeColors)) {
+        this.themeColors.set(candidate.themeColors);
+        this.hasStoredColors = true;
+      } else {
+        this.themeColors.set(defaultThemeColors(candidate.themeAccent));
+        this.hasStoredColors = false;
+      }
+      return { themeMode: candidate.themeMode, themeAccent: candidate.themeAccent };
     } catch {
       return null;
     }
@@ -88,7 +136,8 @@ export class ThemePreferencesService {
 
   private storePreference(preference: ThemePreference): void {
     try {
-      this.document.defaultView?.localStorage.setItem(preferenceStorageKey, JSON.stringify(preference));
+      this.document.defaultView?.localStorage.setItem(preferenceStorageKey, JSON.stringify({ ...preference, themeColors: this.themeColors() }));
+      this.hasStoredColors = true;
     } catch {
       return;
     }
@@ -107,8 +156,19 @@ export class ThemePreferencesService {
   private apply(preference: ThemePreference): void {
     const prefersDark = this.mediaQuery?.matches ?? false;
     if (this.document.documentElement !== null) {
-      applyThemePreference(this.document.documentElement, preference, prefersDark);
+      applyThemePreference(this.document.documentElement, preference, prefersDark, this.themeColors());
     }
+  }
+
+  private isThemeColors(value: unknown): value is ThemeColors {
+    if (typeof value !== 'object' || value === null) return false;
+    const candidate = value as { light?: unknown; dark?: unknown };
+    const isBaseColors = (colors: unknown): colors is ThemeColors['light'] => {
+      if (typeof colors !== 'object' || colors === null) return false;
+      const base = colors as { accent?: unknown; secondary?: unknown; third?: unknown };
+      return isHexColor(String(base.accent ?? '')) && isHexColor(String(base.secondary ?? '')) && isHexColor(String(base.third ?? ''));
+    };
+    return isBaseColors(candidate.light) && isBaseColors(candidate.dark);
   }
 
   private isThemePreference(value: unknown): value is ThemePreference {

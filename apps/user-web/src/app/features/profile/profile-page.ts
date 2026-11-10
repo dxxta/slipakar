@@ -7,7 +7,7 @@ import { tablerPencil } from '@ng-icons/tabler-icons';
 import { environment } from '../../../environments/environment';
 import { SessionService } from '../../core/session.service';
 import { ThemePreferencesService } from '../../core/theme-preferences.service';
-import type { ThemeAccent, ThemeMode } from '../../core/theme-preferences';
+import { contrastRatio, isHexColor, readableForeground, type BaseColorKey, type ThemeAccent, type ThemeMode } from '../../core/theme-preferences';
 import { Avatar } from '@slipakar/ui/avatar';
 import { HlmButton } from '../../ui/button/src';
 import { PageHeader, SelectControl } from '../../ui';
@@ -170,21 +170,58 @@ import { Ripple } from '../../ui/shared/ripple';
             <option value="dark">Dark</option>
           </select>
         </div>
-        <fieldset class="m-0 min-w-0 border-0 p-0">
-          <legend class="mb-2 p-0 text-sm font-medium">Accent color</legend>
-          <div class="flex flex-wrap gap-3 p-1">
-            @for (accent of accents; track accent) {
-              <button
-                type="button"
-                class="theme-accent-swatch grid size-9 place-items-center rounded-full border border-border aria-pressed:ring-2 aria-pressed:ring-ring aria-pressed:ring-offset-2 aria-pressed:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                [attr.aria-label]="accentLabel(accent)"
-                [attr.aria-pressed]="themePreferences.preference().themeAccent === accent"
-                (click)="themePreferences.setAccent(accent)"
-              >
-                <span class="size-6 rounded-full" [style.backgroundColor]="accentColor(accent)" aria-hidden="true"></span>
-              </button>
+        <fieldset class="m-0 min-w-0 border-0 p-0 sm:col-span-2">
+          <legend class="mb-2 p-0 text-sm font-medium">Base colours · {{ activeSchemeLabel() }} theme</legend>
+          <div class="grid gap-4 sm:grid-cols-3">
+            @for (field of baseColorFields; track field.key) {
+              <label class="grid min-w-0 content-start gap-2 rounded-ui-md border border-border bg-muted/40 p-3">
+                <span class="text-sm font-medium">{{ field.label }}</span>
+                <span class="flex min-w-0 items-center gap-2">
+                  <input
+                    type="color"
+                    class="base-color-picker"
+                    [value]="baseColorValue(field.key)"
+                    [attr.aria-label]="field.label + ' color picker'"
+                    (input)="changeBaseColor(field.key, $event)"
+                  />
+                  <input
+                    type="text"
+                    class="base-color-hex min-w-0 flex-1"
+                    [value]="baseColorDraft(field.key)"
+                    [attr.aria-label]="field.label + ' hex value'"
+                    [attr.aria-invalid]="baseColorDraftInvalid(field.key) ? 'true' : null"
+                    placeholder="#D4F03C"
+                    pattern="^#[0-9A-Fa-f]{6}$"
+                    maxlength="7"
+                    spellcheck="false"
+                    (input)="changeBaseColorHex(field.key, $event)"
+                  />
+                </span>
+                @if (baseColorDraftInvalid(field.key)) {
+                  <span class="text-xs text-destructive">Enter a color in #RRGGBB format.</span>
+                }
+                @if (field.key === 'accent') {
+                  <span role="group" class="flex flex-wrap gap-2 pt-1" aria-label="Accent presets">
+                    @for (accent of accents; track accent) {
+                      <button
+                        type="button"
+                        class="theme-accent-swatch grid size-9 place-items-center rounded-full border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        [attr.aria-label]="accentLabel(accent)"
+                        [attr.aria-pressed]="baseColorValue('accent').toUpperCase() === accentColor(accent)"
+                        (click)="themePreferences.setAccent(accent); syncAccentDraft()"
+                      >
+                        <span class="size-6 rounded-full" [style.backgroundColor]="accentColor(accent)" aria-hidden="true"></span>
+                      </button>
+                    }
+                  </span>
+                }
+              </label>
             }
           </div>
+          @if (accentContrastWarning()) {
+            <p role="status" class="mt-3 text-xs text-muted-foreground">This accent has less than 4.5:1 contrast with ink or white text. It is still allowed.</p>
+          }
+          <button hlmBtn variant="outline" type="button" class="mt-3" (click)="resetBaseColors()">Reset to default</button>
         </fieldset>
       </div>
       <div data-theme-preview aria-live="polite" class="flex flex-wrap items-center justify-between gap-4 rounded-ui-md border border-border bg-muted p-4">
@@ -213,6 +250,12 @@ export class ProfilePage {
   readonly avatarUploading = signal(false);
   readonly emailSending = signal(false);
   protected readonly accents: ThemeAccent[] = ['slate', 'blue', 'green', 'violet', 'rose', 'amber'];
+  protected readonly baseColorFields: { key: BaseColorKey; label: string }[] = [
+    { key: 'accent', label: 'Accent' },
+    { key: 'secondary', label: 'Secondary' },
+    { key: 'third', label: 'Third' },
+  ];
+  private readonly baseColorDrafts = signal<Record<string, string>>({});
 
   constructor() {
     const user = this.session.user();
@@ -340,10 +383,11 @@ export class ProfilePage {
   changeThemeMode(event: Event): void {
     const select = event.target as HTMLSelectElement;
     this.themePreferences.setMode(select.value as ThemeMode);
+    this.baseColorDrafts.set({});
   }
 
   accentLabel(accent: ThemeAccent): string {
-    if (accent === 'slate') return 'Slipakar accent';
+    if (accent === 'slate') return 'Lime accent';
     return `${accent.charAt(0).toUpperCase()}${accent.slice(1)} accent`;
   }
 
@@ -357,6 +401,52 @@ export class ProfilePage {
       amber: '#D97706',
     };
     return colors[accent];
+  }
+
+  protected activeSchemeLabel(): string {
+    return this.themePreferences.activeScheme() === 'dark' ? 'Dark' : 'Light';
+  }
+
+  protected baseColorValue(key: BaseColorKey): string {
+    return this.themePreferences.themeColors()[this.themePreferences.activeScheme()][key];
+  }
+
+  protected baseColorDraft(key: BaseColorKey): string {
+    return this.baseColorDrafts()[this.baseColorDraftKey(key)] ?? this.baseColorValue(key);
+  }
+
+  protected baseColorDraftInvalid(key: BaseColorKey): boolean {
+    return !isHexColor(this.baseColorDraft(key));
+  }
+
+  protected changeBaseColor(key: BaseColorKey, event: Event): void {
+    const value = (event.currentTarget as HTMLInputElement).value.toUpperCase();
+    this.baseColorDrafts.update((drafts) => ({ ...drafts, [this.baseColorDraftKey(key)]: value }));
+    this.themePreferences.setBaseColor(this.themePreferences.activeScheme(), key, value);
+  }
+
+  protected changeBaseColorHex(key: BaseColorKey, event: Event): void {
+    const value = (event.currentTarget as HTMLInputElement).value;
+    this.baseColorDrafts.update((drafts) => ({ ...drafts, [this.baseColorDraftKey(key)]: value }));
+    if (isHexColor(value)) this.themePreferences.setBaseColor(this.themePreferences.activeScheme(), key, value);
+  }
+
+  protected syncAccentDraft(): void {
+    this.baseColorDrafts.update((drafts) => ({ ...drafts, [this.baseColorDraftKey('accent')]: this.baseColorValue('accent') }));
+  }
+
+  protected accentContrastWarning(): boolean {
+    const accent = this.baseColorValue('accent');
+    return contrastRatio(accent, readableForeground(accent)) < 4.5;
+  }
+
+  protected resetBaseColors(): void {
+    this.themePreferences.resetBaseColors(this.themePreferences.activeScheme());
+    this.baseColorDrafts.set({});
+  }
+
+  private baseColorDraftKey(key: BaseColorKey): string {
+    return `${this.themePreferences.activeScheme()}:${key}`;
   }
 
   protected inputValue(event: Event): string {

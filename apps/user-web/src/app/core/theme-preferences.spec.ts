@@ -2,7 +2,7 @@ import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, describe, expect, it } from 'vitest';
-import { applyThemePreference, type ThemePreference } from './theme-preferences';
+import { applyThemePreference, defaultThemeColors, type ThemePreference } from './theme-preferences';
 import { ThemePreferencesService } from './theme-preferences.service';
 
 describe('theme preference application', () => {
@@ -85,7 +85,7 @@ describe('ThemePreferencesService', () => {
 
     service.initialize();
 
-    expect(JSON.parse(localStorage.getItem('slipakar.theme-preferences') ?? 'null')).toEqual(legacy);
+    expect(JSON.parse(localStorage.getItem('slipakar.theme-preferences') ?? 'null')).toEqual({ ...legacy, themeColors: defaultThemeColors(legacy.themeAccent) });
     http.expectOne('/me/preferences').flush({ message: 'ok', data: legacy, success: true });
   });
 
@@ -97,7 +97,7 @@ describe('ThemePreferencesService', () => {
 
     service.setPreference(changed);
 
-    expect(JSON.parse(localStorage.getItem('slipakar.theme-preferences') ?? 'null')).toEqual(changed);
+    expect(JSON.parse(localStorage.getItem('slipakar.theme-preferences') ?? 'null')).toEqual({ ...changed, themeColors: defaultThemeColors(changed.themeAccent) });
     const request = http.expectOne('/me/preferences');
     expect(request.request.method).toBe('PATCH');
     expect(request.request.body).toEqual(changed);
