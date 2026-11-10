@@ -517,18 +517,15 @@ button.bg-destructive { color: var(--destructive-foreground) !important; }
 }
 
 /* Content links stay readable and identifiable without borrowing accent colors. */
-a:not([hlmBtn]):not(.btn):not([role='tab']):not([role='menuitem']):not([data-slot='button']):not(app-user-layout a):not(.wordmark) {
+a:not([hlmBtn]):not(.btn):not([role='tab']):not([role='menuitem']):not([data-slot='button']):not(nav a):not(.wordmark):not(.brand-link) {
   color: var(--foreground) !important;
   text-decoration-line: underline !important;
   text-decoration-color: currentColor !important;
   text-decoration-thickness: 2px !important;
   text-underline-offset: 0.2em !important;
 }
-a:not([hlmBtn]):not(.btn):not([role='tab']):not([role='menuitem']):not([data-slot='button']):not(app-user-layout a):not(.wordmark):hover {
+a:not([hlmBtn]):not(.btn):not([role='tab']):not([role='menuitem']):not([data-slot='button']):not(nav a):not(.wordmark):not(.brand-link):hover {
   color: var(--foreground) !important;
   font-weight: 600;
   text-decoration-thickness: 3px !important;
-}
-:is(.bg-primary, .bg-secondary, [class*='bg-amber-']) a:not([hlmBtn]):not(.btn):not([role='tab']):not([role='menuitem']):not([data-slot='button']) {
-  color: var(--ink-fixed) !important;
 }
