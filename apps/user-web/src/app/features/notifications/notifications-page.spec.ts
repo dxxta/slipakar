@@ -330,7 +330,7 @@ describe('NotificationsPage', () => {
     });
     fixture.detectChanges();
 
-    (fixture.nativeElement.querySelector('#tab-announcements') as HTMLButtonElement).click();
+    (fixture.nativeElement.querySelector('#segmented-tab-announcements') as HTMLButtonElement).click();
     const list = http.expectOne('/me/notices?page=1&limit=20');
     list.flush({
       message: 'ok',

@@ -12,7 +12,7 @@ import { Tabs, type TabItem } from '../../ui';
       <div>
         <a
           routerLink="/projects"
-          class="-ml-2 inline-flex min-h-10 items-center rounded-ui-sm px-2 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          class="-ml-2 inline-flex h-control-9 max-md:min-h-11 items-center rounded-ui-sm px-2 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           ← All projects
         </a>
@@ -40,7 +40,7 @@ export class ProjectDetailLayout {
     { id: 'overview', label: 'Overview' },
     { id: 'smtp', label: 'SMTP' },
     { id: 'templates', label: 'Templates' },
-    { id: 'data', label: 'Data' },
+    { id: 'data', label: 'Data & Mapping' },
     { id: 'campaigns', label: 'Campaigns' },
     { id: 'pdf-templates', label: 'PDF Templates' },
   ];

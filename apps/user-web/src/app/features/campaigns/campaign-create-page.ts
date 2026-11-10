@@ -115,7 +115,7 @@ interface FieldMappingSummary {
               <select appSelect
                 id="template-select"
                 data-testid="template-select"
-                class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                class="h-control-9 max-md:min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 [value]="selectedTemplateId()"
                 (change)="onTemplateChange($event)"
                 required
@@ -133,7 +133,7 @@ interface FieldMappingSummary {
               <select appSelect
                 id="upload-select"
                 data-testid="upload-select"
-                class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                class="h-control-9 max-md:min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 [value]="selectedUploadId()"
                 (change)="onUploadChange($event)"
                 required
@@ -167,7 +167,7 @@ interface FieldMappingSummary {
               <select appSelect
                 id="email-column-select"
                 data-testid="email-column-select"
-                class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                class="h-control-9 max-md:min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 [value]="selectedEmailColumn()"
                 (change)="onEmailColumnChange($event)"
                 [disabled]="!availableColumns().length"
@@ -187,7 +187,7 @@ interface FieldMappingSummary {
               <select appSelect
                 id="smtp-select"
                 data-testid="smtp-select"
-                class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                class="h-control-9 max-md:min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 [value]="selectedSmtpId()"
                 (change)="onSmtpChange($event)"
                 required
@@ -207,7 +207,7 @@ interface FieldMappingSummary {
               <select appSelect
                 id="pdf-template-select"
                 data-testid="pdf-template-select"
-                class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                class="h-control-9 max-md:min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 [value]="selectedPdfTemplateId()"
                 (change)="onPdfTemplateChange($event)"
               >

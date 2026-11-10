@@ -20,9 +20,6 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
     CommonModule,
     HlmButton,
     HlmCard,
-    HlmCardHeader,
-    HlmCardTitle,
-    HlmCardDescription,
     HlmCardContent,
     HlmSwitch,
     HlmBadge,
@@ -113,7 +110,7 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
                 <input
                   id="smtp-host"
                   data-testid="smtp-host-input"
-                  class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  class="h-control-9 max-md:min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   placeholder="smtp.example.com"
                   [value]="formHost()"
                   (input)="formHost.set($any($event.target).value)"
@@ -126,7 +123,7 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
                   id="smtp-port"
                   data-testid="smtp-port-input"
                   type="number"
-                  class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  class="h-control-9 max-md:min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   placeholder="587"
                   [value]="formPort()"
                   (input)="formPort.set($any($event.target).value)"
@@ -146,7 +143,7 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
                 <input
                   id="smtp-username"
                   data-testid="smtp-username-input"
-                  class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  class="h-control-9 max-md:min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   placeholder="user@example.com"
                   [value]="formUsername()"
                   (input)="onUsernameInput($any($event.target).value)"
@@ -162,7 +159,7 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
                   data-testid="smtp-password-input"
                   type="password"
                   autocomplete="new-password"
-                  class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  class="h-control-9 max-md:min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   placeholder="Enter password"
                   [value]="formPassword()"
                   (input)="formPassword.set($any($event.target).value)"
@@ -177,7 +174,7 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
                 id="smtp-from-address"
                 data-testid="smtp-from-address-input"
                 type="email"
-                class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                class="h-control-9 max-md:min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 placeholder="noreply@example.com"
                 [value]="formFromAddress()"
                 (input)="formFromAddress.set($any($event.target).value)"
@@ -265,69 +262,20 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
       (clearQuery)="searchConnections('')"
     >
       <!-- Connections List -->
-      <div list-content class="space-y-4" aria-label="SMTP connections">
-        @for (conn of connections(); track conn.id) {
-          <div hlmCard [attr.data-testid]="'smtp-card-' + conn.id">
-            <div hlmCardHeader class="pb-2">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                  <h3 hlmCardTitle class="text-base font-semibold tabular-nums">{{ conn.host }}:{{ conn.port }}</h3>
-                  @if (conn.secure) {
-                    <span hlmBadge variant="outline" class="text-xs">SSL/TLS</span>
-                  }
-                </div>
-                <div class="flex items-center gap-2">
-                  <app-row-actions
-                    [label]="'Actions for ' + conn.host"
-                    [items]="rowActions"
-                    [attr.data-testid]="'smtp-actions-' + conn.id"
-                    (actionSelect)="handleAction($event, conn)"
-                  />
-                </div>
-              </div>
-              <p hlmCardDescription>
-                Username: <span class="font-mono text-xs text-foreground">{{ conn.username }}</span>
-                @if (conn.fromAddress) {
-                  · From: <span class="font-mono text-xs text-foreground">{{ conn.fromAddress }}</span>
-                }
-              </p>
-            </div>
-            <div hlmCardContent class="pt-2">
-              @if (confirmingDeleteId() === conn.id) {
-                <app-confirm-modal
-                  [open]="true"
-                  [title]="'Delete ' + conn.host + '?'"
-                  message="This action cannot be undone."
-                  confirmLabel="Delete connection"
-                  [confirmTestId]="'confirm-delete-' + conn.id"
-                  (cancelled)="confirmingDeleteId.set(null)"
-                  (confirmed)="deleteConnection(conn.id)"
-                />
-              } @else {
-                <!-- Test Connection Section -->
-                <p class="border-t border-border pt-3 text-xs text-muted-foreground">Verify SMTP credentials and server reachability from the row actions menu.</p>
-
-                @if (isTestingId() === conn.id) {
-                  <div class="mt-2" aria-live="polite" role="status">
-                    <p class="text-xs font-medium text-muted-foreground animate-pulse">Testing SMTP connection…</p>
-                  </div>
-                } @else if (testResults()[conn.id]) {
-                  @if (testResults()[conn.id]?.ok) {
-                    <div class="mt-2" aria-live="polite" role="status">
-                      <p class="text-xs font-medium text-green-700 dark:text-green-300">SMTP test connection successful!</p>
-                    </div>
-                  } @else {
-                    <div class="mt-2" aria-live="polite" role="alert">
-                      <p class="text-xs font-medium text-destructive">
-                        SMTP test failed: {{ testResults()[conn.id]?.error }}
-                      </p>
-                    </div>
-                  }
-                }
-              }
-            </div>
-          </div>
-        }
+      <div list-content class="overflow-x-auto rounded-ui-lg border border-border" aria-label="SMTP connections">
+        <table aria-label="SMTP connections list" class="w-full min-w-[44rem] border-collapse text-left text-sm">
+          <thead class="bg-muted/50 text-xs text-muted-foreground"><tr><th scope="col" class="px-4 py-3 font-medium">Host:port</th><th scope="col" class="px-4 py-3 font-medium">Username</th><th scope="col" class="px-4 py-3 font-medium">From</th><th scope="col" class="px-4 py-3 text-right font-medium">Actions</th></tr></thead>
+          <tbody class="divide-y divide-border">
+            @for (conn of connections(); track conn.id) {
+              <tr [attr.data-testid]="'smtp-row-' + conn.id" [attr.data-row]="'smtp-card-' + conn.id" class="hover:bg-muted/30">
+                <th scope="row" class="px-4 py-3 font-medium tabular-nums">{{ conn.host }}:{{ conn.port }} @if (conn.secure) { <span hlmBadge variant="outline" class="ml-2 text-xs">SSL/TLS</span> }</th>
+                <td class="px-4 py-3 font-mono text-xs">{{ conn.username }}</td>
+                <td class="px-4 py-3 font-mono text-xs">{{ conn.fromAddress || '—' }}</td>
+                <td class="px-4 py-2 text-right"><div class="flex items-center justify-end gap-2"><div class="text-right">@if (isTestingId() === conn.id) { <p aria-live="polite" role="status" class="text-xs text-muted-foreground">Testing SMTP connection…</p> } @else if (testResults()[conn.id]?.ok) { <p aria-live="polite" role="status" class="text-xs text-green-700 dark:text-green-300">SMTP test connection successful!</p> } @else if (testResults()[conn.id]) { <p aria-live="polite" role="alert" class="text-xs text-destructive">SMTP test failed: {{ testResults()[conn.id]?.error }}</p> }</div><app-row-actions [label]="'Actions for ' + conn.host" [items]="rowActions" [attr.data-testid]="'smtp-actions-' + conn.id" (actionSelect)="handleAction($event, conn)" />@if (confirmingDeleteId() === conn.id) { <app-confirm-modal [open]="true" [title]="'Delete ' + conn.host + '?'" message="This action cannot be undone." confirmLabel="Delete connection" [confirmTestId]="'confirm-delete-' + conn.id" (cancelled)="confirmingDeleteId.set(null)" (confirmed)="deleteConnection(conn.id)" /> }</div></td>
+              </tr>
+            }
+          </tbody>
+        </table>
       </div>
 
       <button

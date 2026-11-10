@@ -30,6 +30,17 @@ describe('Avatar', () => {
     expect(avatar.className).toContain('rounded-full');
   });
 
+  it('supports a large desktop size that scales to 96px on mobile', async () => {
+    await TestBed.configureTestingModule({ imports: [Avatar] }).compileComponents();
+    const fixture = TestBed.createComponent(Avatar);
+    fixture.componentRef.setInput('size', 'xl');
+    fixture.detectChanges();
+    const avatar = fixture.nativeElement.querySelector('[data-avatar]') as HTMLElement;
+    expect(avatar.style.width).toBe('128px');
+    expect(avatar.style.height).toBe('128px');
+    expect(fixture.nativeElement.getAttribute('data-size')).toBe('xl');
+  });
+
   it('shows initials if the image fails to load', async () => {
     await TestBed.configureTestingModule({ imports: [Avatar] }).compileComponents();
     const fixture = TestBed.createComponent(Avatar);

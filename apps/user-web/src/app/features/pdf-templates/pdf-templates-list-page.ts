@@ -127,7 +127,6 @@ export class PdfTemplatesListPage implements OnInit {
   readonly sortBy = signal<'name' | 'createdAt' | 'updatedAt'>('createdAt');
   readonly sortDir = signal<'asc' | 'desc'>('desc');
   readonly templateActions: RowActionItem[] = [
-    { id: 'detail', label: 'Detail', icon: 'eye' },
     { id: 'edit', label: 'Edit', icon: 'pencil' },
     { id: 'delete', label: 'Delete', icon: 'trash', destructive: true },
   ];

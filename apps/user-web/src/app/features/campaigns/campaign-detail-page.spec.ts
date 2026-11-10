@@ -88,7 +88,8 @@ describe('CampaignDetailPage', () => {
   it('renders campaign summary and recipient table with statuses and error messages', () => {
     const fixture = TestBed.createComponent(CampaignDetailPage);
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('app-page-header')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('app-back-button a')?.getAttribute('aria-label')).toBe('Back to campaigns');
+    expect(fixture.nativeElement.querySelector('h1')?.textContent).toContain('Campaign #');
 
     const campReq = http.expectOne('/projects/p-1/campaigns/camp-1');
     campReq.flush({ message: 'ok', data: mockDraftCampaign, success: true });

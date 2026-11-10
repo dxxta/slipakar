@@ -13,13 +13,13 @@ type MenuPosition = { top: number; left: number };
   imports: [CommonModule, NgIcon],
   providers: [provideIcons({ tablerDots, tablerEye, tablerPencil, tablerTrash, tablerPower })],
   template: `
-    <button #trigger data-row-action-trigger type="button" class="grid size-11 shrink-0 place-items-center rounded-ui-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" [attr.aria-label]="label()" aria-haspopup="menu" [attr.aria-expanded]="open()" (click)="toggle()">
+    <button #trigger data-row-action-trigger type="button" class="grid size-9 shrink-0 place-items-center rounded-ui-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:size-11" [attr.aria-label]="label()" aria-haspopup="menu" [attr.aria-expanded]="open()" (click)="toggle()">
       <ng-icon name="tablerDots" aria-hidden="true" class="size-5" />
     </button>
     @if (open()) {
-      <div role="menu" [attr.aria-label]="label()" class="fixed z-[80] min-w-48 rounded-ui-md border border-border bg-popover p-1 text-popover-foreground shadow-lg" [style.top.px]="position().top" [style.left.px]="position().left" (keydown)="onMenuKeydown($event)">
+      <div role="menu" [attr.aria-label]="label()" class="fixed z-[80] min-w-40 rounded-ui-md border border-border bg-popover p-1 text-popover-foreground shadow-lg" [style.top.px]="position().top" [style.left.px]="position().left" (keydown)="onMenuKeydown($event)">
         @for (item of items(); track item.id; let index = $index) {
-          <button type="button" role="menuitem" [attr.tabindex]="activeIndex() === index ? 0 : -1" [disabled]="item.disabled ?? false" class="flex min-h-11 w-full items-center gap-2 rounded-ui-sm px-3 text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50" [ngClass]="item.destructive ? 'text-destructive hover:bg-destructive/10' : 'hover:bg-muted'" (focus)="activeIndex.set(index)" (click)="choose(item)">
+          <button type="button" role="menuitem" [attr.tabindex]="activeIndex() === index ? 0 : -1" [disabled]="item.disabled ?? false" class="flex h-control-9 min-w-40 w-full items-center gap-2 rounded-ui-sm px-3 text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 max-md:min-h-11" [ngClass]="item.destructive ? 'text-destructive hover:bg-destructive/10' : 'hover:bg-muted'" (focus)="activeIndex.set(index)" (click)="choose(item)">
             <ng-icon [name]="iconName(item.icon)" aria-hidden="true" class="size-4 shrink-0" />
             <span>{{ item.label }}</span>
           </button>
@@ -93,8 +93,8 @@ export class RowActions {
     const bounds = trigger?.getBoundingClientRect();
     const view = this.document.defaultView;
     if (!bounds || !view) return { top: 8, left: 8 };
-    const menuWidth = 192;
-    const menuHeight = Math.min(this.items().length * 44 + 8, 240);
+    const menuWidth = 160;
+    const menuHeight = Math.min(this.items().length * 36 + 8, 240);
     const left = Math.max(8, Math.min(bounds.right - menuWidth, view.innerWidth - menuWidth - 8));
     const top = bounds.bottom + menuHeight + 8 <= view.innerHeight
       ? bounds.bottom + 4

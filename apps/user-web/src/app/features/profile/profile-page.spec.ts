@@ -42,6 +42,13 @@ describe('ProfilePage', () => {
   });
 
 
+
+  it('keeps the page header and profile sections in one 24px spacing stack', () => {
+    const fixture = createFixture();
+    const header = fixture.nativeElement.querySelector('app-page-header') as HTMLElement;
+    expect(header.parentElement?.classList.contains('space-y-6')).toBe(true);
+  });
+
   it('updates the profile name through the Better Auth update-user endpoint', async () => {
     const fixture = createFixture();
     const input = fixture.nativeElement.querySelector('#profile-name') as HTMLInputElement;

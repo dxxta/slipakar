@@ -15,8 +15,8 @@ import { HlmBadge } from '../../ui/badge/src';
 import { HlmButton } from '../../ui/button/src';
 import { DataTableControls } from '../../ui/shared/data-table-controls';
 import { ListBody } from '../../ui/shared/list-body';
-import { PageHeader } from '../../ui/shared/page-header';
 import { ConfirmModal } from '../../ui/shared/confirm-modal';
+import { BackButton } from '../../ui/shared/back-button';
 import { Pagination } from '../../ui/shared/pagination';
 import {
   HlmCard,
@@ -49,36 +49,23 @@ import {
     HlmAlertDescription,
     DataTableControls,
     ListBody,
-    PageHeader,
     ConfirmModal,
     Pagination,
+    BackButton,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div class="app-list-layout">
+    <div class="space-y-6">
       <!-- Top announcement aria-live for status updates -->
       <div class="sr-only" aria-live="assertive" data-testid="live-status-announcement">
         {{ liveAnnouncement() }}
       </div>
 
-      <app-page-header [title]="'Campaign #' + campaignId().slice(0, 8)" description="View real-time delivery status and recipient list." [topLevel]="false">
-        @if (campaign(); as camp) {
-          <span page-actions hlmBadge [variant]="badgeVariant(camp.status)" data-testid="campaign-status-badge">
-            {{ statusLabel(camp.status) }}
-          </span>
-        }
-          @if (campaign()?.status === 'draft') {
-            <button
-            page-actions
-              hlmBtn
-              type="button"
-              data-testid="send-campaign-button"
-              (click)="openSendConfirm()"
-            >
-              Send campaign
-            </button>
-          }
-      </app-page-header>
+      <header class="flex flex-wrap items-start gap-3">
+        <app-back-button [link]="['/projects', projectId(), 'campaigns']" label="Back to campaigns" />
+        <div class="min-w-0 flex-1"><h1 class="text-3xl font-semibold tracking-tight">{{ 'Campaign #' + campaignId().slice(0, 8) }}</h1><p class="mt-2 text-sm text-muted-foreground">View real-time delivery status and recipient list.</p></div>
+        <div class="ml-auto flex shrink-0 items-center gap-2">@if (campaign(); as camp) { <span hlmBadge [variant]="badgeVariant(camp.status)" data-testid="campaign-status-badge">{{ statusLabel(camp.status) }}</span> }@if (campaign()?.status === 'draft') { <button hlmBtn type="button" data-testid="send-campaign-button" (click)="openSendConfirm()">Send campaign</button> }</div>
+      </header>
 
       @if (actionError()) {
         <div aria-live="polite" role="alert" data-testid="campaign-action-error">
@@ -107,20 +94,20 @@ import {
         </div>
       } @else if (campaign(); as camp) {
         <!-- Summary Cards Grid -->
-        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-testid="summary-cards">
-          <div hlmCard class="p-4">
+        <div class="grid auto-rows-fr gap-4 grid-cols-2 lg:grid-cols-4" data-testid="summary-cards">
+          <div hlmCard class="min-h-24 p-4">
             <p class="text-xs font-medium text-muted-foreground">Total Recipients</p>
             <p class="mt-2 text-2xl font-bold tabular-nums" data-testid="count-total">{{ camp.counts.total }}</p>
           </div>
-          <div hlmCard class="p-4">
+          <div hlmCard class="min-h-24 p-4">
             <p class="text-xs font-medium text-muted-foreground">Sent Successfully</p>
             <p class="mt-2 text-2xl font-bold tabular-nums text-green-700 dark:text-green-300" data-testid="count-sent">{{ camp.counts.sent }}</p>
           </div>
-          <div hlmCard class="p-4">
+          <div hlmCard class="min-h-24 p-4">
             <p class="text-xs font-medium text-muted-foreground">Failed Deliveries</p>
             <p class="mt-2 text-2xl font-bold tabular-nums text-destructive" data-testid="count-failed">{{ camp.counts.failed }}</p>
           </div>
-          <div hlmCard class="p-4">
+          <div hlmCard class="min-h-24 p-4">
             <p class="text-xs font-medium text-muted-foreground">Pending in Queue</p>
             <p class="mt-2 text-2xl font-bold tabular-nums text-amber-700 dark:text-amber-300" data-testid="count-pending">{{ camp.counts.pending }}</p>
           </div>
@@ -143,9 +130,9 @@ import {
 
           <div hlmCardContent class="p-0">
             <app-list-body [state]="loadingRecipients() ? 'loading' : recipientsError() ? 'error' : 'ready'" [itemCount]="recipients().length" [query]="recipientQuery()" errorTitle="Could not load recipients" [errorMessage]="recipientsError() ?? ''" emptyTitle="No recipients yet" emptyMessage="This campaign has no recipients to display." emptyResultLabel="No recipients match" (retry)="loadRecipients()" (clearQuery)="searchRecipients('')">
-              <div list-content class="overflow-x-auto">
+              <div list-content class="overflow-x-auto rounded-ui-lg border border-border">
                 <table class="w-full text-left text-sm" aria-label="Recipients delivery table">
-                  <thead class="border-b border-border bg-muted/40 text-xs text-muted-foreground uppercase">
+                  <thead class="border-b border-border bg-muted/40 text-xs text-muted-foreground uppercase tracking-wide">
                     <tr>
                       <th scope="col" class="px-6 py-3">Row</th>
                       <th scope="col" class="px-6 py-3">Recipient Email</th>

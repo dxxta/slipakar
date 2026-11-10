@@ -21,3 +21,5 @@ export * from './shared/list-body';
 export * from './shared/page-header';
 export * from './shared/row-actions';
 export * from './shared/theme-toggle';
+export * from './shared/back-button';
+export * from './shared/segmented-tabs';

@@ -15,7 +15,7 @@ import { ApiError } from '../../core/api-error';
 import { HlmBadge } from '../../ui/badge/src';
 import { HlmButton } from '../../ui/button/src';
 import { Drawer } from '../../ui/shared/drawer';
-import { PageHeader } from '../../ui/shared/page-header';
+import { BackButton } from '../../ui/shared/back-button';
 import { PdfBuilderEditor } from '../pdf-builder/pdf-builder-editor';
 import {
   type PdfNode,
@@ -37,7 +37,7 @@ import {
     FormsModule,
     HlmButton,
     HlmBadge,
-    PageHeader,
+    BackButton,
     PdfNodePropertiesComponent,
     PdfBuilderEditor,
     Drawer,
@@ -45,26 +45,11 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="app-list-layout">
-      <!-- Breadcrumb & Back Link -->
-      <div>
-        <a
-          [href]="'/projects/' + projectId() + '/pdf-templates'"
-          class="-ml-2 inline-flex min-h-10 items-center rounded-ui-sm px-2 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          (click)="onBack($event)"
-        >
-          ← Back to PDF Templates
-        </a>
-      </div>
-
-      <!-- Header & Top Actions -->
-      <app-page-header class="border-b border-border pb-4" [title]="isNew() ? 'New PDF Template' : 'Edit PDF Template'" description="Configure visual nodes, bindings, and layout for this PDF template." [topLevel]="false">
-        @if (isDirty()) {
-          <span page-actions hlmBadge variant="outline" class="text-amber-500 border-amber-500/30 text-xs">Unsaved changes</span>
-        }
-        <button page-actions hlmBtn variant="outline" type="button" (click)="nameDrawerOpen.set(true)">Edit template name</button>
-        <button page-actions hlmBtn variant="outline" type="button" data-testid="cancel-button" (click)="onCancel()">Cancel</button>
-        <button page-actions hlmBtn type="button" data-testid="save-template-button" [disabled]="saving()" (click)="save()">{{ saving() ? 'Saving…' : 'Save template' }}</button>
-      </app-page-header>
+      <header class="flex flex-wrap items-start gap-3 border-b border-border pb-4">
+        <app-back-button [link]="['/projects', projectId(), 'pdf-templates']" label="Back to PDF templates" />
+        <div class="min-w-0 flex-1"><h1 class="text-3xl font-semibold tracking-tight">{{ isNew() ? 'New PDF Template' : 'Edit PDF Template' }}</h1><p class="mt-2 text-sm text-muted-foreground">Configure visual nodes, bindings, and layout for this PDF template.</p></div>
+        <div class="ml-auto flex flex-wrap items-center justify-end gap-2">@if (isDirty()) { <span hlmBadge variant="outline" class="text-amber-700 dark:text-amber-300 border-amber-500/30 text-xs">Unsaved changes</span> }<button hlmBtn variant="outline" type="button" (click)="nameDrawerOpen.set(true)">Edit template name</button><button hlmBtn variant="outline" type="button" data-testid="cancel-button" (click)="onCancel()">Cancel</button><button hlmBtn type="button" data-testid="save-template-button" [disabled]="saving()" (click)="save()">{{ saving() ? 'Saving…' : 'Save template' }}</button></div>
+      </header>
 
       <!-- Feedback Alerts: Success or API Error -->
       @if (saveSuccessMessage()) {
@@ -477,13 +462,6 @@ export class PdfTemplateEditPage implements OnInit {
       this.apiError.set(err.message);
     } else {
       this.apiError.set('An unexpected error occurred while saving the template.');
-    }
-  }
-
-  onBack(event: MouseEvent): void {
-    event.preventDefault();
-    if (this.canDeactivate()) {
-      void this.router.navigate(['/projects', this.projectId(), 'pdf-templates']);
     }
   }
 

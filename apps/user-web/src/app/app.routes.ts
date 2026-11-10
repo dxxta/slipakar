@@ -23,6 +23,8 @@ export const routes: Routes = [
           { path: '', pathMatch: 'full', redirectTo: 'overview' },
           { path: 'overview', loadComponent: () => import('./features/project-detail/tabs/overview-page').then((page) => page.ProjectOverviewPage) },
           { path: 'smtp', loadComponent: () => import('./features/smtp/smtp-page').then((page) => page.SmtpPage) },
+          { path: 'templates/new', loadComponent: () => import('./features/templates/template-edit-page').then((page) => page.TemplateEditPage) },
+          { path: 'templates/:templateId', loadComponent: () => import('./features/templates/template-edit-page').then((page) => page.TemplateEditPage) },
           { path: 'templates', loadComponent: () => import('./features/templates/templates-page').then((page) => page.TemplatesPage) },
           { path: 'data', loadComponent: () => import('./features/data/data-page').then((page) => page.DataPage) },
           { path: 'campaigns', loadComponent: () => import('./features/campaigns/campaigns-list-page').then((page) => page.CampaignsListPage) },

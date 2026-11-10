@@ -203,16 +203,18 @@ describe('PdfTemplatesListPage', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="template-row-tpl-1"]')).toBeNull();
   });
 
-  it('opens a read-only PDF template detail drawer from row actions', () => {
+  it('keeps PDF template row actions focused on editing and deleting', () => {
     const fixture = TestBed.createComponent(PdfTemplatesListPage);
     fixture.detectChanges();
     http.expectOne('/projects/proj-1/pdf-templates?page=1&limit=20&sortBy=createdAt&sortDir=desc')
       .flush({ message: 'ok', data: mockTemplates, metadata: { page: 1, limit: 20, total: 1 }, success: true });
     fixture.detectChanges();
 
-    chooseTemplateAction(fixture, 'Detail');
-    expect(fixture.nativeElement.textContent).toContain('PDF template details');
-    expect(fixture.nativeElement.textContent).toContain('Standard Invoice');
-    expect(fixture.nativeElement.textContent).toContain('text');
+    (fixture.nativeElement.querySelector('[data-testid="pdf-template-actions-tpl-1"] button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    const labels = [...(fixture.nativeElement as HTMLElement).querySelectorAll('[role="menuitem"]')].map((item) => item.textContent?.trim());
+    expect(labels).toContain('Edit');
+    expect(labels).toContain('Delete');
+    expect(labels).not.toContain('Detail');
   });
 });

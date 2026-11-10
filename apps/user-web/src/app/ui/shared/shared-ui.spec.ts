@@ -11,6 +11,9 @@ import { SortHeader } from './sort-header';
 import { PageBadge } from './page-badge';
 import { Pagination } from './pagination';
 import { SelectControl } from './select-control';
+import { RowActions } from './row-actions';
+import { ThemePreferencesService } from '../../core/theme-preferences.service';
+import type { ThemePreference } from '../../core/theme-preferences';
 
 @Component({
   imports: [DataTableControls, SelectControl],
@@ -142,6 +145,40 @@ describe('shared UI primitives', () => {
 
     expect(pageChange.mock.calls).toEqual([[1], [3]]);
     expect(fixture.nativeElement.textContent).toContain('Page 2 of 3');
+    expect(fixture.nativeElement.classList.contains('block')).toBe(true);
+    expect(fixture.nativeElement.classList.contains('mt-4')).toBe(true);
+    expect((fixture.nativeElement.querySelector('[data-action=previous-page]') as HTMLElement).classList.contains('h-control-9')).toBe(true);
+  });
+
+  it('places theme selection inside the account menu and uses the shared control height', () => {
+    const preference = signal<ThemePreference>({ themeMode: 'dark', themeAccent: 'slate' });
+    const setMode = vi.fn((mode: 'light' | 'dark' | 'system') => preference.update((value) => ({ ...value, themeMode: mode })));
+    TestBed.configureTestingModule({ imports: [AccountMenu], providers: [{ provide: ThemePreferencesService, useValue: { preference, setMode } }] });
+    const fixture = TestBed.createComponent(AccountMenu);
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('app-theme-toggle')).toBeNull();
+    (fixture.nativeElement.querySelector('[aria-label="Account menu"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    const menu = fixture.nativeElement.querySelector('[role=menu]') as HTMLElement;
+    const themeItem = menu.querySelector('[role=menuitem]') as HTMLButtonElement;
+    expect(themeItem.textContent).toContain('Light theme');
+    expect(themeItem.classList.contains('h-control-9')).toBe(true);
+    expect(menu.textContent).toContain('Sign out');
+    themeItem.click();
+    expect(setMode).toHaveBeenCalledWith('light');
+  });
+
+  it('keeps row-action menu items at the shared control height', () => {
+    @Component({ imports: [RowActions], template: `<app-row-actions [items]="items" />` })
+    class RowActionsHost { readonly items = [{ id: 'edit', label: 'Edit', icon: 'pencil' as const }]; }
+    TestBed.configureTestingModule({ imports: [RowActionsHost] });
+    const fixture = TestBed.createComponent(RowActionsHost);
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('[data-row-action-trigger]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    const item = fixture.nativeElement.querySelector('[role=menuitem]') as HTMLElement;
+    expect(item.classList.contains('h-control-9')).toBe(true);
+    expect(item.classList.contains('min-w-40')).toBe(true);
   });
 
   it('adds a stable shared styling hook to the native select', () => {
@@ -203,7 +240,7 @@ describe('shared UI primitives', () => {
     fixture.componentInstance.signOutRequested.subscribe(requested);
     (fixture.nativeElement.querySelector('[aria-label="Account menu"]') as HTMLButtonElement).click();
     fixture.detectChanges();
-    (fixture.nativeElement.querySelector('[role="menuitem"]') as HTMLButtonElement).click();
+    (Array.from(fixture.nativeElement.querySelectorAll('[role="menuitem"]')) as HTMLButtonElement[]).find((item) => item.textContent?.includes('Sign out'))?.click();
     expect(requested).toHaveBeenCalledOnce();
   });
 });

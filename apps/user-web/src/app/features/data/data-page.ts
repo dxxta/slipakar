@@ -16,6 +16,7 @@ import { DataTableControls } from '../../ui/shared/data-table-controls';
 import { ListBody } from '../../ui/shared/list-body';
 import { PageHeader } from '../../ui/shared/page-header';
 import { RowActions, type RowActionItem } from '../../ui/shared/row-actions';
+import { Pagination } from '../../ui/shared/pagination';
 import {
   DataService,
   type EmailTemplateSummary,
@@ -45,6 +46,7 @@ function extractPlaceholders(text: string): string[] {
     ListBody,
     PageHeader,
     RowActions,
+    Pagination,
     Drawer,
     ConfirmModal,
     HlmBadge,
@@ -57,7 +59,7 @@ function extractPlaceholders(text: string): string[] {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="app-list-layout">
-      <app-page-header title="Data & Field Mapping" description="Upload recipient data files (CSV, XLSX, JSON) and map columns to email template placeholders." [topLevel]="false" />
+      <app-page-header title="Data & Mapping" description="Upload recipient data files (CSV, XLSX, JSON) and map columns to email template placeholders." [topLevel]="false" />
 
       @if (actionError()) {
         <div aria-live="polite" role="alert">
@@ -134,12 +136,13 @@ function extractPlaceholders(text: string): string[] {
         }
 
         <!-- Uploaded Files List -->
-        <app-data-table-controls [query]="uploadQuery()" searchPlaceholder="Search uploaded files..." (queryChange)="uploadQuery.set($event)" />
-        <app-list-body [state]="loadingUploads() ? 'loading' : loadUploadsError() ? 'error' : 'ready'" [itemCount]="filteredUploads().length" [query]="uploadQuery()" errorTitle="Failed to load uploaded files" [errorMessage]="loadUploadsError() ?? ''" emptyTitle="No uploaded data files yet" emptyMessage="Upload a CSV, XLSX, or JSON file above to begin." emptyResultLabel="No uploads match" (retry)="loadUploads()" (clearQuery)="uploadQuery.set('')">
+        <app-data-table-controls [query]="uploadQuery()" searchPlaceholder="Search uploaded files..." (queryChange)="setUploadQuery($event)" />
+        <app-list-body [state]="loadingUploads() ? 'loading' : loadUploadsError() ? 'error' : 'ready'" [itemCount]="filteredUploads().length" [query]="uploadQuery()" errorTitle="Failed to load uploaded files" [errorMessage]="loadUploadsError() ?? ''" emptyTitle="No uploaded data files yet" emptyMessage="Upload a CSV, XLSX, or JSON file above to begin." emptyResultLabel="No uploads match" (retry)="loadUploads()" (clearQuery)="setUploadQuery('')">
           <div list-content class="overflow-x-auto rounded-lg border border-border">
             <table class="min-w-[40rem] w-full text-left text-sm" aria-label="Uploaded data files">
               <thead class="border-b border-border bg-muted/50 text-xs font-medium text-muted-foreground">
                 <tr>
+                  <th scope="col" class="px-4 py-3">Select</th>
                   <th scope="col" class="px-4 py-3">File Name</th>
                   <th scope="col" class="px-4 py-3">Rows</th>
                   <th scope="col" class="px-4 py-3">Columns</th>
@@ -148,7 +151,7 @@ function extractPlaceholders(text: string): string[] {
                 </tr>
               </thead>
               <tbody class="divide-y divide-border">
-                @for (file of filteredUploads(); track file.id) {
+                @for (file of pageUploads(); track file.id) {
                   <tr
                     [attr.data-testid]="'upload-row-' + file.id"
                     tabindex="0"
@@ -159,14 +162,14 @@ function extractPlaceholders(text: string): string[] {
                     (keydown.enter)="selectUpload(file.id)"
                     (keydown.space)="$event.preventDefault(); selectUpload(file.id)"
                   >
-                    <td class="px-4 py-3 font-medium flex items-center gap-2">
-                      <span class="truncate">{{ file.fileName }}</span>
-                      @if (selectedUploadId() === file.id) { <span hlmBadge variant="outline" class="text-[10px]">Active</span> }
+                    <td class="align-middle px-4 py-3">
+                      <input type="checkbox" [checked]="selectedUploadId() === file.id" [attr.aria-label]="'Select ' + file.fileName" class="size-4 accent-primary" (click)="$event.stopPropagation()" (change)="onUploadCheckboxChange(file.id, $event)" />
                     </td>
-                    <td class="px-4 py-3 text-muted-foreground tabular-nums">{{ file.rowCount.toLocaleString() }}</td>
-                    <td class="px-4 py-3 text-muted-foreground text-xs font-mono tabular-nums">{{ file.columns.length }} cols</td>
-                    <td class="px-4 py-3 text-muted-foreground text-xs tabular-nums">{{ file.createdAt | date: 'short' }}</td>
-                    <td class="px-4 py-3 text-right" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+                    <td class="align-middle px-4 py-3"><div class="flex min-h-9 items-center gap-2 font-medium"><span class="truncate">{{ file.fileName }}</span>@if (selectedUploadId() === file.id) { <span hlmBadge variant="outline" class="shrink-0 text-[10px]">Active</span> }</div></td>
+                    <td class="align-middle px-4 py-3 text-muted-foreground tabular-nums">{{ file.rowCount.toLocaleString() }}</td>
+                    <td class="align-middle px-4 py-3 text-muted-foreground text-xs font-mono tabular-nums">{{ file.columns.length }} cols</td>
+                    <td class="align-middle px-4 py-3 text-muted-foreground text-xs tabular-nums">{{ file.createdAt | date: 'short' }}</td>
+                    <td class="align-middle px-4 py-2 text-right" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
                       @if (confirmingDeleteId() === file.id) {
                         <app-confirm-modal [open]="true" [title]="'Delete ' + file.fileName + '?'" message="This uploaded file will be permanently removed." confirmLabel="Delete upload" [confirmTestId]="'confirm-delete-upload-' + file.id" (cancelled)="confirmingDeleteId.set(null)" (confirmed)="deleteUpload(file.id)" />
                       } @else {
@@ -179,6 +182,7 @@ function extractPlaceholders(text: string): string[] {
             </table>
           </div>
         </app-list-body>
+        <app-pagination [metadata]="uploadMetadata()" (pageChange)="uploadPage.set($event)" />
         <app-drawer [open]="detailUpload() !== null" title="Uploaded file details" (closed)="detailUpload.set(null)">
           @if (detailUpload(); as file) {
             <dl class="space-y-4">
@@ -251,10 +255,8 @@ function extractPlaceholders(text: string): string[] {
         <h3 id="step-mapping-heading" class="text-lg font-medium flex items-center gap-2">
           <span class="flex h-6 w-6 items-center justify-center rounded-full bg-primary text-xs font-bold text-primary-foreground">3</span>
           Field Mapping
-          <button hlmBtn variant="outline" size="sm" type="button" data-testid="configure-mapping-button" (click)="mappingDrawerOpen.set(true)">Configure field mapping</button>
         </h3>
 
-        <app-drawer [open]="mappingDrawerOpen()" title="Field mapping" (closed)="mappingDrawerOpen.set(false)">
         <div hlmCard data-testid="mapping-card">
           <div hlmCardHeader>
             <h4 hlmCardTitle class="text-base font-semibold">Map Placeholders to Data Columns</h4>
@@ -270,7 +272,7 @@ function extractPlaceholders(text: string): string[] {
                 <select appSelect
                   id="template-select"
                   data-testid="template-select"
-                  class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  class="h-control-9 max-md:min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   [value]="selectedTemplateId()"
                   (change)="onTemplateSelect($any($event.target).value)"
                 >
@@ -286,7 +288,7 @@ function extractPlaceholders(text: string): string[] {
                 <select appSelect
                   id="pdf-template-select"
                   data-testid="pdf-template-select"
-                  class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  class="h-control-9 max-md:min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   [value]="selectedPdfTemplateId()"
                   (change)="selectedPdfTemplateId.set($any($event.target).value)"
                 >
@@ -307,7 +309,7 @@ function extractPlaceholders(text: string): string[] {
                 <select appSelect
                   id="email-column-select"
                   data-testid="email-column-select"
-                  class="h-9 w-full max-w-sm rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  class="h-control-9 max-md:min-h-11 w-full max-w-sm rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   [value]="recipientEmailColumn()"
                   (change)="recipientEmailColumn.set($any($event.target).value)"
                   required
@@ -429,7 +431,6 @@ function extractPlaceholders(text: string): string[] {
             }
           </div>
         </div>
-        </app-drawer>
       </section>
     </div>
   `,
@@ -443,11 +444,17 @@ export class DataPage implements OnInit {
   // Upload list & preview state
   readonly uploads = signal<UploadItem[]>([]);
   readonly uploadQuery = signal('');
+  readonly uploadPage = signal(1);
   readonly detailUpload = signal<UploadItem | null>(null);
   readonly filteredUploads = computed(() => {
     const query = this.uploadQuery().trim().toLocaleLowerCase();
     return this.uploads().filter((upload) => upload.fileName.toLocaleLowerCase().includes(query));
   });
+  readonly pageUploads = computed(() => {
+    const start = (this.uploadPage() - 1) * 5;
+    return this.filteredUploads().slice(start, start + 5);
+  });
+  readonly uploadMetadata = computed(() => ({ page: this.uploadPage(), limit: 5, total: this.filteredUploads().length }));
   readonly uploadActions: RowActionItem[] = [
     { id: 'detail', label: 'Detail', icon: 'eye' },
     { id: 'delete', label: 'Delete', icon: 'trash', destructive: true },
@@ -477,7 +484,6 @@ export class DataPage implements OnInit {
   readonly pdfTemplates = signal<PdfTemplateSummary[]>([]);
   readonly selectedTemplateId = signal('');
   readonly selectedPdfTemplateId = signal('');
-  readonly mappingDrawerOpen = signal(false);
   readonly recipientEmailColumn = signal('');
 
   readonly currentMapping = signal<Record<string, string>>({});
@@ -544,7 +550,7 @@ export class DataPage implements OnInit {
       next: (list) => {
         this.uploads.set(list);
         this.loadingUploads.set(false);
-        if (list.length > 0 && !this.selectedUploadId()) {
+        if (list.length > 0 && (!this.selectedUploadId() || !list.some((item) => item.id === this.selectedUploadId()))) {
           this.selectUpload(list[0].id);
         }
       },
@@ -569,10 +575,24 @@ export class DataPage implements OnInit {
     });
   }
 
+  onUploadCheckboxChange(id: string, event: Event): void {
+    if (id === this.selectedUploadId()) {
+      (event.currentTarget as HTMLInputElement).checked = true;
+      return;
+    }
+    this.selectUpload(id);
+  }
+
   selectUpload(id: string): void {
+    if (id === this.selectedUploadId()) return;
     this.selectedUploadId.set(id);
     this.loadPreview(id);
     this.checkExistingMapping();
+  }
+
+  setUploadQuery(query: string): void {
+    this.uploadQuery.set(query);
+    this.uploadPage.set(1);
   }
 
   loadPreview(id: string): void {
@@ -762,7 +782,6 @@ export class DataPage implements OnInit {
       next: () => {
         this.isSavingMapping.set(false);
         this.actionSuccess.set('Field mapping saved successfully');
-        this.mappingDrawerOpen.set(false);
       },
       error: (err: unknown) => {
         this.isSavingMapping.set(false);

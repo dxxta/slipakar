@@ -91,6 +91,7 @@ describe('DataPage', () => {
 
     expect(fixture.nativeElement.querySelector('app-page-header')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('app-data-table-controls')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="mapping-card"]')).not.toBeNull();
     expect(fixture.nativeElement.textContent).toContain('recipients.csv');
     expect(fixture.nativeElement.textContent).toContain('Alice Johnson');
     expect(fixture.nativeElement.textContent).toContain('bob@example.com');
@@ -117,6 +118,36 @@ describe('DataPage', () => {
     (fixture.nativeElement.querySelector('[data-action="clear-search"]') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[data-testid="upload-row-up-1"]')).not.toBeNull();
+  });
+
+  it('pages uploaded files and keeps exactly one active file selected', () => {
+    const files = Array.from({ length: 6 }, (_, index) => ({ ...mockUpload, id: `up-${index + 1}`, fileName: `recipients-${index + 1}.csv` }));
+    const fixture = TestBed.createComponent(DataPage);
+    fixture.detectChanges();
+    http.expectOne('/projects/p-1/uploads').flush({ message: 'ok', data: files, success: true });
+    http.expectOne('/projects/p-1/templates?page=1&limit=100&sortBy=createdAt&sortDir=desc').flush({ message: 'ok', data: [], metadata: { page: 1, limit: 100, total: 0 }, success: true });
+    http.expectOne('/projects/p-1/pdf-templates?page=1&limit=100&sortBy=createdAt&sortDir=desc').flush({ message: 'ok', data: [], metadata: { page: 1, limit: 100, total: 0 }, success: true });
+    http.expectOne('/projects/p-1/uploads/up-1').flush({ message: 'ok', data: mockPreview, success: true });
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelectorAll('[data-testid^="upload-row-"]')).toHaveLength(5);
+    const secondCheckbox = fixture.nativeElement.querySelector('[aria-label="Select recipients-2.csv"]') as HTMLInputElement;
+    secondCheckbox.checked = true;
+    secondCheckbox.dispatchEvent(new Event('change'));
+    http.expectOne('/projects/p-1/uploads/up-2').flush({ message: 'ok', data: { ...mockPreview, id: 'up-2' }, success: true });
+    fixture.detectChanges();
+    expect(fixture.componentInstance.selectedUploadId()).toBe('up-2');
+
+    const selectedCheckbox = fixture.nativeElement.querySelector('[aria-label="Select recipients-2.csv"]') as HTMLInputElement;
+    selectedCheckbox.checked = false;
+    selectedCheckbox.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect((fixture.nativeElement.querySelector('[aria-label="Select recipients-2.csv"]') as HTMLInputElement).checked).toBe(true);
+
+    (fixture.nativeElement.querySelector('[aria-label="Next page"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('[data-testid^="upload-row-"]')).toHaveLength(1);
+    expect(fixture.nativeElement.querySelector('[data-testid="upload-row-up-6"]')).not.toBeNull();
   });
 
   it('uploads a file using FormData multipart POST and handles error if invalid', () => {
@@ -203,7 +234,6 @@ describe('DataPage', () => {
     http.expectOne('/projects/p-1/uploads/up-1').flush({ message: 'ok', data: mockPreview, success: true });
     fixture.detectChanges();
 
-    fixture.nativeElement.querySelector('[data-testid="configure-mapping-button"]').click();
     fixture.detectChanges();
     // Select email template tpl-1
     const tplSelect = fixture.nativeElement.querySelector('[data-testid="template-select"]') as HTMLSelectElement;
@@ -263,7 +293,7 @@ describe('DataPage', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Field mapping saved successfully');
-    expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="mapping-card"]')).not.toBeNull();
   });
 
   it('incomplete mapping disables save button and warns about unmapped placeholders', () => {
@@ -276,7 +306,6 @@ describe('DataPage', () => {
     http.expectOne('/projects/p-1/uploads/up-1').flush({ message: 'ok', data: mockPreview, success: true });
     fixture.detectChanges();
 
-    fixture.nativeElement.querySelector('[data-testid="configure-mapping-button"]').click();
     fixture.detectChanges();
     const tplSelect = fixture.nativeElement.querySelector('[data-testid="template-select"]') as HTMLSelectElement;
     tplSelect.value = 'tpl-1';

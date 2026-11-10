@@ -42,7 +42,8 @@ describe('ProjectOverviewPage', () => {
     http.expectOne('/projects/p-1/activity?page=1&limit=10').flush({ message: 'ok', data: [], metadata: { page: 1, limit: 10, total: 0 }, success: true });
     fixture.detectChanges();
     const sections = fixture.nativeElement.querySelectorAll('section') as NodeListOf<HTMLElement>;
-    expect(sections[0].className).toContain('auto-rows-fr');
+    expect(sections[0].className).not.toContain('auto-rows-fr');
+    expect(sections[0].querySelector('article')?.className).not.toContain('h-full');
     expect(sections[0].querySelectorAll('article')).toHaveLength(5);
     expect(sections[0].querySelector('article.sm\\:col-span-2')).toBeNull();
     expect(sections[1].getAttribute('aria-labelledby')).toBe('activity-heading');

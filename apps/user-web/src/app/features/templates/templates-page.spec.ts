@@ -1,8 +1,8 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { type ComponentFixture, TestBed } from '@angular/core/testing';
-import { ActivatedRoute } from '@angular/router';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { ActivatedRoute, provideRouter, Router } from '@angular/router';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { TemplatesPage } from './templates-page';
 import type { EmailTemplate } from './templates.service';
 
@@ -27,6 +27,7 @@ function chooseTemplateAction(fixture: ComponentFixture<TemplatesPage>, label: s
 
 describe('TemplatesPage', () => {
   let http: HttpTestingController;
+  let router: Router;
 
   beforeEach(() => {
     TestBed.resetTestingModule();
@@ -35,6 +36,7 @@ describe('TemplatesPage', () => {
       providers: [
         provideHttpClient(),
         provideHttpClientTesting(),
+        provideRouter([]),
         {
           provide: ActivatedRoute,
           useValue: {
@@ -45,6 +47,7 @@ describe('TemplatesPage', () => {
       ],
     });
     http = TestBed.inject(HttpTestingController);
+    router = TestBed.inject(Router);
   });
 
   afterEach(() => http.verify());
@@ -67,6 +70,8 @@ describe('TemplatesPage', () => {
 
     expect(fixture.nativeElement.querySelector('app-list-body [data-list-state="loading"]')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('Monthly Payroll');
+    expect(fixture.nativeElement.querySelector('table[aria-label="Email templates list"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="template-row-tpl-1"]')).not.toBeNull();
   });
 
   it('keeps filters mounted and shows a search-empty state with a clear action', () => {
@@ -126,90 +131,28 @@ describe('TemplatesPage', () => {
     expect(fixture.nativeElement.textContent).toContain('Monthly Payroll');
   });
 
-  it('creates a template and sends POST /projects/:projectId/templates', () => {
+  it('routes New template to the dedicated template editor page', () => {
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     const fixture = TestBed.createComponent(TemplatesPage);
     fixture.detectChanges();
-
-    http.expectOne('/projects/p-1/templates?page=1&limit=20&sortBy=createdAt&sortDir=desc').flush({ message: 'ok', data: [], metadata: { page: 1, limit: 20, total: 0 }, success: true });
+    http.expectOne('/projects/p-1/templates?page=1&limit=20&sortBy=createdAt&sortDir=desc')
+      .flush({ message: 'ok', data: [], metadata: { page: 1, limit: 20, total: 0 }, success: true });
     fixture.detectChanges();
 
-    fixture.nativeElement.querySelector('[data-testid="empty-add-template-button"]').click();
-    fixture.detectChanges();
-
-    const nameInput = fixture.nativeElement.querySelector('[data-testid="template-name-input"]') as HTMLInputElement;
-    const subjectInput = fixture.nativeElement.querySelector('[data-testid="template-subject-input"]') as HTMLInputElement;
-    const bodyTextarea = fixture.nativeElement.querySelector('[data-testid="template-body-textarea"]') as HTMLTextAreaElement;
-
-    nameInput.value = 'Welcome Email';
-    nameInput.dispatchEvent(new Event('input'));
-    subjectInput.value = 'Welcome {{name}}!';
-    subjectInput.dispatchEvent(new Event('input'));
-    bodyTextarea.value = '<p>Hi {{name}}, welcome onboard!</p>';
-    bodyTextarea.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-
-    fixture.nativeElement.querySelector('[data-testid="template-save-button"]').click();
-    fixture.detectChanges();
-
-    const createReq = http.expectOne('/projects/p-1/templates');
-    expect(createReq.request.method).toBe('POST');
-    expect(createReq.request.body).toEqual({
-      name: 'Welcome Email',
-      subject: 'Welcome {{name}}!',
-      bodyHtml: '<p>Hi {{name}}, welcome onboard!</p>',
-    });
-
-    createReq.flush({
-      message: 'Created',
-      data: {
-        id: 'tpl-2',
-        projectId: 'p-1',
-        name: 'Welcome Email',
-        subject: 'Welcome {{name}}!',
-        bodyHtml: '<p>Hi {{name}}, welcome onboard!</p>',
-      },
-      success: true,
-    });
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.textContent).toContain('Welcome Email');
+    (fixture.nativeElement.querySelector('[data-testid="add-template-button"]') as HTMLButtonElement).click();
+    expect(navigate).toHaveBeenCalledWith(['/projects', 'p-1', 'templates', 'new']);
   });
 
-  it('edits a template and sends PATCH /projects/:projectId/templates/:id', () => {
+  it('routes Edit to the dedicated template editor page', () => {
+    const navigate = vi.spyOn(router, 'navigate').mockResolvedValue(true);
     const fixture = TestBed.createComponent(TemplatesPage);
     fixture.detectChanges();
-
-    http.expectOne('/projects/p-1/templates?page=1&limit=20&sortBy=createdAt&sortDir=desc').flush({ message: 'ok', data: [mockTemplate], metadata: { page: 1, limit: 20, total: 1 }, success: true });
+    http.expectOne('/projects/p-1/templates?page=1&limit=20&sortBy=createdAt&sortDir=desc')
+      .flush({ message: 'ok', data: [mockTemplate], metadata: { page: 1, limit: 20, total: 1 }, success: true });
     fixture.detectChanges();
 
     chooseTemplateAction(fixture, 'Edit');
-
-    const nameInput = fixture.nativeElement.querySelector('[data-testid="template-name-input"]') as HTMLInputElement;
-    expect(nameInput.value).toBe('Monthly Payroll');
-
-    nameInput.value = 'Updated Payroll';
-    nameInput.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-
-    fixture.nativeElement.querySelector('[data-testid="template-save-button"]').click();
-    fixture.detectChanges();
-
-    const patchReq = http.expectOne('/projects/p-1/templates/tpl-1');
-    expect(patchReq.request.method).toBe('PATCH');
-    expect(patchReq.request.body).toEqual({
-      name: 'Updated Payroll',
-      subject: 'Your Payslip for {{period}}',
-      bodyHtml: '<p>Dear {{name}},</p><p>Your pay is {{amount}}.</p>',
-    });
-
-    patchReq.flush({
-      message: 'Updated',
-      data: { ...mockTemplate, name: 'Updated Payroll' },
-      success: true,
-    });
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.textContent).toContain('Updated Payroll');
+    expect(navigate).toHaveBeenCalledWith(['/projects', 'p-1', 'templates', 'tpl-1']);
   });
 
   it('opens a read-only template detail drawer from row actions', () => {
@@ -244,71 +187,7 @@ describe('TemplatesPage', () => {
     delReq.flush({ message: 'Deleted', data: null, success: true });
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('[data-testid="template-card-tpl-1"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="template-row-tpl-1"]')).toBeNull();
   });
 
-  it('detects client-side unsafe template syntax such as {{#if}} or {{{x}}} and disables submit', () => {
-    const fixture = TestBed.createComponent(TemplatesPage);
-    fixture.detectChanges();
-
-    http.expectOne('/projects/p-1/templates?page=1&limit=20&sortBy=createdAt&sortDir=desc').flush({ message: 'ok', data: [mockTemplate], metadata: { page: 1, limit: 20, total: 1 }, success: true });
-    fixture.detectChanges();
-
-    fixture.nativeElement.querySelector('[data-testid="add-template-button"]').click();
-    fixture.detectChanges();
-
-    const bodyTextarea = fixture.nativeElement.querySelector('[data-testid="template-body-textarea"]') as HTMLTextAreaElement;
-    bodyTextarea.value = '<p>{{#if bonus}}Bonus: {{bonus}}{{/if}}</p>';
-    bodyTextarea.dispatchEvent(new Event('input'));
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.textContent).toContain('Unsupported placeholder syntax');
-    expect(fixture.nativeElement.textContent).toContain('Only simple {{field_name}} is supported');
-
-    const submitBtn = fixture.nativeElement.querySelector('[data-testid="template-save-button"]') as HTMLButtonElement;
-    expect(submitBtn.disabled).toBe(true);
-  });
-
-  it('displays API UNSAFE_TEMPLATE error when server rejects unsafe syntax', () => {
-    const fixture = TestBed.createComponent(TemplatesPage);
-    fixture.detectChanges();
-
-    http.expectOne('/projects/p-1/templates?page=1&limit=20&sortBy=createdAt&sortDir=desc').flush({ message: 'ok', data: [mockTemplate], metadata: { page: 1, limit: 20, total: 1 }, success: true });
-    fixture.detectChanges();
-
-    chooseTemplateAction(fixture, 'Edit');
-
-    // Trigger save
-    fixture.nativeElement.querySelector('[data-testid="template-save-button"]').click();
-    fixture.detectChanges();
-
-    const patchReq = http.expectOne('/projects/p-1/templates/tpl-1');
-    patchReq.flush(
-      { error: { code: 'UNSAFE_TEMPLATE', message: 'Template contains unsafe placeholder syntax' } },
-      { status: 400, statusText: 'Bad Request' },
-    );
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.textContent).toContain('Template contains unsafe placeholder syntax');
-  });
-
-  it('live preview pane renders sandboxed iframe and escapes sample placeholder values', () => {
-    const fixture = TestBed.createComponent(TemplatesPage);
-    fixture.detectChanges();
-
-    http.expectOne('/projects/p-1/templates?page=1&limit=20&sortBy=createdAt&sortDir=desc').flush({ message: 'ok', data: [mockTemplate], metadata: { page: 1, limit: 20, total: 1 }, success: true });
-    fixture.detectChanges();
-
-    chooseTemplateAction(fixture, 'Edit');
-
-    const iframe = fixture.nativeElement.querySelector('[data-testid="template-preview-iframe"]') as HTMLIFrameElement;
-    expect(iframe).not.toBeNull();
-    expect(iframe.getAttribute('sandbox')).toBe('');
-
-    const srcdoc = iframe.getAttribute('srcdoc');
-    expect(srcdoc).toContain('[Sample name]');
-    expect(srcdoc).toContain('[Sample amount]');
-    // Check HTML escaping in preview
-    expect(srcdoc).not.toContain('<script>');
-  });
 });

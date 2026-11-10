@@ -32,25 +32,25 @@ type Campaign = { status: string; createdAt: string };
       [message]="error() ?? ''"
       (retry)="load()"
     >
-      <div class="mt-6 grid auto-rows-fr gap-4">
-        <section class="grid auto-rows-fr gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="Project summary">
-          <article class="h-full min-h-32 rounded-ui-lg border border-border bg-card p-card">
+      <div class="mt-6 grid gap-4">
+        <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="Project summary">
+          <article class="min-h-24 rounded-ui-lg border border-border bg-card p-card">
             <p class="text-sm text-muted-foreground">Campaigns</p>
             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ counts().campaigns }}</p>
           </article>
-          <article class="h-full min-h-32 rounded-ui-lg border border-border bg-card p-card">
+          <article class="min-h-24 rounded-ui-lg border border-border bg-card p-card">
             <p class="text-sm text-muted-foreground">Email templates</p>
             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ counts().templates }}</p>
           </article>
-          <article class="h-full min-h-32 rounded-ui-lg border border-border bg-card p-card">
+          <article class="min-h-24 rounded-ui-lg border border-border bg-card p-card">
             <p class="text-sm text-muted-foreground">Data files</p>
             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ counts().uploads }}</p>
           </article>
-          <article class="h-full min-h-32 rounded-ui-lg border border-border bg-card p-card">
+          <article class="min-h-24 rounded-ui-lg border border-border bg-card p-card">
             <p class="text-sm text-muted-foreground">Unread notifications</p>
             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ counts().unread }}</p>
           </article>
-          <article class="h-full min-h-32 rounded-ui-lg border border-border bg-card p-card">
+          <article class="min-h-24 rounded-ui-lg border border-border bg-card p-card">
             <p class="text-sm text-muted-foreground">Last send status</p>
             <p class="mt-2 text-lg font-semibold">{{ lastStatus() }}</p>
           </article>

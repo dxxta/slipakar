@@ -54,6 +54,8 @@ describe('SmtpPage', () => {
 
     expect(fixture.nativeElement.querySelector('[data-list-state="loading"]')).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('smtp.mailtrap.io:587');
+    expect(fixture.nativeElement.querySelector('table[aria-label="SMTP connections list"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="smtp-row-smtp-1"]')).not.toBeNull();
   });
 
   it('shows empty state when no connections exist', () => {
@@ -221,7 +223,7 @@ describe('SmtpPage', () => {
     delReq.flush({ message: 'deleted', data: null, success: true });
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.querySelector('[data-testid="smtp-card-smtp-1"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="smtp-row-smtp-1"]')).toBeNull();
   });
 
 

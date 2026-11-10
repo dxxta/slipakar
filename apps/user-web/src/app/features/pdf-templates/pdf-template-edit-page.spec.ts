@@ -106,7 +106,8 @@ describe('PdfTemplateEditPage (Integrated with Real PdfBuilderEditor)', () => {
       fixture.detectChanges();
       expect(fixture.componentInstance.placeholders()).toEqual(['client_name', 'total_due']);
       expect(fixture.componentInstance.attachments().length).toBe(1);
-      expect(fixture.nativeElement.querySelector('app-page-header')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('app-back-button')).not.toBeNull();
+      expect(fixture.nativeElement.querySelector('h1')?.textContent).toContain('New PDF Template');
       expect(fixture.nativeElement.querySelector('[data-page-badge]')).toBeNull();
     });
 

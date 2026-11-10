@@ -10,7 +10,7 @@ import { DataTableControls } from '../../ui/shared/data-table-controls';
 import { Pagination } from '../../ui/shared/pagination';
 import { HlmBadge } from '../../ui/badge/src';
 import { HlmButton } from '../../ui/button/src';
-import { ListBody, PageHeader, Tabs, type TabItem } from '../../ui';
+import { ListBody, PageHeader, SegmentedTabs, type TabItem } from '../../ui';
 import { type NotificationItem, NotificationsService } from './notifications.service';
 import { type UserNoticeItem, UserNoticesService } from './user-notices.service';
 
@@ -30,7 +30,7 @@ interface Project {
     ListBody,
     PageHeader,
     Pagination,
-    Tabs,
+    SegmentedTabs,
     NgIcon,
   ],
   providers: [provideIcons({ tablerCheck, tablerAlertTriangle, tablerInfoCircle })],
@@ -48,7 +48,7 @@ interface Project {
           <select
             appSelect
             id="project-select"
-            class="h-8 rounded-md border border-input bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            class="h-control-9 max-md:min-h-11 rounded-md border border-input bg-background px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
             [value]="selectedProjectId()"
             (change)="onProjectChange($event)"
           >
@@ -60,14 +60,14 @@ interface Project {
       }
     </app-page-header>
 
-    <app-tabs
+    <app-segmented-tabs class="mt-4"
       ariaLabel="Notification categories"
       [items]="categoryTabs"
       [selected]="activeTab()"
       (selectedChange)="setTab($any($event))"
     />
 
-    <app-data-table-controls [query]="searchQuery()" searchPlaceholder="Search notifications..." (queryChange)="onSearch($event)">
+    <app-data-table-controls class="mt-4 !mb-0" [query]="searchQuery()" searchPlaceholder="Search notifications..." (queryChange)="onSearch($event)">
       <div table-filters class="flex flex-wrap items-end gap-3">
         <label class="grid min-w-40 gap-1 text-xs font-medium text-muted-foreground">
           Sort notifications
@@ -121,14 +121,14 @@ interface Project {
       <div
         role="alert"
         aria-label="Notification update error"
-        class="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
+        class="mt-4 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive"
       >
         {{ actionError() }}
       </div>
     }
 
     @if (activeTab() === 'announcements') {
-      <section class="space-y-4" aria-label="Announcements">
+      <section class="mt-4 space-y-4" aria-label="Announcements">
         <app-list-body
           [state]="noticeLoading() ? 'loading' : noticeError() ? 'error' : 'ready'"
           [itemCount]="notices().length"
@@ -191,6 +191,7 @@ interface Project {
     } @else {
       <!-- Activity tab -->
       <app-list-body
+        class="mt-4"
         [state]="loading() ? 'loading' : error() ? 'error' : 'ready'"
         [itemCount]="notifications().length"
         [query]="searchQuery()"

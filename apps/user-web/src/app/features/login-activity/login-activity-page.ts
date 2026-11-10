@@ -29,7 +29,7 @@ import { LoginActivityService, type LoginActivityItem, type LoginActivitySort } 
       description="Recent sign-ins to your account and their best-effort location details."
     />
 
-    <app-data-table-controls [query]="query()" searchPlaceholder="Search login activity..." (queryChange)="search($event)">
+    <app-data-table-controls class="mt-4 !mb-0" [query]="query()" searchPlaceholder="Search login activity..." (queryChange)="search($event)">
       <div table-filters class="flex flex-wrap items-end gap-3">
         <label class="grid min-w-40 gap-1 text-xs font-medium text-muted-foreground">
           Sort by
@@ -63,6 +63,7 @@ import { LoginActivityService, type LoginActivityItem, type LoginActivitySort } 
     </app-data-table-controls>
 
     <app-list-body
+      class="mt-4"
       [state]="listState()"
       [itemCount]="events().length"
       [query]="query()"

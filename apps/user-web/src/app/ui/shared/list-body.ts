@@ -13,14 +13,14 @@ export type ListBodyState = 'loading' | 'error' | 'ready';
     } @else if (state() === 'error') {
       <section data-list-state="error" role="alert" class="rounded-ui-lg border border-destructive/30 bg-destructive/5 p-card">
         <h2 class="font-medium">{{ errorTitle() }}</h2><p class="mt-1 text-sm text-muted-foreground">{{ errorMessage() }}</p>
-        <button type="button" class="mt-4 min-h-11 rounded-ui-md border border-border px-3 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" (click)="retry.emit()">{{ retryLabel() }}</button>
+        <button type="button" class="mt-4 h-control-9 rounded-ui-md border border-border px-3 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11" (click)="retry.emit()">{{ retryLabel() }}</button>
       </section>
     } @else if (itemCount() > 0) {
       <ng-content select="[list-content]" />
     } @else if (query().trim()) {
       <section data-list-state="search-empty" role="status" class="rounded-ui-lg border border-dashed border-border px-card py-10 text-center">
         <h2 class="font-medium">{{ emptyResultLabel() }} “{{ query().trim() }}”</h2>
-        <button type="button" data-action="clear-search" class="mt-3 min-h-11 rounded-ui-md px-3 text-sm font-medium text-primary underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" (click)="clearQuery.emit()">{{ clearLabel() }}</button>
+        <button type="button" data-action="clear-search" class="mt-3 h-control-9 rounded-ui-md px-3 text-sm font-medium text-primary underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11" (click)="clearQuery.emit()">{{ clearLabel() }}</button>
       </section>
     } @else {
       <section data-list-state="empty" role="status" class="rounded-ui-lg border border-dashed border-border px-card py-12 text-center">

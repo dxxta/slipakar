@@ -17,6 +17,7 @@ import { PageHeader, SelectControl } from '../../ui';
   imports: [CommonModule, Avatar, HlmButton, PageHeader, SelectControl, NgIcon],
   providers: [provideIcons({ tablerPencil })],
   template: `
+    <div class="space-y-6">
     <app-page-header
       title="Profile"
       badge="Account"
@@ -35,8 +36,8 @@ import { PageHeader, SelectControl } from '../../ui';
       </p>
     }
 
-    <section class="grid gap-8 rounded-ui-lg border border-border bg-card p-card md:grid-cols-[12rem_1fr]" aria-label="Profile details">
-      <div class="grid content-start justify-items-center">
+    <section class="grid items-start gap-6 rounded-ui-lg border border-border bg-card p-card md:grid-cols-[8rem_minmax(0,1fr)]" aria-label="Profile details">
+      <div class="grid justify-items-start md:pt-1">
         <input
           #avatarInput
           id="avatar-file"
@@ -57,7 +58,7 @@ import { PageHeader, SelectControl } from '../../ui';
           <app-avatar
             [name]="name() || session.user()?.name || session.user()?.email || 'Account'"
             [imageUrl]="image() || null"
-            [size]="'lg'"
+            [size]="'xl'"
           />
           <span
             class="absolute inset-0 grid place-items-center rounded-full bg-foreground/55 text-background opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
@@ -156,7 +157,7 @@ import { PageHeader, SelectControl } from '../../ui';
           <select
             id="theme-mode"
             appSelect
-            class="min-h-11 w-full rounded-ui-md border border-input bg-background px-3 text-sm"
+            class="h-control-9 max-md:min-h-11 w-full rounded-ui-md border border-input bg-background px-3 text-sm"
             [value]="themePreferences.preference().themeMode"
             (change)="changeThemeMode($event)"
           >
@@ -171,7 +172,7 @@ import { PageHeader, SelectControl } from '../../ui';
             @for (accent of accents; track accent) {
               <button
                 type="button"
-                class="grid size-11 place-items-center rounded-full border border-border aria-pressed:ring-2 aria-pressed:ring-ring aria-pressed:ring-offset-2 aria-pressed:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                class="grid size-9 place-items-center rounded-full border border-border aria-pressed:ring-2 aria-pressed:ring-ring aria-pressed:ring-offset-2 aria-pressed:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:size-11"
                 [attr.aria-label]="accentLabel(accent)"
                 [attr.aria-pressed]="themePreferences.preference().themeAccent === accent"
                 (click)="themePreferences.setAccent(accent)"
@@ -190,6 +191,7 @@ import { PageHeader, SelectControl } from '../../ui';
         <button hlmBtn type="button">Preview action</button>
       </div>
     </section>
+    </div>
   `,
 })
 export class ProfilePage {
