@@ -78,3 +78,7 @@
   animation: ripple-wave 550ms ease-out forwards;
 }
 @keyframes ripple-wave { to { transform: scale(1); opacity: 0; } }
+
+@keyframes loading-bar-run { from { transform: scaleX(0.08); } to { transform: scaleX(0.92); } }
+.loading-bar-running { animation: loading-bar-run 8s cubic-bezier(0.1, 0.6, 0.2, 1) forwards; }
+@media (prefers-reduced-motion: reduce) { .loading-bar-running { animation: none; transform: scaleX(0.5); } }
