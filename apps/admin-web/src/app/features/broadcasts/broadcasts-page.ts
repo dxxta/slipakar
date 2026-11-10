@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, OnInit, inject, signal } from '@angular/core';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { tablerPlus } from '@ng-icons/tabler-icons';
 import { HlmBadge } from '../../ui/badge/src';
 import { HlmButton } from '../../ui/button/src';
 import { ConfirmModal, DataTableControls, Drawer, ListBody, PageHeader, Pagination, RowActions, type RowActionItem, SelectControl } from '../../ui';
@@ -9,7 +11,8 @@ import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
   selector: 'app-broadcasts-page',
-  imports: [Ripple, CommonModule, HlmBadge, HlmButton, ConfirmModal, DataTableControls, Drawer, ListBody, PageHeader, Pagination, RowActions, SelectControl],
+  providers: [provideIcons({ tablerPlus })],
+  imports: [Ripple, CommonModule, NgIcon, HlmBadge, HlmButton, ConfirmModal, DataTableControls, Drawer, ListBody, PageHeader, Pagination, RowActions, SelectControl],
   template: `
     <app-page-header
       title="Broadcasts"
@@ -17,7 +20,7 @@ import { Ripple } from '../../ui/shared/ripple';
       badge="Admin"
       [topLevel]="true"
     >
-      <button page-actions hlmBtn type="button" class="max-md:hidden" aria-label="Create broadcast" (click)="openComposer()">New broadcast</button>
+      <button page-actions hlmBtn type="button" class="max-md:hidden" aria-label="Create broadcast" (click)="openComposer()"><ng-icon name="tablerPlus" aria-hidden="true" class="size-4" />New broadcast</button>
       <app-row-actions page-actions class="md:hidden" [solid]="true" label="Page actions" [items]="pageActions" (actionSelect)="openComposer()" />
     </app-page-header>
     <app-data-table-controls [query]="query()" searchPlaceholder="Search broadcasts..." (queryChange)="search($event)"><div table-filters class="flex flex-wrap items-end gap-3">

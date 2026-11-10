@@ -3,10 +3,11 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { tablerX } from '@ng-icons/tabler-icons';
 import { Ripple } from './ripple';
+import { Pressed } from './pressed';
 
 @Component({
   selector: 'app-drawer',
-  imports: [Ripple, CdkTrapFocus, NgIcon],
+  imports: [Ripple, Pressed, CdkTrapFocus, NgIcon],
   providers: [provideIcons({ tablerX })],
   template: `
     @if (open()) {
@@ -16,6 +17,7 @@ import { Ripple } from './ripple';
           aria-modal="true"
           aria-labelledby="drawer-title"
           tabindex="-1"
+          appPressed
           cdkTrapFocus
           cdkTrapFocusAutoCapture
           data-focus-trap

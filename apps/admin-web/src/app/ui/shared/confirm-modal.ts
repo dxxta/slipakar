@@ -2,10 +2,11 @@ import { Component, HostListener, input, output } from '@angular/core';
 import { CdkTrapFocus } from '@angular/cdk/a11y';
 import { HlmButton } from '../button/src/lib/hlm-button';
 import { Ripple } from './ripple';
+import { Pressed } from './pressed';
 
 @Component({
   selector: 'app-confirm-modal',
-  imports: [Ripple, CdkTrapFocus, HlmButton],
+  imports: [Ripple, Pressed, CdkTrapFocus, HlmButton],
   template: `
     @if (open()) {
       <div class="fixed inset-0 z-[60] grid place-items-center bg-black/45 p-4" (click)="onBackdrop($event)">
@@ -15,6 +16,7 @@ import { Ripple } from './ripple';
           aria-labelledby="confirm-title"
           aria-describedby="confirm-message"
           tabindex="-1"
+          appPressed
           cdkTrapFocus
           cdkTrapFocusAutoCapture
           data-focus-trap
