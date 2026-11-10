@@ -1,8 +1,10 @@
 import { Component, input, output } from '@angular/core';
+import { Ripple } from './ripple';
 
 export type PageStateKind = 'loading' | 'empty' | 'error' | 'ready';
 
 @Component({
+  imports: [Ripple],
   selector: 'app-page-state',
   template: `
     @if (state() === 'loading') {
@@ -15,7 +17,7 @@ export type PageStateKind = 'loading' | 'empty' | 'error' | 'ready';
       <section data-state="error" role="alert" class="rounded-ui-lg border border-destructive/30 bg-destructive/5 p-card">
         <h2 class="font-medium">{{ title() }}</h2>
         <p class="mt-1 text-sm text-muted-foreground">{{ message() }}</p>
-        <button type="button" class="mt-4 h-control-9 rounded-ui-md border border-border px-3 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" (click)="retry.emit()">{{ retryLabel() }}</button>
+        <button type="button" data-action="retry" class="mt-4 h-control-9 rounded-ui-md border border-border px-3 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" (click)="retry.emit()">{{ retryLabel() }}</button>
       </section>
     } @else if (state() === 'empty') {
       <section data-state="empty" role="status" class="rounded-ui-lg border border-dashed border-border px-card py-12 text-center">
