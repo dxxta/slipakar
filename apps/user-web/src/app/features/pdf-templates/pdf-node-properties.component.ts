@@ -4,6 +4,8 @@ import { SelectControl } from '../../ui/shared/select-control';
 import { FormsModule } from '@angular/forms';
 import { HlmButton } from '../../ui/button/src';
 import { HlmBadge } from '../../ui/badge/src';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { tablerCopy, tablerTrash } from '@ng-icons/tabler-icons';
 import {
   type PdfDividerNode,
   type PdfImageNode,
@@ -18,7 +20,8 @@ import type { AttachmentItem } from './pdf-templates.service';
 @Component({
   selector: 'app-pdf-node-properties',
   imports: [
-    SelectControl,CommonModule, FormsModule, HlmButton, HlmBadge],
+    SelectControl,CommonModule, FormsModule, HlmButton, HlmBadge, NgIcon],
+  providers: [provideIcons({ tablerCopy, tablerTrash })],
   template: `
     <div class="space-y-5 p-4 text-sm" data-testid="node-properties-panel">
       @if (!node) {
@@ -28,38 +31,35 @@ import type { AttachmentItem } from './pdf-templates.service';
         </div>
       } @else {
         <!-- Header: Node Type & Actions -->
-        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
-          <div class="flex items-center gap-2">
-            <span hlmBadge variant="outline" class="font-mono text-xs uppercase">
+        <div class="flex items-center justify-between gap-2 border-b border-border pb-3">
+          <div class="flex min-w-0 items-center gap-2">
+            <span hlmBadge variant="outline" class="shrink-0 font-mono text-xs uppercase">
               {{ node.type }}
             </span>
             <span class="truncate font-mono text-xs text-muted-foreground" [attr.title]="node.id">
               {{ node.id }}
             </span>
           </div>
-          <div class="flex items-center gap-1">
+          <div class="flex shrink-0 items-center gap-2">
             <button
-              hlmBtn
-              variant="ghost"
-              size="sm"
               type="button"
+              class="grid size-9 place-items-center rounded-ui-md bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               data-testid="duplicate-node-button"
               title="Duplicate node"
+              aria-label="Duplicate node"
               (click)="duplicate.emit(node.id)"
             >
-              Duplicate
+              <ng-icon name="tablerCopy" aria-hidden="true" class="size-5" />
             </button>
             <button
-              hlmBtn
-              variant="ghost"
-              size="sm"
               type="button"
-              class="text-destructive hover:text-destructive"
+              class="grid size-9 place-items-center rounded-ui-md bg-destructive text-white hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               data-testid="delete-node-button"
               title="Delete node"
+              aria-label="Delete node"
               (click)="delete.emit(node.id)"
             >
-              Delete
+              <ng-icon name="tablerTrash" aria-hidden="true" class="size-5" />
             </button>
           </div>
         </div>
