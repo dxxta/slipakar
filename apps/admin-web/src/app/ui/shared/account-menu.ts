@@ -3,55 +3,71 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import { tablerChevronDown } from '@ng-icons/tabler-icons';
 import { Avatar } from '@slipakar/ui/avatar';
 import { ThemeToggle } from './theme-toggle';
+import { Ripple } from './ripple';
 
 @Component({
   selector: 'app-account-menu',
-  imports: [Avatar, ThemeToggle, NgIcon],
+  imports: [Ripple, Avatar, ThemeToggle, NgIcon],
   providers: [provideIcons({ tablerChevronDown })],
   template: `
-    <div class="flex min-w-0 items-center gap-2">
-      <app-theme-toggle />
-      <div class="relative min-w-0 flex-1">
+    <div class="relative min-w-0 w-full">
       <button
         type="button"
         aria-haspopup="menu"
         [attr.aria-expanded]="open()"
         aria-label="Account menu"
-        class="flex min-h-11 w-full min-w-0 items-center gap-2 rounded-ui-md px-2 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        (click)="open.update((value) => !value)"
+        class="flex h-control-9 w-full min-w-0 items-center gap-2 rounded-ui-md px-2 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        (click)="toggle()"
       >
         <app-avatar size="sm" [name]="name() || email()" [imageUrl]="imageUrl()" />
-        <span class="flex min-w-0 flex-1 flex-col truncate"><span class="truncate text-sm font-medium">{{ name() || email() || 'Account' }}</span>@if (name() && email()) { <span class="truncate text-xs text-muted-foreground">{{ email() }}</span> }</span>
-        <span class="text-muted-foreground" aria-hidden="true"><ng-icon name="tablerChevronDown" class="size-4 transition-transform" [class.rotate-180]="open()" /></span>
+        @if (!collapsed()) {
+          <span class="flex min-w-0 flex-1 flex-col truncate"><span class="truncate text-sm font-medium">{{ name() || email() || 'Account' }}</span>@if (name() && email()) { <span class="truncate text-xs text-muted-foreground">{{ email() }}</span> }</span>
+          <span class="text-muted-foreground" aria-hidden="true"><ng-icon name="tablerChevronDown" class="size-4 transition-transform" [class.rotate-180]="open()" /></span>
+        }
       </button>
       @if (open()) {
-        <div role="menu" aria-label="Account actions" class="absolute bottom-full left-0 z-20 mb-2 w-full rounded-ui-md border border-border bg-popover p-1 shadow-lg">
-          <button role="menuitem" type="button" class="min-h-11 w-full rounded-ui-sm px-3 text-left text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" (click)="signOutRequested.emit(); open.set(false)">Sign out</button>
+        <div role="menu" aria-label="Account actions" class="fixed z-[80] min-w-56 rounded-ui-md border border-border bg-popover p-1 text-popover-foreground shadow-lg" [style.left.px]="position().left" [style.bottom.px]="position().bottom">
+          <app-theme-toggle />
+          <button role="menuitem" type="button" class="h-control-9 w-full rounded-ui-sm px-3 text-left text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" (click)="signOutRequested.emit(); open.set(false)">Sign out</button>
         </div>
       }
-      </div>
     </div>
   `,
 })
 export class AccountMenu {
-  private readonly host = inject(ElementRef<HTMLElement>);
   readonly email = input<string | null>(null);
   readonly name = input<string | null>(null);
   readonly imageUrl = input<string | null>(null);
+  readonly collapsed = input(false);
   readonly signOutRequested = output<void>();
   readonly open = signal(false);
+  protected readonly position = signal({ left: 8, bottom: 8 });
+  private readonly host = inject(ElementRef<HTMLElement>);
+
+  protected toggle(): void {
+    if (!this.open()) {
+      const root = this.host.nativeElement as HTMLElement;
+      const bounds = root.querySelector('button')?.getBoundingClientRect();
+      const view = root.ownerDocument.defaultView;
+      if (bounds && view) {
+        const menuWidth = 224;
+        const left = this.collapsed() ? bounds.right + 8 : Math.max(8, Math.min(bounds.left, view.innerWidth - menuWidth - 8));
+        const bottom = this.collapsed() ? Math.max(8, view.innerHeight - bounds.bottom) : view.innerHeight - bounds.top + 8;
+        this.position.set({ left, bottom });
+      }
+    }
+    this.open.update((value) => !value);
+  }
+
+  @HostListener('document:pointerdown', ['$event'])
+  protected closeOutside(event: PointerEvent): void {
+    if (this.open() && !this.host.nativeElement.contains(event.target as Node)) {
+      this.open.set(false);
+    }
+  }
 
   @HostListener('document:keydown.escape')
   protected closeOnEscape(): void {
     this.open.set(false);
-  }
-
-  @HostListener('document:pointerdown', ['$event'])
-  protected closeOnOutsidePointer(event: PointerEvent): void {
-    if (!this.open()) return;
-    const target = event.target as Node | null;
-    if (target && !this.host.nativeElement.contains(target)) {
-      this.open.set(false);
-    }
   }
 }
