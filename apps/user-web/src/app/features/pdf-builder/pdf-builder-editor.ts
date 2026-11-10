@@ -55,6 +55,7 @@ import { Ripple } from '../../ui/shared/ripple';
             @for (type of nodeTypes; track type) {
               <button
                 type="button"
+                data-quiet-button
                 class="inline-flex items-center gap-1.5 rounded bg-muted px-2 py-1 text-xs hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 [attr.data-testid]="'add-' + type + '-node'"
                 [attr.aria-label]="'Add ' + type + ' element'"
@@ -73,6 +74,7 @@ import { Ripple } from '../../ui/shared/ripple';
               @for (placeholder of placeholders(); track placeholder) {
                 <button
                   type="button"
+                  data-quiet-button
                   class="rounded bg-muted px-2 py-1 font-mono text-xs hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   [attr.aria-label]="'Insert ' + placeholder + ' placeholder'"
                   (click)="insertPlaceholder(placeholder)"
@@ -87,10 +89,11 @@ import { Ripple } from '../../ui/shared/ripple';
 
       <section #canvasRegion class="min-w-0 overflow-auto rounded-md bg-muted/40 p-3" aria-label="PDF page canvas">
         <div class="mb-3 flex flex-wrap items-center justify-center gap-2">
-          <button type="button" class="rounded border border-border px-2 py-1 text-xs disabled:opacity-40" aria-label="Undo" [disabled]="!editor.canUndo()" (click)="undo()">Undo</button>
-          <button type="button" class="rounded border border-border px-2 py-1 text-xs disabled:opacity-40" aria-label="Redo" [disabled]="!editor.canRedo()" (click)="redo()">Redo</button>
+          <button type="button" data-quiet-button class="rounded border border-border px-2 py-1 text-xs disabled:opacity-40" aria-label="Undo" [disabled]="!editor.canUndo()" (click)="undo()">Undo</button>
+          <button type="button" data-quiet-button class="rounded border border-border px-2 py-1 text-xs disabled:opacity-40" aria-label="Redo" [disabled]="!editor.canRedo()" (click)="redo()">Redo</button>
           <button
             type="button"
+            data-quiet-button
             class="rounded border border-border px-2 py-1 text-xs"
             aria-label="Toggle snap to 8 point grid"
             [attr.aria-pressed]="editor.snapToGrid()"
