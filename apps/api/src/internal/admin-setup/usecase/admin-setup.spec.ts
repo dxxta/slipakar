@@ -71,6 +71,58 @@ describe('AdminSetupUseCase', () => {
     expect(mailItem?.lastStatus).toBe('ok');
   });
 
+  it('uses environment monitoring setup when no database override exists and tests it', async () => {
+    const mockRepo: AdminSetupRepositoryInterface = {
+      findByKey: vi.fn().mockResolvedValue(null),
+      listAll: vi.fn().mockResolvedValue([]),
+      upsert: vi.fn(),
+      updateTestStatus: vi.fn(),
+      deleteByKey: vi.fn(),
+    };
+    const envMonitoring = {
+      grafana: { baseUrl: 'http://grafana:3000', apiToken: 'grafana-secret' },
+      uptime: { baseUrl: 'http://uptime-kuma:3001', username: 'admin', password: 'uptime-secret' },
+    };
+    const fakeTester = vi.fn().mockResolvedValue({ ok: true });
+    const useCase = new AdminSetupUseCase(mockRepo, fakeCrypto, undefined, undefined, fakeTester, envMonitoring);
+
+    const setup = await useCase.getSetup();
+    expect(setup.integrations.find((entry) => entry.key === 'grafana')).toMatchObject({ configured: true, source: 'env', baseUrl: envMonitoring.grafana.baseUrl, lastStatus: 'ok' });
+    expect(setup.integrations.find((entry) => entry.key === 'uptime')).toMatchObject({ configured: true, source: 'env', baseUrl: envMonitoring.uptime.baseUrl, lastStatus: 'ok' });
+    const result = await useCase.testIntegration('uptime');
+    expect(fakeTester).toHaveBeenCalledWith('uptime', { baseUrl: envMonitoring.uptime.baseUrl, credentials: { username: 'admin', password: 'uptime-secret' } });
+    expect(result.lastStatus).toBe('ok');
+  });
+
+  it('lets database credentials override environment monitoring setup', async () => {
+    const uptimeRecord: IntegrationConfig = {
+      id: 'uptime-1', key: 'uptime', baseUrl: 'https://uptime.example.test',
+      credentialsEncrypted: 'enc:{"username":"db-admin","password":"db-password"}',
+      lastStatus: 'failed', lastTestedAt: null, lastError: 'offline', updatedAt: new Date(), updatedBy: 'admin-1',
+    };
+    const mockRepo: AdminSetupRepositoryInterface = {
+      findByKey: vi.fn(), listAll: vi.fn().mockResolvedValue([uptimeRecord]), upsert: vi.fn(), updateTestStatus: vi.fn(), deleteByKey: vi.fn(),
+    };
+    const useCase = new AdminSetupUseCase(mockRepo, fakeCrypto, undefined, undefined, undefined, {
+      grafana: { baseUrl: 'http://grafana:3000', apiToken: 'env-token' },
+      uptime: { baseUrl: 'http://uptime-kuma:3001', username: 'env-admin', password: 'env-password' },
+    });
+    const item = (await useCase.getSetup()).integrations.find((entry) => entry.key === 'uptime');
+    expect(item).toMatchObject({ source: 'database', baseUrl: 'https://uptime.example.test', lastStatus: 'failed' });
+  });
+
+  it('marks an invalid environment URL as failed without exposing it as configured', async () => {
+    const mockRepo: AdminSetupRepositoryInterface = {
+      findByKey: vi.fn(), listAll: vi.fn().mockResolvedValue([]), upsert: vi.fn(), updateTestStatus: vi.fn(), deleteByKey: vi.fn(),
+    };
+    const useCase = new AdminSetupUseCase(mockRepo, fakeCrypto, undefined, undefined, undefined, {
+      grafana: { baseUrl: 'file:///etc/passwd' },
+    });
+    const item = (await useCase.getSetup()).integrations.find((entry) => entry.key === 'grafana');
+    expect(item).toMatchObject({ configured: false, source: 'env', lastStatus: 'failed' });
+    expect(item?.lastError).toContain('Only HTTP and HTTPS');
+  });
+
   it('updateIntegration encrypts credentials and produces credential hint', async () => {
     const storedRecord: IntegrationConfig = {
       id: 'cfg-1',

@@ -92,6 +92,11 @@ describe('Admin Setup Gate HTTP integration', () => {
         ADMIN_EMAILS: [adminEmail],
         PORT: 3000,
         TRUST_PROXY: '1',
+        SEED_DEMO_PROJECT: false,
+        SETUP_GRAFANA_URL: 'http://grafana:3000',
+        SETUP_UPTIME_URL: 'http://uptime-kuma:3001',
+        SETUP_UPTIME_USERNAME: 'admin',
+        SETUP_UPTIME_PASSWORD: 'environment-password',
       },
       prisma,
     });
@@ -120,6 +125,9 @@ describe('Admin Setup Gate HTTP integration', () => {
     expect(res.body.success).toBe(true);
     expect(res.body.data.complete).toBe(false);
     expect(res.body.data.integrations).toHaveLength(3);
+    expect(res.body.data.integrations.find((item: { key: string }) => item.key === 'grafana')).toMatchObject({ configured: true, source: 'env', lastStatus: 'ok' });
+    expect(res.body.data.integrations.find((item: { key: string }) => item.key === 'uptime')).toMatchObject({ configured: true, source: 'env', lastStatus: 'ok' });
+    expect(res.body.data.integrations.find((item: { key: string }) => item.key === 'mail').configured).toBe(false);
   });
 
   it('PUT /admin/setup/:key configures integrations and records audit log without secrets', async () => {
@@ -211,7 +219,8 @@ describe('Admin Setup Gate HTTP integration', () => {
       .set('Cookie', adminCookie);
 
     expect(res.status).toBe(200);
-    expect(res.body.data.configured).toBe(false);
+    expect(res.body.data.configured).toBe(true);
+    expect(res.body.data.source).toBe('env');
 
     const getRes = await request(app)
       .get('/admin/setup')

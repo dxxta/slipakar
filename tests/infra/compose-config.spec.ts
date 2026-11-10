@@ -43,6 +43,7 @@ describe('docker-compose.yml configuration', () => {
       'METRICS_TOKEN=fake-metrics-token-16-chars-min',
       'GRAFANA_ADMIN_USER=admin',
       'GRAFANA_ADMIN_PASSWORD=fake-grafana-pw',
+      'UPTIME_KUMA_ADMIN_PASSWORD=fake-kuma-pw',
       'ADMIN_EMAILS=admin@example.com',
       'BIND_ADDRESS=127.0.0.1',
     ].join('\n');
@@ -82,6 +83,7 @@ describe('docker-compose.yml configuration', () => {
       'prometheus',
       'grafana',
       'uptime-kuma',
+      'kuma-init',
     ];
 
     // (1) all expected services exist with the contract names
@@ -91,7 +93,7 @@ describe('docker-compose.yml configuration', () => {
 
     // (2) long-running services have restart unless-stopped, garage-init has restart "no"
     for (const service of expectedServices) {
-      if (service === 'garage-init') {
+      if (service === 'garage-init' || service === 'kuma-init') {
         expect(
           config.services[service].restart,
           `Expected service ${service} to have restart no`,
@@ -138,6 +140,12 @@ describe('docker-compose.yml configuration', () => {
     expect(config.services.api.environment.RABBITMQ_URL).toBe('amqp://slipakar:fake-rabbitmq-pw@rabbitmq:5672');
     expect(config.services.api.environment.S3_BUCKET).toBe('slipakar');
     expect(config.services['garage-init'].environment.S3_BUCKET).toBe('slipakar');
+    expect(config.services['uptime-kuma'].image).toBe('louislam/uptime-kuma:1.23.17');
+    expect(config.services['kuma-init'].depends_on['uptime-kuma'].condition).toBe('service_healthy');
+    expect(config.services['kuma-init'].restart).toBe('no');
+    expect(config.services.api.environment.SETUP_GRAFANA_URL).toBe('http://grafana:3000');
+    expect(config.services.api.environment.SETUP_UPTIME_URL).toBe('http://uptime-kuma:3001');
+    expect(config.services.api.environment.SETUP_UPTIME_PASSWORD).toBe('fake-kuma-pw');
 
     expect(config.services.landing).toBeUndefined();
     const landingConfigOutput = execFileSync(
@@ -159,6 +167,16 @@ describe('docker-compose.yml configuration', () => {
     }
     expect(apiDepends['garage-init'], 'Expected api to depend on garage-init').toBeDefined();
     expect(apiDepends['garage-init'].condition).toBe('service_completed_successfully');
+  });
+
+  it('configures optional dev monitoring services under the monitoring profile', ({ skip }) => {
+    if (!dockerComposeAvailable) skip('docker compose command is unavailable in this environment');
+    const output = execFileSync('docker', ['compose', '-f', path.join(rootDir, 'docker-compose.dev.yml'), '--profile', 'monitoring', 'config', '--format', 'json'], { encoding: 'utf8' });
+    const config = JSON.parse(output);
+    for (const service of ['prometheus', 'grafana', 'uptime-kuma', 'kuma-init']) expect(config.services[service]).toBeDefined();
+    expect(config.services['uptime-kuma'].ports[0]).toMatchObject({ host_ip: '127.0.0.1', published: '3012', target: 3001 });
+    expect(config.services.grafana.ports[0]).toMatchObject({ host_ip: '127.0.0.1', published: '3011', target: 3000 });
+    expect(config.services.api).toBeUndefined();
   });
 
   it('allows existing deployments to retain their database, queue, bucket, and compose project names', ({ skip }) => {

@@ -24,6 +24,11 @@ import type { IntegrationConfig } from '@prisma/client';
 import nodemailer from 'nodemailer';
 import type { AuthEmailSenderConfig } from '../../auth/auth-email-sender.js';
 
+export type EnvMonitoringConfig = {
+  grafana?: { baseUrl: string; apiToken?: string };
+  uptime?: { baseUrl: string; username?: string; password?: string };
+};
+
 export type IntegrationTester = (
   key: IntegrationKey,
   config: { baseUrl: string; credentials: StoredCredentials },
@@ -133,7 +138,10 @@ export class AdminSetupUseCase implements AdminSetupUseCaseInterface {
     private readonly envMailConfig?: AuthEmailSenderConfig,
     private readonly onMailConfigChanged?: () => void,
     private readonly tester: IntegrationTester = defaultIntegrationTester,
+    private readonly envMonitoringConfig?: EnvMonitoringConfig,
   ) {}
+
+  private readonly envTestStatus = new Map<IntegrationKey, { status: 'ok' | 'failed'; error: string | null; testedAt: Date }>();
 
   private computeCredentialHint(secret: string | undefined): string | null {
     if (!secret || secret.length < 8) return null;
@@ -152,6 +160,39 @@ export class AdminSetupUseCase implements AdminSetupUseCaseInterface {
     const label = labels[key];
 
     if (!record) {
+      const envConfig = key === 'grafana' ? this.envMonitoringConfig?.grafana : key === 'uptime' ? this.envMonitoringConfig?.uptime : undefined;
+      if (envConfig) {
+        const credentials: StoredCredentials = key === 'grafana'
+          ? { apiToken: (envConfig as NonNullable<EnvMonitoringConfig['grafana']>).apiToken }
+          : { username: (envConfig as NonNullable<EnvMonitoringConfig['uptime']>).username, password: (envConfig as NonNullable<EnvMonitoringConfig['uptime']>).password };
+        const status = this.envTestStatus.get(key);
+        try {
+          validateIntegrationUrl(envConfig.baseUrl);
+          const secret = key === 'grafana'
+            ? (credentials as StoredGrafanaCredentials).apiToken
+            : (credentials as StoredUptimeCredentials).password ?? (credentials as StoredUptimeCredentials).apiKey;
+          return {
+            key,
+            label,
+            configured: true,
+            source: 'env',
+            baseUrl: envConfig.baseUrl,
+            hasCredentials: Boolean(secret),
+            credentialHint: this.computeCredentialHint(secret),
+            settings: null,
+            lastStatus: status?.status ?? 'ok',
+            lastTestedAt: status?.testedAt.toISOString() ?? null,
+            lastError: status?.error ?? null,
+          };
+        } catch (error: unknown) {
+          return {
+            key, label, configured: false, source: 'env', baseUrl: null,
+            hasCredentials: false, credentialHint: null, settings: null,
+            lastStatus: 'failed', lastTestedAt: status?.testedAt.toISOString() ?? null,
+            lastError: error instanceof Error ? error.message : 'Invalid integration URL',
+          };
+        }
+      }
       if (key === 'mail' && this.envMailConfig) {
         const secretForHint = this.envMailConfig.pass;
         return {
@@ -394,9 +435,16 @@ export class AdminSetupUseCase implements AdminSetupUseCaseInterface {
     const record = await this.repository.findByKey(integrationKey);
     let baseUrl = '';
     let credentials: StoredCredentials = {} as StoredCredentials;
+    const envConfig = integrationKey === 'grafana' ? this.envMonitoringConfig?.grafana : integrationKey === 'uptime' ? this.envMonitoringConfig?.uptime : undefined;
 
     if (!record) {
-      if (integrationKey === 'mail' && this.envMailConfig) {
+      if (envConfig && integrationKey === 'grafana' && 'apiToken' in envConfig) {
+        baseUrl = envConfig.baseUrl;
+        credentials = { apiToken: envConfig.apiToken };
+      } else if (envConfig && integrationKey === 'uptime' && 'username' in envConfig) {
+        baseUrl = envConfig.baseUrl;
+        credentials = { username: envConfig.username, password: envConfig.password };
+      } else if (integrationKey === 'mail' && this.envMailConfig) {
         baseUrl = this.envMailConfig.host;
         credentials = {
           port: this.envMailConfig.port,
@@ -433,6 +481,9 @@ export class AdminSetupUseCase implements AdminSetupUseCaseInterface {
           });
           return this.mapToView(integrationKey, updated);
         }
+        if (envConfig) {
+          this.envTestStatus.set(integrationKey, { status: 'failed', error: lastError, testedAt: new Date() });
+        }
         return this.mapToView(integrationKey, null);
       }
     }
@@ -443,6 +494,9 @@ export class AdminSetupUseCase implements AdminSetupUseCaseInterface {
     });
 
     const now = new Date();
+    if (!record && envConfig) {
+      this.envTestStatus.set(integrationKey, { status: result.ok ? 'ok' : 'failed', error: result.ok ? null : result.error, testedAt: now });
+    }
     if (record) {
       const updated = await this.repository.updateTestStatus(integrationKey, {
         lastStatus: result.ok ? 'ok' : 'failed',

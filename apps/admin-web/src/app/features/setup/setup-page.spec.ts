@@ -35,6 +35,34 @@ describe('SetupPage', () => {
     expect(load).toHaveBeenCalledOnce();
   });
 
+  it('keeps environment-configured monitoring read-only while leaving mail editable and incomplete', async () => {
+    const envView: AdminSetupView = {
+      complete: false,
+      integrations: [
+        { key: 'uptime', label: 'Uptime Kuma', configured: true, source: 'env', baseUrl: 'http://uptime-kuma:3001', hasCredentials: true, credentialHint: null, settings: null, lastStatus: 'ok', lastTestedAt: null, lastError: null },
+        { key: 'grafana', label: 'Grafana', configured: true, source: 'env', baseUrl: 'http://grafana:3000', hasCredentials: false, credentialHint: null, settings: null, lastStatus: 'ok', lastTestedAt: null, lastError: null },
+        { key: 'mail', label: 'Mail', configured: false, source: null, baseUrl: null, hasCredentials: false, credentialHint: null, settings: null, lastStatus: null, lastTestedAt: null, lastError: null },
+      ],
+    };
+    await TestBed.configureTestingModule({
+      imports: [SetupPage], providers: [provideRouter([]), { provide: AdminSetupService, useValue: { view: () => envView, load: vi.fn().mockResolvedValue(envView), save: vi.fn(), test: vi.fn(), clear: vi.fn() } }],
+    }).compileComponents();
+    fixture = TestBed.createComponent(SetupPage);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+    const grafana = fixture.nativeElement.querySelector('[data-testid="setup-row-grafana"]') as HTMLElement;
+    const uptime = fixture.nativeElement.querySelector('[data-testid="setup-row-uptime"]') as HTMLElement;
+    const mail = fixture.nativeElement.querySelector('[data-testid="setup-row-mail"]') as HTMLElement;
+    expect(grafana.textContent).toContain('Configured by the Docker environment');
+    expect(uptime.textContent).toContain('Configured by the Docker environment');
+    expect(grafana.textContent).not.toContain('Edit settings');
+    expect(uptime.textContent).not.toContain('Edit settings');
+    expect(mail.textContent).toContain('Configure');
+    expect(mail.textContent).toContain('Not configured');
+    expect(envView.complete).toBe(false);
+  });
+
   it('opens mail settings and offers a test connection action', async () => {
     const test = vi.fn().mockReturnValue(of(incomplete.integrations[2]));
     await TestBed.configureTestingModule({
@@ -94,7 +122,7 @@ describe('SetupPage', () => {
     const uptimeHelp = fixture.nativeElement.querySelector('[data-testid="card-help-uptime"]') as HTMLElement;
     expect(uptimeHelp).not.toBeNull();
     expect(uptimeHelp.textContent).toContain('http://uptime-kuma:3001');
-    expect(uptimeHelp.textContent).toContain('Settings > API Keys');
+    expect(uptimeHelp.textContent).toContain('UPTIME_KUMA_ADMIN_PASSWORD');
 
     // Collapse Uptime Kuma help
     uptimeToggle.click();

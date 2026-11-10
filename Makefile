@@ -14,7 +14,7 @@ WEB_URL ?= http://localhost:8080
 .PHONY: help install env secrets dev-api dev-admin dev-user dev-landing typecheck lint test test-api-file test-admin test-user test-landing test-all check build docker-build docker-build-web db-generate db-migrate-dev db-migrate-deploy db-studio seed-demo up up-build up-landing down down-volumes ps logs restart config playwright-install e2e smoke-web clean
 
 # Local dev infrastructure targets (added for running apps by themselves)
-.PHONY: dev-infra-up dev-infra-down dev-infra-reset
+.PHONY: dev-infra-up dev-infra-down dev-infra-reset dev-monitoring-up dev-monitoring-down
 
 # ==============================================================================
 # Help
@@ -49,6 +49,7 @@ secrets: ## Generate cryptographically secure secrets for production and compose
 	@echo "S3_SECRET_KEY=$$(openssl rand -hex 32)"
 	@echo "GARAGE_RPC_SECRET=$$(openssl rand -hex 32)"
 	@echo "GARAGE_ADMIN_TOKEN=$$(openssl rand -hex 24)"
+	@echo "UPTIME_KUMA_ADMIN_PASSWORD=$$(openssl rand -base64 32)"
 
 # ==============================================================================
 # DEVELOPMENT
@@ -66,6 +67,15 @@ dev-infra-down: ## Stop the dev infrastructure and keep its data
 # Stop the dev infrastructure and delete its data volumes (destroys local dev data)
 dev-infra-reset: ## Stop the dev infrastructure and delete its data volumes (destroys local dev data)
 	docker compose -f docker-compose.dev.yml down -v
+
+# Start optional local Grafana, Prometheus, and Uptime Kuma monitoring; host ports 3011/9091/3012.
+dev-monitoring-up: ## Start optional local monitoring services and configure Uptime Kuma
+	docker compose -f docker-compose.dev.yml --profile monitoring up -d
+	@echo "Grafana http://localhost:3011  Prometheus http://localhost:9091  Uptime Kuma http://localhost:3012 (admin / slipakar_dev_admin)"
+
+# Stop and remove only the local monitoring containers; retain their data volumes.
+dev-monitoring-down: ## Stop local Grafana, Prometheus, and Uptime Kuma containers
+	docker compose -f docker-compose.dev.yml --profile monitoring rm -sf kuma-init prometheus grafana uptime-kuma
 
 # Start the API service in development watch mode
 dev-api: ## Start the API service in development watch mode

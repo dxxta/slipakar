@@ -47,8 +47,9 @@ The primary use case is HR, finance, or operations uploading a spreadsheet, mapp
 | `prometheus` | Scrapes API metrics | Internal only |
 | `grafana` | Metrics dashboards | `3001` |
 | `uptime-kuma` | Uptime and health monitoring | `3002` |
+| `kuma-init` | One-shot Kuma account setup and idempotent default monitor creation | None |
 
-The API, web, Grafana, and Uptime Kuma published ports bind to `127.0.0.1` by default. The landing site binds to `0.0.0.0` by default; set `LANDING_BIND_ADDRESS=127.0.0.1` when placing a reverse proxy in front. PostgreSQL, Redis, RabbitMQ, Garage, and Prometheus stay on the internal Compose network.
+The API, web, Grafana, Uptime Kuma, and optional landing-site ports bind to `127.0.0.1` by default. PostgreSQL, Redis, RabbitMQ, Garage, Prometheus, and the one-shot `kuma-init` stay on the internal Compose network.
 
 The public landing site is served by the `landing` service on port `8082`. It provides English and Indonesian product information, a terms page, a dynamic sitemap, and a robots policy that blocks selected AI model crawlers while allowing search crawlers. Configure the public app, site, repository, and self-hosting guide URLs with the `LANDING_*_URL` variables.
 
@@ -86,7 +87,7 @@ cp .env.example .env
 make secrets
 ```
 
-`make secrets` prints values for `APP_ENCRYPTION_KEY`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `GARAGE_RPC_SECRET`, and `GARAGE_ADMIN_TOKEN`. Generate the remaining passwords and tokens with OpenSSL, for example:
+`make secrets` prints values for `APP_ENCRYPTION_KEY`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `GARAGE_RPC_SECRET`, `GARAGE_ADMIN_TOKEN`, and `UPTIME_KUMA_ADMIN_PASSWORD`. Generate the remaining passwords and tokens with OpenSSL, for example:
 
 ```bash
 openssl rand -hex 32   # POSTGRES_PASSWORD, RABBITMQ_PASSWORD, GRAFANA_ADMIN_PASSWORD, METRICS_TOKEN
@@ -111,11 +112,14 @@ The API applies database migrations during startup. Wait for the services to bec
 | API | `http://127.0.0.1:3000` | `127.0.0.1:3000` |
 | Grafana | `http://127.0.0.1:3001` | `127.0.0.1:3001` |
 | Uptime Kuma | `http://127.0.0.1:3002` | `127.0.0.1:3002` |
+| Kuma initializer | one-shot startup job | no published port |
 | Landing site (optional) | `http://127.0.0.1:8082` | `127.0.0.1:8082` |
 
 `BIND_ADDRESS` controls the host IP and `WEB_PORT` changes the published web port. The admin app is served from `/console/` on that same origin. The landing site is opt-in: start it with `docker compose --profile landing up -d` or `make up-landing`. For public access, place an HTTPS reverse proxy in front of the web port; see [Self-Hosting](docs/SELF-HOSTING.md).
 
 To grant admin access, add the account's Google email to `ADMIN_EMAILS` before signing in. Admin-only routes compare the signed-in email with this configured list.
+
+The API seeds one example payroll workspace at startup by default (`SEED_DEMO_PROJECT=false` disables it). It is first owned by a disabled, hidden system account and transfers to the first administrator who signs in. It contains a sample XLSX upload and mapping, email and PDF templates, a placeholder SMTP connection (`smtp.example.com`), and a draft campaign. The placeholder campaign cannot send until a real project SMTP connection is configured. Grafana provisioning and Uptime Kuma account/monitor creation are automatic; the Admin Setup page remains available for platform mail.
 
 ## Google sign-in setup
 
@@ -196,6 +200,8 @@ npm run start -w @slipakar/admin-web -- --port 4301
 ```
 
 The web dev-server proxies API requests to port `3000`.
+
+Run `make dev-monitoring-up` to start provisioned Grafana, Prometheus, and Uptime Kuma for local development (ports `3011`, `9091`, and `3012`). The API dev env points the Setup integrations at these URLs. `make dev-monitoring-down` removes only those monitoring containers and retains their volumes. The demo workspace appears on the first administrator sign-in; its SMTP is a placeholder and the draft campaign is not sendable.
 
 Generate the Prisma client and manage migrations with:
 
@@ -279,6 +285,8 @@ Useful Make targets are listed below. `make check` runs typechecking, lint, and 
 | `e2e` | Run end-to-end browser tests using Playwright. |
 | `up-landing` | Start the optional `landing` Compose profile and build its image. |
 | `smoke-web` | Check both apps on the single web origin, API routing, crawler policy, cache/Vary headers, and `/docs` CSP hash. |
+| `dev-monitoring-up` | Start local Grafana, Prometheus, and Uptime Kuma under the `monitoring` profile. |
+| `dev-monitoring-down` | Stop local monitoring containers while retaining their volumes. |
 | `clean` | Remove `dist`, `.angular`, and `*.tsbuildinfo` build artifacts across `apps` and `packages`. |
 
 ## Ports and routes
@@ -295,7 +303,7 @@ Note: `/docs` and `/openapi.json` require an authenticated session (returning `4
 
 ## Configuration reference
 
-The API environment schema is in `apps/api/src/config/env.ts`. Compose-specific inputs and defaults are in `.env.example` and `docker-compose.yml`. Required values must be set even if the example file contains a sample value. Docker Compose passes unset optional variables (`APP_URL`, `AUTH_SMTP_*`, `AUTH_MAIL_FROM`, `LOGIN_EVENT_RETENTION_DAYS`, `TRUST_PROXY`) as empty strings, and `loadEnv()` in the API treats empty strings for those variables as unset so defaults and optional validations work cleanly.
+The API environment schema is in `apps/api/src/config/env.ts`. Compose-specific inputs and defaults are in `.env.example` and `docker-compose.yml`. Required values must be set even if the example file contains a sample value. Docker Compose passes some unset optional variables as empty strings, and `loadEnv()` treats them as unset so defaults and optional validations work cleanly.
 
 ### Where secrets live
 
@@ -325,6 +333,12 @@ The API environment schema is in `apps/api/src/config/env.ts`. Compose-specific 
 | `RABBITMQ_URL` | API: yes | Compose builds it from `RABBITMQ_PASSWORD` | RabbitMQ AMQP or AMQPS connection URL. |
 | `RABBITMQ_PASSWORD` | Compose: yes | None | Password for the RabbitMQ Compose user. |
 | `ADMIN_EMAILS` | No | Empty | Comma-separated admin email allowlist. |
+| `SEED_DEMO_PROJECT` | No | `true` (test environment defaults to `false`) | Seed the one-time example workspace during API startup. |
+| `SETUP_GRAFANA_URL` | No | Compose: `http://grafana:3000`; local dev: `http://localhost:3011` | Trusted environment URL for Grafana in Admin Setup. |
+| `SETUP_UPTIME_URL` | No | Compose: `http://uptime-kuma:3001`; local dev: `http://localhost:3012` | Trusted environment URL for Uptime Kuma in Admin Setup. |
+| `SETUP_UPTIME_USERNAME` | No | Compose: `UPTIME_KUMA_ADMIN_USER` (default `admin`) | Kuma username supplied to the API's Setup integration tester. |
+| `SETUP_UPTIME_PASSWORD` | No in API; required by Compose | Compose: `UPTIME_KUMA_ADMIN_PASSWORD` | Kuma password supplied to the API's Setup integration tester. |
+| `SETUP_GRAFANA_API_TOKEN` | No | Empty | Optional Grafana token used by the Setup connection test. |
 | `METRICS_TOKEN` | API: optional; Compose: required | None in API schema | Bearer token for `/metrics`; must be at least 16 characters. |
 | `PORT` | No | `3000` | API listen port; Compose sets it to `3000`. |
 | `APP_URL` | No | Empty (falls back to first entry in `TRUSTED_ORIGINS`) | Frontend application URL used for email verification redirect callbacks. |
@@ -341,6 +355,9 @@ The API environment schema is in `apps/api/src/config/env.ts`. Compose-specific 
 | `GARAGE_METRICS_TOKEN` | No | Empty | Optional token forwarded to the Garage container. |
 | `GRAFANA_ADMIN_USER` | No | `admin` | Grafana login name. |
 | `GRAFANA_ADMIN_PASSWORD` | Compose: yes | None | Grafana login password. |
+| `UPTIME_KUMA_ADMIN_USER` | No | `admin` | Kuma admin username created by `kuma-init`. |
+| `UPTIME_KUMA_ADMIN_PASSWORD` | Compose: yes | None | Kuma admin password; `make secrets` generates it. |
+| `KUMA_MONITOR_LANDING` | No | `false` | Also create the Landing monitor when the optional landing profile is in use. |
 | `BIND_ADDRESS` | No | `127.0.0.1` | Host IP used for published Compose ports. |
 | `WEB_PORT` | No | `8080` | Host port for the user and admin web apps; admin is under `/console/`. |
 | `API_UPSTREAM` | No | `api:3000` | Nginx upstream address for API requests inside Compose. |
@@ -352,6 +369,7 @@ The API environment schema is in `apps/api/src/config/env.ts`. Compose-specific 
 
 - **Backups:** PostgreSQL and service state live in named volumes. Back up the database and both Garage volumes (`garage_meta` and `garage_data`) consistently. The backup examples and volume list are in [Self-Hosting](docs/SELF-HOSTING.md).
 - **Upgrades:** rebuild and restart with the steps in [Self-Hosting](docs/SELF-HOSTING.md). API migrations run on startup. Keep a verified backup before upgrading.
+- **Uptime Kuma password:** change it in Kuma's account settings and update `UPTIME_KUMA_ADMIN_PASSWORD` in `.env` to the same value so the API's Admin Setup tester can continue to authenticate. Existing monitors and credentials persist in the named volume.
 - **Sentry:** set `SENTRY_DSN_USER` and/or `SENTRY_DSN_ADMIN` in the build environment, then rebuild the `web` image. The DSNs are embedded in production browser bundles; keep them out of committed source.
 - **Reverse proxy and security:** Compose binds the API and web service to loopback by default. The optional landing service also binds to loopback and can be started with the `landing` profile. Review [Self-Hosting](docs/SELF-HOSTING.md) for TLS proxy examples, cookie behavior, port details, and deployment security notes.
 

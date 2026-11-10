@@ -53,6 +53,10 @@ Before starting, ensure the host machine has the following tools installed:
    - **`GOOGLE_CLIENT_ID`** & **`GOOGLE_CLIENT_SECRET`**: OAuth credentials from the Google Cloud Console.
    - **`METRICS_TOKEN`**: High-entropy secret token (at least 16 characters) used by Prometheus to scrape `/metrics`.
    - **`GRAFANA_ADMIN_PASSWORD`**: Password for the Grafana admin account (`admin`).
+   - **`UPTIME_KUMA_ADMIN_USER`** and **`UPTIME_KUMA_ADMIN_PASSWORD`**: Kuma account created automatically by the one-shot `kuma-init` service. The password is required by Compose; `make secrets` prints a generated value.
+   - **`KUMA_MONITOR_LANDING`**: Optional monitor for the landing profile (`false` by default; set `true` when the landing service is enabled).
+   - **`SEED_DEMO_PROJECT`**: Startup demo workspace toggle (`true` by default; set `false` to disable it).
+   - **`SETUP_GRAFANA_API_TOKEN`**: Optional token for the Grafana API connection test. Compose supplies internal Grafana and Uptime Kuma URLs and the Kuma credentials to the API automatically.
    - **`ADMIN_EMAILS`**: Comma-separated list of user email addresses granted admin role upon login.
    - **`BIND_ADDRESS`**: Host IP to bind exposed services to (defaults to `127.0.0.1`).
    - **`AUTH_SMTP_HOST`**, **`AUTH_SMTP_PORT`**, **`AUTH_SMTP_SECURE`**, **`AUTH_SMTP_USER`**, **`AUTH_SMTP_PASS`**, **`AUTH_MAIL_FROM`**: Optional platform SMTP fallback settings used to send transactional authentication emails (verified email change links) and administrative broadcasts. Database-configured `mail` integration settings in `/admin/setup` take precedence over these environment variables (cached for 30s and invalidated on update/delete). When neither DB mail nor `AUTH_SMTP_*` is configured, `POST /api/auth/change-email` returns `400 EMAIL_CHANGE_UNAVAILABLE`, and broadcast sending skips email dispatch while still delivering in-app user notices. Note: Docker Compose passes unset optional variables as empty strings, which the API treats as unset.
@@ -78,6 +82,22 @@ Slipakar uses [Garage](https://garagehq.deuxfleurs.fr/) (`dxflrs/garage:v1.0.1`)
    - It sets up single-node layout (assigning zone `dc1` and 10GB capacity), applies layout version 1, imports `S3_ACCESS_KEY` / `S3_SECRET_KEY`, ensures bucket `slipakar` exists, and grants read/write/owner permissions to the access key.
    - Once initialized, `garage-init` exits 0. The `api` service waits for `garage-init` to complete successfully before starting.
 
+### Preconfigured Monitoring
+
+Grafana loads the Prometheus data source and dashboard from `infra/grafana/provisioning` on first start. Uptime Kuma is pinned to `louislam/uptime-kuma:1.23.17`; its healthcheck uses the image's own `extra/healthcheck.js`. The one-shot `kuma-init` waits for Kuma health, creates the configured admin account if needed, logs in, and adds the `Slipakar API` and `Slipakar Web` monitors. Set `KUMA_MONITOR_LANDING=true` to add the landing monitor when using the optional landing profile. The initializer is idempotent and never prints the password.
+
+The API receives `SETUP_GRAFANA_URL=http://grafana:3000` and `SETUP_UPTIME_URL=http://uptime-kuma:3001` from Compose, with the Kuma account credentials. The Setup page displays these as environment-configured and read-only; the connection test remains available. These operator-supplied Compose service URLs can use internal Docker DNS names and are validated as HTTP(S). User-entered integration URLs continue through the normal URL validation rules. The Setup page remains necessary for platform mail, which is not configured by this stack by default.
+
+| Variable | Default in Docker Compose | Purpose |
+|---|---|---|
+| `SETUP_GRAFANA_URL` | `http://grafana:3000` | Grafana API target shown in Admin Setup. |
+| `SETUP_GRAFANA_API_TOKEN` | Empty | Optional Grafana token for its connection test. |
+| `SETUP_UPTIME_URL` | `http://uptime-kuma:3001` | Uptime Kuma API target shown in Admin Setup. |
+| `SETUP_UPTIME_USERNAME` | `UPTIME_KUMA_ADMIN_USER` (`admin`) | Kuma account used by API connection tests. |
+| `SETUP_UPTIME_PASSWORD` | Required `UPTIME_KUMA_ADMIN_PASSWORD` | Kuma password used by API connection tests. |
+| `KUMA_MONITOR_LANDING` | `false` | Create the optional landing monitor. |
+| `SEED_DEMO_PROJECT` | `true` | Enable one-time startup demo workspace seeding. |
+
 ---
 
 ## 4. Starting the Stack
@@ -89,6 +109,8 @@ docker compose up -d --build
 ```
 
 The `api` container automatically executes database migrations via `docker-entrypoint.sh` before launching the application server.
+
+After migrations and API startup, `SEED_DEMO_PROJECT=true` (the default) seeds one sample payroll workspace under a disabled, hidden system owner. The system user acts as the one-time seed marker, so deleting the project later does not recreate it. The first administrator who signs in claims project ownership; an audit entry records the assignment. Set `SEED_DEMO_PROJECT=false` to disable startup seeding. The sample includes an Excel upload, field mapping, email and PDF templates, a placeholder SMTP connection at `smtp.example.com`, and a draft campaign. The campaign cannot send until you configure a real SMTP connection for the project.
 
 To inspect running containers and health status:
 
@@ -116,8 +138,11 @@ One Nginx container serves both production Angular apps on container port `8080`
 | **API** | `3000` / `3000` | `http://127.0.0.1:3000` | Core API, health (`/health`), and interactive docs (`/docs`) |
 | **Grafana** | `3000` / `3001` | `http://127.0.0.1:3001` | Monitoring dashboards (default user: `admin`) |
 | **Uptime Kuma** | `3001` / `3002` | `http://127.0.0.1:3002` | Uptime and service status monitoring |
+| **Kuma initializer** | One-shot / none | Internal only | Creates the Kuma account and default monitors |
 
-The `landing` site is an optional Compose profile, not part of a normal `docker compose up`. Start it with `docker compose --profile landing up -d`; it publishes loopback port `8082` by default and can use its own domain. PostgreSQL, Redis, RabbitMQ, Garage, and Prometheus remain internal to the Compose network. `WEB_PORT` changes the single published web host port while Nginx listens on container port `8080`.
+To change the Uptime Kuma password later, change it in the Kuma account settings, then update `UPTIME_KUMA_ADMIN_PASSWORD` in `.env` to the same value and recreate the API service so Admin Setup can test against it. The existing Kuma data volume preserves the account and monitors; `kuma-init` will log in and make no duplicate monitors on subsequent runs.
+
+The `landing` site is an optional Compose profile, not part of a normal `docker compose up`. Start it with `docker compose --profile landing up -d`; it publishes loopback port `8082` by default and can use its own domain. PostgreSQL, Redis, RabbitMQ, Garage, Prometheus, and `kuma-init` remain internal to the Compose network. `WEB_PORT` changes the single published web host port while Nginx listens on container port `8080`.
 
 ### Google OAuth and public hostnames
 

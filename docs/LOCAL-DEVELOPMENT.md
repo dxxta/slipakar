@@ -45,6 +45,14 @@ Two Compose files provide the dependencies on host-published ports that do not c
 
 The API `.env` defaults use the `apps/api` development ports. To use the root dev stack, change the ports in `apps/api/.env` accordingly.
 
+Optional monitoring for local development uses the `monitoring` Compose profile:
+
+```bash
+make dev-monitoring-up
+```
+
+It provisions Prometheus and Grafana and initializes Uptime Kuma without a manual first-run setup. Host ports are Grafana `3011`, Prometheus `9091`, and Uptime Kuma `3012`; the development Uptime Kuma credentials are `admin` / `slipakar_dev_admin`. The API `.env.example` points its Setup integration URLs at `http://localhost:3011` and `http://localhost:3012`. Stop only these monitoring containers with `make dev-monitoring-down` (their data volumes are retained).
+
 ## 3. Start the API
 
 ```bash
@@ -53,6 +61,8 @@ make infra-up   # start Postgres, Redis, RabbitMQ, Garage
 make migrate    # apply Prisma migrations
 make dev        # tsx watch on http://localhost:3000
 ```
+
+On the first API startup, a sample payroll workspace is created under a disabled system account. The first administrator to sign in claims it. The workspace includes a placeholder SMTP connection (`smtp.example.com`) and a draft campaign; it cannot send until a real project SMTP connection is configured.
 
 Other targets: `make start`, `make build`, `make typecheck`, `make test`, `make clean`, `make help`.
 

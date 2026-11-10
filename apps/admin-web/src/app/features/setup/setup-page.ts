@@ -53,6 +53,9 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
                     @if (integration.source) {
                       <p>Source: <span class="font-medium text-foreground">{{ integration.source === 'env' ? 'Environment' : 'Database' }}</span></p>
                     }
+                    @if (integration.source === 'env' && integration.key !== 'mail') {
+                      <p>Configured by the Docker environment. Change the container environment to edit these settings.</p>
+                    }
                     @if (integration.baseUrl && integration.key !== 'mail') {
                       <p class="break-all">{{ integration.baseUrl }}</p>
                     }
@@ -66,7 +69,7 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
                 }
               </div>
               <div class="flex shrink-0 flex-wrap items-center gap-2 md:justify-end">
-                <button hlmBtn type="button" (click)="openEditor(integration)">{{ integration.configured ? 'Edit settings' : 'Configure' }}</button>
+                @if (integration.source !== 'env' || integration.key === 'mail') { <button hlmBtn type="button" (click)="openEditor(integration)">{{ integration.configured ? 'Edit settings' : 'Configure' }}</button> }
                 <button hlmBtn variant="outline" type="button" [disabled]="!integration.configured || busy()" (click)="testConnection(integration.key)">Test connection</button>
                 @if (integration.source === 'database') {
                   <button hlmBtn variant="destructive" type="button" (click)="requestClear(integration.key)">Clear saved settings</button>
@@ -146,9 +149,9 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
       @if (key === 'uptime') {
         <ol class="list-decimal space-y-1.5 pl-4 text-xs leading-relaxed text-muted-foreground break-words">
           <li>Base URL is the address the API server uses to reach Uptime Kuma. Docker Compose stack: <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">http://uptime-kuma:3001</code>. API run on your own machine: <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">http://localhost:3002</code>.</li>
-          <li>Open Uptime Kuma in the browser (default <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">http://127.0.0.1:3002</code>) and create the admin account on first visit.</li>
-          <li>Credentials: enter that username and password, OR create an API key in Uptime Kuma under <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">Settings &gt; API Keys</code> and paste it as <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">API key</code>. Use one of the two.</li>
-          <li>Add monitors in Uptime Kuma for the services you want to watch (for example an HTTP monitor on <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">http://api:3000/health</code>).</li>
+          <li>Docker Compose initializes Uptime Kuma automatically with <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">UPTIME_KUMA_ADMIN_USER</code> (default <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">admin</code>) and <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">UPTIME_KUMA_ADMIN_PASSWORD</code>. Open the browser UI at <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">http://127.0.0.1:3002</code>.</li>
+          <li>The API tests the configured URL using these credentials. The initializer creates Slipakar API and Web monitors; the optional Landing monitor is controlled by <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">KUMA_MONITOR_LANDING</code>.</li>
+          <li>When the integration source is Environment, update its settings in Docker Compose environment values and recreate the API service. Database-saved settings take priority.</li>
           <li>Save. Saved secrets are never shown again; leave a secret blank later to keep it.</li>
         </ol>
       } @else if (key === 'grafana') {
