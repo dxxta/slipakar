@@ -90,7 +90,7 @@ export type HealthStatus = 'loading' | 'healthy' | 'unreachable';
         <div hlmCard>
           <div hlmCardHeader>
             <h3 hlmCardTitle class="flex items-center gap-2">
-              Lokaslip API
+              Slipakar API
               <span aria-live="polite">
                 @switch (healthStatus()) {
                   @case ('healthy') {

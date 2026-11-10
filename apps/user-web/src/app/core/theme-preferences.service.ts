@@ -8,7 +8,9 @@ import {
   type ThemePreference,
 } from './theme-preferences';
 
-const preferenceStorageKey = 'lokaslip.theme-preferences';
+const preferenceStorageKey = 'slipakar.theme-preferences';
+// Deprecated: read-only fallback for the pre-Slipakar storage key. Remove in a future major release.
+const legacyPreferenceStorageKey = 'lokaslip.theme-preferences';
 const defaultPreference: ThemePreference = { themeMode: 'system', themeAccent: 'slate' };
 
 @Injectable({ providedIn: 'root' })
@@ -59,12 +61,28 @@ export class ThemePreferencesService {
 
   private readCachedPreference(): ThemePreference {
     try {
-      const cached = this.document.defaultView?.localStorage.getItem(preferenceStorageKey);
-      if (cached === null || cached === undefined) return defaultPreference;
-      const parsed: unknown = JSON.parse(cached);
-      return this.isThemePreference(parsed) ? parsed : defaultPreference;
+      const storage = this.document.defaultView?.localStorage;
+      const cached = storage?.getItem(preferenceStorageKey);
+      if (cached !== null && cached !== undefined) return this.parseCachedPreference(cached) ?? defaultPreference;
+
+      const legacy = storage?.getItem(legacyPreferenceStorageKey);
+      if (legacy === null || legacy === undefined) return defaultPreference;
+      const parsed = this.parseCachedPreference(legacy);
+      if (!parsed) return defaultPreference;
+      this.storePreference(parsed);
+      storage?.removeItem(legacyPreferenceStorageKey);
+      return parsed;
     } catch {
       return defaultPreference;
+    }
+  }
+
+  private parseCachedPreference(cached: string): ThemePreference | null {
+    try {
+      const parsed: unknown = JSON.parse(cached);
+      return this.isThemePreference(parsed) ? parsed : null;
+    } catch {
+      return null;
     }
   }
 

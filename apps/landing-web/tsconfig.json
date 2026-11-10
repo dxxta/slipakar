@@ -12,9 +12,9 @@
     "target": "ES2022",
     "module": "preserve",
     "paths": {
-      "@lokaslip/ui/toggle-group": ["./src/app/ui/toggle-group/src/index.ts"],
-      "@lokaslip/ui/utils": ["./src/app/ui/utils/src/index.ts"],
-      "@lokaslip/ui/toggle": ["./src/app/ui/toggle/src/index.ts"]
+      "@slipakar/ui/toggle-group": ["./src/app/ui/toggle-group/src/index.ts"],
+      "@slipakar/ui/utils": ["./src/app/ui/utils/src/index.ts"],
+      "@slipakar/ui/toggle": ["./src/app/ui/toggle/src/index.ts"]
     }
   },
   "angularCompilerOptions": {

@@ -1,5 +1,5 @@
 import { Directive, input } from '@angular/core';
-import { classes } from '@lokaslip/ui/utils';
+import { classes } from '@slipakar/ui/utils';
 import { HlmCardConfig, injectHlmCardConfig } from './hlm-card.token';
 
 @Directive({

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { HomeCopy } from '../content/content.types';
 import { LANDING_CONFIG } from '../runtime-config';
 import { inject } from '@angular/core';
-import { HlmToggleGroup } from '@lokaslip/ui/toggle-group';
+import { HlmToggleGroup } from '@slipakar/ui/toggle-group';
 
 @Component({
   selector: 'landing-language-toggle',
@@ -35,7 +35,7 @@ export class LandingLanguageToggleComponent {
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="site-header">
-      <a class="wordmark" [href]="homePath()" aria-label="LokaSlip home">LokaSlip<span class="wordmark-dot">.</span></a>
+      <a class="wordmark" [href]="homePath()" aria-label="Slipakar home">Slipakar<span class="wordmark-dot">.</span></a>
       <nav class="header-nav" aria-label="Main navigation">
         <a [href]="homePath() + '#how-it-works'">{{ copy().nav.how }}</a>
         <a [href]="homePath() + '#features'">{{ copy().nav.features }}</a>
@@ -152,7 +152,7 @@ export class LandingFeaturesComponent { readonly copy = input.required<HomeCopy>
       <div class="pdf-copy"><p class="section-kicker">A PERSONAL FILE, PER PERSON</p><h2 id="pdf-title">{{ copy().pdf.title }}</h2><p>{{ copy().pdf.body }}</p></div>
       <div class="pdf-stage" aria-label="Illustrative PDF template layout">
         <div class="paper-sheet">
-          <div class="paper-brand">LokaSlip <span>{{ copy().pdf.documentTitle }}</span></div>
+          <div class="paper-brand">Slipakar <span>{{ copy().pdf.documentTitle }}</span></div>
           <div class="paper-recipient"><strong>{{ placeholderLabel }}</strong><small>Personalized recipient field</small></div>
           <div class="paper-table-head"><span>DESCRIPTION</span><span>AMOUNT</span></div>
           @for (row of copy().pdf.rows; track row) { <div class="paper-row"><span>{{ row }}</span><span>••••••</span></div> }
@@ -235,9 +235,9 @@ export class LandingFaqComponent { readonly copy = input.required<HomeCopy>(); }
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <footer class="site-footer" id="get-started"><div class="section-shell footer-main"><div><p class="section-kicker">LOKASLIP</p><h2>{{ copy().final.title }}</h2><p>{{ copy().final.body }}</p><a class="button button-primary" [href]="config.appUrl">{{ copy().final.signIn }} <span class="arrow-mark" aria-hidden="true"></span></a></div>
+    <footer class="site-footer" id="get-started"><div class="section-shell footer-main"><div><p class="section-kicker">SLIPAKAR</p><h2>{{ copy().final.title }}</h2><p>{{ copy().final.body }}</p><a class="button button-primary" [href]="config.appUrl">{{ copy().final.signIn }} <span class="arrow-mark" aria-hidden="true"></span></a></div>
       <div class="footer-links"><a [href]="termsPath()">{{ copy().final.terms }}</a><a [href]="config.repoUrl" target="_blank" rel="noopener noreferrer">{{ copy().final.repository }}</a></div>
-    </div><div class="section-shell footer-bottom"><span>© LokaSlip</span><span>Open source · Apache-2.0</span></div></footer>
+    </div><div class="section-shell footer-bottom"><span>© Slipakar</span><span>Open source · Apache-2.0</span></div></footer>
   `,
 })
 export class LandingFooterComponent {

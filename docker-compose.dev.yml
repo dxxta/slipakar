@@ -1,22 +1,22 @@
 # Development infrastructure for the whole repository (make dev-infra-up): db, cache, queue and storage in Docker.
 # Own Compose project and volumes, separate from docker-compose.yml and from apps/api/docker-compose.yml (different host ports).
 # Every value is a throwaway local-development constant matching the URLs printed by make dev-infra-up.
-name: lokaslip-dev
+name: slipakar-dev
 
 services:
   postgres:
     image: postgres:16
     restart: unless-stopped
     environment:
-      POSTGRES_USER: lokaslip
-      POSTGRES_DB: lokaslip
-      POSTGRES_PASSWORD: lokaslip_dev
+      POSTGRES_USER: slipakar
+      POSTGRES_DB: slipakar
+      POSTGRES_PASSWORD: slipakar_dev
     ports:
       - "127.0.0.1:5434:5432"
     volumes:
       - dev_postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U lokaslip -d lokaslip"]
+      test: ["CMD-SHELL", "pg_isready -U slipakar -d slipakar"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -36,8 +36,8 @@ services:
     image: rabbitmq:3.13-alpine
     restart: unless-stopped
     environment:
-      RABBITMQ_DEFAULT_USER: lokaslip
-      RABBITMQ_DEFAULT_PASS: lokaslip_dev
+      RABBITMQ_DEFAULT_USER: slipakar
+      RABBITMQ_DEFAULT_PASS: slipakar_dev
     ports:
       - "127.0.0.1:5674:5672"
     volumes:
@@ -79,7 +79,7 @@ services:
       GARAGE_ADMIN_TOKEN: "00112233445566778899aabbccddeeff0011223344556677"
       S3_ACCESS_KEY: "GK0123456789abcdef01234567"
       S3_SECRET_KEY: "00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff"
-      S3_BUCKET: "lokaslip"
+      S3_BUCKET: "slipakar"
     volumes:
       - ./infra/garage/bootstrap.sh:/bootstrap.sh:ro
 

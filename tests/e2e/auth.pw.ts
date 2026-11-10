@@ -36,7 +36,7 @@ test.describe('Authentication e2e', () => {
     // Authenticated user
     store.user = {
       id: 'usr-1',
-      email: 'user@lokaslip.com',
+      email: 'user@slipakar.com',
       name: 'Test User',
       role: 'user',
     };

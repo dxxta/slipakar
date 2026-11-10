@@ -13,7 +13,7 @@ describe('loadEnv', () => {
     S3_ENDPOINT: 'localhost',
     S3_ACCESS_KEY: 's3-access',
     S3_SECRET_KEY: 's3-secret',
-    S3_BUCKET: 'lokaslip',
+    S3_BUCKET: 'slipakar',
     REDIS_URL: 'redis://localhost:6379',
     RABBITMQ_URL: 'amqp://guest:guest@localhost:5672',
   };

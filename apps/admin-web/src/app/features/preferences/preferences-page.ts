@@ -32,7 +32,7 @@ export class PreferencesPage {
     this.themePreferences.setMode((event.currentTarget as HTMLSelectElement).value as ThemeMode);
   }
 
-  protected accentLabel(accent: ThemeAccent): string { return accent === 'slate' ? 'Lokaslip accent' : `${accent[0]?.toUpperCase()}${accent.slice(1)} accent`; }
+  protected accentLabel(accent: ThemeAccent): string { return accent === 'slate' ? 'Slipakar accent' : `${accent[0]?.toUpperCase()}${accent.slice(1)} accent`; }
 
   protected accentClass(accent: ThemeAccent): string {
     const classes: Record<ThemeAccent, string> = {

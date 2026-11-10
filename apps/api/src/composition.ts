@@ -501,7 +501,7 @@ export function buildApplication({
   // Order matters: the auth router must be mounted before routers whose guards
   // apply requireAuth to every path.
   const openApiDocument = buildOpenApiDocument(allRouteDocs, {
-    title: 'LokaSlip API',
+    title: 'Slipakar API',
     version: '1.0.0',
   });
   const app = createApp({

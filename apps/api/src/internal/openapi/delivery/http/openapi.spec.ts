@@ -7,7 +7,7 @@ import { createOpenApiRouter } from './openapi.js';
 
 describe('OpenAPI HTTP router', () => {
   const document = buildOpenApiDocument(allRouteDocs, {
-    title: 'LokaSlip API',
+    title: 'Slipakar API',
     version: '1.0.0',
   });
 
@@ -21,7 +21,7 @@ describe('OpenAPI HTTP router', () => {
     expect(res.headers['cache-control']).toBe('no-store');
     expect(res.headers['content-type']).toContain('application/json');
     expect(res.body.openapi).toBe('3.1.0');
-    expect(res.body.info).toEqual({ title: 'LokaSlip API', version: '1.0.0' });
+    expect(res.body.info).toEqual({ title: 'Slipakar API', version: '1.0.0' });
     expect(res.body.paths).toBeDefined();
     expect(Object.keys(res.body.paths).length).toBeGreaterThan(0);
 

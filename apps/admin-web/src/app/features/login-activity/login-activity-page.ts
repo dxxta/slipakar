@@ -1,4 +1,4 @@
-import { isPrivateIpAddress } from '@lokaslip/ui/private-ip';
+import { isPrivateIpAddress } from '@slipakar/ui/private-ip';
 import { CommonModule, DatePipe } from '@angular/common';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { HlmBadge } from '../../ui/badge/src';

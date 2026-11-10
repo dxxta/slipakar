@@ -8,7 +8,7 @@ const application = buildApplication({ env, prisma });
 await application.start();
 
 const server = application.app.listen(env.PORT, () => {
-  console.log(`LokaSlip API listening on port ${env.PORT}`);
+  console.log(`Slipakar API listening on port ${env.PORT}`);
 });
 
 process.on('unhandledRejection', (reason) => {

@@ -17,7 +17,7 @@ const env = {
   S3_USE_SSL: false,
   S3_ACCESS_KEY: 's3-access',
   S3_SECRET_KEY: 's3-secret',
-  S3_BUCKET: 'lokaslip',
+  S3_BUCKET: 'slipakar',
   S3_REGION: 'garage',
   S3_PATH_STYLE: true,
   REDIS_URL: 'redis://localhost:6379',

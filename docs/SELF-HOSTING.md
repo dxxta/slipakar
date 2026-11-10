@@ -1,6 +1,6 @@
-# Self-Hosting Lokaslip
+# Self-Hosting Slipakar
 
-This guide covers running Lokaslip in production or on a private server using Docker Compose.
+This guide covers running Slipakar in production or on a private server using Docker Compose.
 
 ---
 
@@ -34,8 +34,8 @@ Before starting, ensure the host machine has the following tools installed:
 
    Key environment variables:
 
-   - **`POSTGRES_PASSWORD`**: Strong random password for PostgreSQL user `lokaslip`.
-   - **`RABBITMQ_PASSWORD`**: Strong random password for RabbitMQ user `lokaslip`.
+   - **`POSTGRES_PASSWORD`**: Strong random password for PostgreSQL user `slipakar`.
+   - **`RABBITMQ_PASSWORD`**: Strong random password for RabbitMQ user `slipakar`.
    - **`S3_ACCESS_KEY`**: S3 API access key for Garage (format: `GK` followed by 24 hex characters, e.g. `echo GK$(openssl rand -hex 12)`).
    - **`S3_SECRET_KEY`**: S3 API secret key for Garage (64 hex characters, `openssl rand -hex 32`).
    - **`GARAGE_RPC_SECRET`**: Garage internal cluster communication secret (64 hex characters, `openssl rand -hex 32`).
@@ -64,7 +64,7 @@ Before starting, ensure the host machine has the following tools installed:
 
 ## 3. Architecture & Garage S3 Storage
 
-LokaSlip uses [Garage](https://garagehq.deuxfleurs.fr/) (`dxflrs/garage:v1.0.1`) for lightweight, robust, self-hosted S3-compatible object storage (attachments, generated PDF payslips, and artifacts).
+Slipakar uses [Garage](https://garagehq.deuxfleurs.fr/) (`dxflrs/garage:v1.0.1`) for lightweight, robust, self-hosted S3-compatible object storage (attachments, generated PDF payslips, and artifacts).
 
 ### Garage Components in Docker Compose
 
@@ -75,7 +75,7 @@ LokaSlip uses [Garage](https://garagehq.deuxfleurs.fr/) (`dxflrs/garage:v1.0.1`)
 2. **`garage-init`**: A transient bootstrap container (`curlimages/curl`) that runs once when the stack starts (`restart: "no"`).
    - It waits for Garage to report healthy.
    - It communicates with the Garage Admin HTTP API v1 (`http://garage:3903/v1/`) using `GARAGE_ADMIN_TOKEN`.
-   - It sets up single-node layout (assigning zone `dc1` and 10GB capacity), applies layout version 1, imports `S3_ACCESS_KEY` / `S3_SECRET_KEY`, ensures bucket `lokaslip` exists, and grants read/write/owner permissions to the access key.
+   - It sets up single-node layout (assigning zone `dc1` and 10GB capacity), applies layout version 1, imports `S3_ACCESS_KEY` / `S3_SECRET_KEY`, ensures bucket `slipakar` exists, and grants read/write/owner permissions to the access key.
    - Once initialized, `garage-init` exits 0. The `api` service waits for `garage-init` to complete successfully before starting.
 
 ---
@@ -179,7 +179,7 @@ The Express server reads these values at runtime and places them in an SSR-rende
 
 ## 6. User Roles & Admin Privileges
 
-LokaSlip uses Better Auth for user authentication.
+Slipakar uses Better Auth for user authentication.
 
 To grant an account the `admin` role:
 1. Include the user's email in the `ADMIN_EMAILS` environment variable in `.env`:
@@ -221,13 +221,13 @@ Data is persisted across named Docker volumes:
 ### Database Backup (PostgreSQL)
 
 ```bash
-docker compose exec -T postgres pg_dump -U lokaslip -d lokaslip > backup_$(date +%Y%m%d_%H%M%S).sql
+docker compose exec -T postgres pg_dump -U slipakar -d slipakar > backup_$(date +%Y%m%d_%H%M%S).sql
 ```
 
 ### Database Restore
 
 ```bash
-docker compose exec -T postgres psql -U lokaslip -d lokaslip < backup.sql
+docker compose exec -T postgres psql -U slipakar -d slipakar < backup.sql
 ```
 
 ### Garage Object Storage Backup
@@ -236,8 +236,8 @@ Back up both `garage_meta` and `garage_data` volumes together while the server i
 
 ```bash
 docker run --rm \
-  -v lokaslip_garage_meta:/meta \
-  -v lokaslip_garage_data:/data \
+  -v slipakar_garage_meta:/meta \
+  -v slipakar_garage_data:/data \
   -v $(pwd)/backups:/backup \
   alpine tar czf /backup/garage_$(date +%Y%m%d_%H%M%S).tar.gz /meta /data
 ```
@@ -246,7 +246,7 @@ docker run --rm \
 
 ## 8. Upgrades
 
-To upgrade LokaSlip to the latest version:
+To upgrade Slipakar to the latest version:
 
 1. Pull the latest code or update your repository:
    ```bash
@@ -262,6 +262,20 @@ To upgrade LokaSlip to the latest version:
    docker compose up -d
    ```
    *Note: Database migrations run automatically during the `api` container startup.*
+
+### Upgrading from Lokaslip
+
+The new Slipakar defaults use `slipakar` for the PostgreSQL user/database, RabbitMQ user, S3 bucket, and Compose project. Existing installations can retain those names by setting these values in `.env` before starting the renamed stack:
+
+```dotenv
+COMPOSE_PROJECT_NAME=lokaslip
+POSTGRES_USER=lokaslip
+POSTGRES_DB=lokaslip
+RABBITMQ_USER=lokaslip
+S3_BUCKET=lokaslip
+```
+
+If the deployment used a custom Compose project name, keep that exact name in `COMPOSE_PROJECT_NAME` so Compose continues to select the existing named volumes. PostgreSQL and RabbitMQ only create their configured users and databases on first initialization, so the values must match the existing data volumes. The old `lokaslip.theme-preferences` browser key is migrated to `slipakar.theme-preferences`; metric names now use the Slipakar prefix, so update any custom dashboards or alerts that query them.
 
 ---
 

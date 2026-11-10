@@ -1,5 +1,5 @@
 # ==============================================================================
-# LokaSlip user web - run this app by itself. Usage: cd apps/user-web && make help
+# Slipakar user web - run this app by itself. Usage: cd apps/user-web && make help
 # ==============================================================================
 
 .DEFAULT_GOAL := help

@@ -1,7 +1,7 @@
 import { Component, ElementRef, HostListener, inject, input, output, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { tablerChevronDown } from '@ng-icons/tabler-icons';
-import { Avatar } from '@lokaslip/ui/avatar';
+import { Avatar } from '@slipakar/ui/avatar';
 import { ThemeToggle } from './theme-toggle';
 
 @Component({

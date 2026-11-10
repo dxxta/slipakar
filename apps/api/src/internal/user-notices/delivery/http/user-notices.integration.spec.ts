@@ -42,7 +42,7 @@ describe('UserNotices HTTP integration', () => {
         {
           userId: testUserId,
           title: 'Welcome',
-          message: 'Welcome to LokaSlip!',
+          message: 'Welcome to Slipakar!',
         },
         {
           userId: testUserId,

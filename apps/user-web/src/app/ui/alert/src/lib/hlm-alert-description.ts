@@ -1,5 +1,5 @@
 import { Directive } from '@angular/core';
-import { classes } from '@lokaslip/ui/utils';
+import { classes } from '@slipakar/ui/utils';
 
 @Directive({
   selector: '[hlmAlertDescription]',

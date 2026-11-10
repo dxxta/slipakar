@@ -4,7 +4,7 @@ import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } 
 import { ActivatedRoute } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { tablerCloudUpload } from '@ng-icons/tabler-icons';
-import { PLACEHOLDER_REGEX } from '@lokaslip/shared';
+import { PLACEHOLDER_REGEX } from '@slipakar/shared';
 import { ApiError } from '../../core/api-error';
 import { HlmAlert, HlmAlertDescription, HlmAlertTitle } from '../../ui/alert/src';
 import { HlmBadge } from '../../ui/badge/src';

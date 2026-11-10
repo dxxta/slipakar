@@ -1,6 +1,6 @@
 import { Directive } from '@angular/core';
 import { BrnSwitchThumb } from '@spartan-ng/brain/switch';
-import { classes } from '@lokaslip/ui/utils';
+import { classes } from '@slipakar/ui/utils';
 
 @Directive({
   selector: '[hlmSwitchThumb],hlm-switch-thumb',

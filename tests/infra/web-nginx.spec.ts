@@ -77,7 +77,7 @@ describe('production web Nginx cache behavior', () => {
       skip('Docker is unavailable for the Nginx proxy behavior test');
     }
 
-    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lokaslip-nginx-query-'));
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'slipakar-nginx-query-'));
     const htmlRoot = path.join(tempDir, 'html');
     const userRoot = path.join(htmlRoot, 'user');
     const adminRoot = path.join(htmlRoot, 'console');
@@ -98,7 +98,7 @@ describe('production web Nginx cache behavior', () => {
     const configPath = path.join(tempDir, 'default.conf');
     const testConfig = nginxConfig;
     fs.writeFileSync(configPath, testConfig);
-    const containerName = `lokaslip-nginx-query-${process.pid}-${Date.now()}`;
+    const containerName = `slipakar-nginx-query-${process.pid}-${Date.now()}`;
 
     try {
       execFileSync('docker', [

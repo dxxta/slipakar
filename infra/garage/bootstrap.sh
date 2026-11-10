@@ -24,7 +24,7 @@ if [ -z "${S3_SECRET_KEY:-}" ]; then
   exit 1
 fi
 
-S3_BUCKET="${S3_BUCKET:-lokaslip}"
+S3_BUCKET="${S3_BUCKET:-slipakar}"
 
 echo "Waiting for Garage admin API to be ready at ${ADMIN_BASE_URL}..."
 MAX_ATTEMPTS=30
@@ -76,7 +76,7 @@ curl -s -f -X POST "${ADMIN_BASE_URL}/v1/layout/apply" \
 # Step 3: Import S3 Access Key
 # POST /v1/key/import
 echo "Importing S3 API access key..."
-KEY_PAYLOAD=$(printf '{"name":"lokaslip-key","accessKeyId":"%s","secretAccessKey":"%s"}' "$S3_ACCESS_KEY" "$S3_SECRET_KEY")
+KEY_PAYLOAD=$(printf '{"name":"slipakar-key","accessKeyId":"%s","secretAccessKey":"%s"}' "$S3_ACCESS_KEY" "$S3_SECRET_KEY")
 curl -s -f -X POST "${ADMIN_BASE_URL}/v1/key/import" \
   -H "Authorization: Bearer ${GARAGE_ADMIN_TOKEN}" \
   -H "Content-Type: application/json" \

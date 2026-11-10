@@ -27,7 +27,7 @@ export class SeoService {
   }
 
   setNotFound(): void {
-    this.title.setTitle('Page not found — LokaSlip');
+    this.title.setTitle('Page not found — Slipakar');
     this.setMeta('robots', 'noindex,nofollow');
     this.removeCanonical();
     this.removeAlternates();
@@ -39,7 +39,7 @@ export class SeoService {
     this.setJsonLd('software-application', {
       '@context': 'https://schema.org',
       '@type': 'SoftwareApplication',
-      name: 'LokaSlip',
+      name: 'Slipakar',
       applicationCategory: 'BusinessApplication',
       operatingSystem: 'Web',
       description: metadata.description,
@@ -49,7 +49,7 @@ export class SeoService {
     this.setJsonLd('organization', {
       '@context': 'https://schema.org',
       '@type': 'Organization',
-      name: 'LokaSlip',
+      name: 'Slipakar',
       url: base,
     });
     this.setJsonLd('faq-page', {

@@ -5,7 +5,7 @@
 # ==============================================================================
 COMPOSE ?= docker compose
 ENV_FILE ?= .env
-COMPOSE_PROJECT ?= lokaslip
+COMPOSE_PROJECT ?= slipakar
 SERVICE ?= api
 FILE ?=
 CONFIRM ?=
@@ -57,7 +57,7 @@ secrets: ## Generate cryptographically secure secrets for production and compose
 # Start the dev infrastructure in Docker (Postgres 5434, Redis 6381, RabbitMQ 5674, Garage 3911) on localhost and wait until healthy
 dev-infra-up: ## Start the dev infrastructure (Postgres, Redis, RabbitMQ, Garage) in Docker on localhost
 	docker compose -f docker-compose.dev.yml up -d --wait
-	@echo "Postgres localhost:5434  Redis localhost:6381  RabbitMQ localhost:5674  Garage S3 localhost:3911 (user/password lokaslip/lokaslip_dev)"
+	@echo "Postgres localhost:5434  Redis localhost:6381  RabbitMQ localhost:5674  Garage S3 localhost:3911 (user/password slipakar/slipakar_dev)"
 
 # Stop the dev infrastructure and keep its data
 dev-infra-down: ## Stop the dev infrastructure and keep its data
@@ -81,7 +81,7 @@ dev-user: ## Start the user web frontend in development mode
 
 # Start the public landing frontend in development mode
 dev-landing: ## Start the public landing frontend in development mode
-	npm run start -w @lokaslip/landing-web -- --port 4302
+	npm run start -w @slipakar/landing-web -- --port 4302
 
 # ==============================================================================
 # QUALITY
@@ -142,11 +142,11 @@ build: ## Build all TypeScript packages and applications across the workspace
 
 # Build the production Docker image for the API service
 docker-build: ## Build the production Docker image for the API service
-	docker build -f apps/api/Dockerfile -t lokaslip-api:dev .
+	docker build -f apps/api/Dockerfile -t slipakar-api:dev .
 
 # Build the combined production image that serves user-web at / and admin-web at /console/ on port 8080
 docker-build-web: ## Build the combined production Docker image for both web apps
-	docker build -f infra/web/Dockerfile -t lokaslip-web:dev .
+	docker build -f infra/web/Dockerfile -t slipakar-web:dev .
 
 # ==============================================================================
 # DATABASE

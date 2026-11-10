@@ -15,14 +15,14 @@ import { AdminSetupService } from '../features/setup/admin-setup.service';
     <div class="min-h-dvh min-w-0 bg-background text-foreground md:grid md:grid-cols-[15rem_1fr]">
       <header class="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-border bg-background px-3 py-2 md:hidden">
         <button type="button" class="grid size-11 shrink-0 place-items-center rounded-ui-md border border-border text-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Open navigation" [attr.aria-expanded]="navigationOpen()" (click)="navigationOpen.set(true)">☰</button>
-        <a routerLink="/flags" class="text-sm font-semibold">Lokaslip</a>
+        <a routerLink="/flags" class="text-sm font-semibold">Slipakar</a>
         <span class="h-5 w-px bg-border" aria-hidden="true"></span>
         <span class="min-w-0 truncate text-sm font-medium" aria-live="polite">{{ mobileTitle() }}</span>
       </header>
       <aside class="hidden flex-col border-r border-border bg-card px-5 py-6 md:flex">
         <a routerLink="/flags" class="mb-10 flex items-center gap-3 rounded-md text-lg font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
           <span class="grid size-9 place-items-center rounded-lg bg-primary text-primary-foreground" aria-hidden="true">L</span>
-          <span>Lokaslip</span>
+          <span>Slipakar</span>
         </a>
         <nav aria-label="Main navigation" class="grid gap-1">
           <a routerLink="/flags" routerLinkActive="bg-muted text-foreground" class="flex min-h-10 items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Feature flags</a>
@@ -43,7 +43,7 @@ import { AdminSetupService } from '../features/setup/admin-setup.service';
     </div>
     <app-drawer [open]="navigationOpen()" [side]="'left'" title="Navigation" (closed)="navigationOpen.set(false)">
       <div class="flex min-h-full flex-col">
-        <a routerLink="/flags" class="mb-6 flex min-h-11 items-center gap-3 rounded-md text-lg font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" (click)="navigationOpen.set(false)"><span class="grid size-9 place-items-center rounded-lg bg-primary text-primary-foreground" aria-hidden="true">L</span>Lokaslip</a>
+        <a routerLink="/flags" class="mb-6 flex min-h-11 items-center gap-3 rounded-md text-lg font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" (click)="navigationOpen.set(false)"><span class="grid size-9 place-items-center rounded-lg bg-primary text-primary-foreground" aria-hidden="true">L</span>Slipakar</a>
         <nav aria-label="Main navigation" class="grid gap-1">
           <a routerLink="/flags" routerLinkActive="bg-muted text-foreground" class="flex min-h-11 items-center rounded-md px-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" (click)="navigationOpen.set(false)">Feature flags</a>
           <a routerLink="/monitoring" routerLinkActive="bg-muted text-foreground" class="flex min-h-11 items-center rounded-md px-3 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" (click)="navigationOpen.set(false)">Monitoring</a>

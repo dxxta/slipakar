@@ -1,5 +1,5 @@
 # ==============================================================================
-# LokaSlip API - run this app by itself. Usage: cd apps/api && make help
+# Slipakar API - run this app by itself. Usage: cd apps/api && make help
 # ==============================================================================
 
 .DEFAULT_GOAL := help

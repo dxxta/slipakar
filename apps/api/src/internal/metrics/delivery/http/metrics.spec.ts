@@ -13,7 +13,7 @@ describe('Metrics HTTP delivery', () => {
 
     const res = await request(app).get('/metrics').expect(200);
     expect(res.headers['content-type']).toContain(metrics.contentType);
-    expect(res.text).toContain('lokaslip_');
+    expect(res.text).toContain('slipakar_');
   });
 
   it('401 without header when token is configured', async () => {
@@ -67,6 +67,6 @@ describe('Metrics HTTP delivery', () => {
       .expect(200);
 
     expect(res.headers['content-type']).toContain(metrics.contentType);
-    expect(res.text).toContain('lokaslip_');
+    expect(res.text).toContain('slipakar_');
   });
 });

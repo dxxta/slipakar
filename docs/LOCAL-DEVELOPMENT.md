@@ -34,7 +34,7 @@ Two Compose files provide the dependencies on host-published ports that do not c
 
 | | `apps/api/docker-compose.yml` | `docker-compose.dev.yml` (root) |
 | --- | --- | --- |
-| Compose project | `lokaslip-api-dev` | `lokaslip-dev` |
+| Compose project | `slipakar-api-dev` | `slipakar-dev` |
 | PostgreSQL | 5433 | 5434 |
 | Redis | 6380 | 6381 |
 | RabbitMQ | 5673 | 5674 |

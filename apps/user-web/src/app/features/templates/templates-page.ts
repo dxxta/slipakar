@@ -3,7 +3,7 @@ import { SelectControl } from '../../ui/shared/select-control';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { DomSanitizer, type SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute } from '@angular/router';
-import { PLACEHOLDER_REGEX } from '@lokaslip/shared';
+import { PLACEHOLDER_REGEX } from '@slipakar/shared';
 import { ApiError } from '../../core/api-error';
 import { HlmAlert, HlmAlertDescription, HlmAlertTitle } from '../../ui/alert/src';
 import { DataTableControls } from '../../ui/shared/data-table-controls';

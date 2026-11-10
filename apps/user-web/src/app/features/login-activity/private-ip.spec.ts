@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isPrivateIpAddress } from '@lokaslip/ui/private-ip';
+import { isPrivateIpAddress } from '@slipakar/ui/private-ip';
 
 describe('isPrivateIpAddress', () => {
   it.each([

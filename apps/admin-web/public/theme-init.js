@@ -1,6 +1,8 @@
 (() => {
   try {
-    const stored = JSON.parse(localStorage.getItem('lokaslip.theme-preferences') ?? 'null');
+    // Deprecated: read-only fallback for the pre-Slipakar storage key. Remove in a future major release.
+    const storedValue = localStorage.getItem('slipakar.theme-preferences') ?? localStorage.getItem('lokaslip.theme-preferences');
+    const stored = JSON.parse(storedValue ?? 'null');
     const modes = ['light', 'dark', 'system'];
     const accents = ['slate', 'blue', 'green', 'violet', 'rose', 'amber'];
     const mode = modes.includes(stored?.themeMode) ? stored.themeMode : 'system';

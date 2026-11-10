@@ -41,7 +41,7 @@ test.describe('Full Campaign Wizard Flow e2e', () => {
     await page.getByRole('spinbutton', { name: 'Port' }).fill('587');
     await page.getByRole('textbox', { name: 'Username' }).fill('smtp_user');
     await page.getByLabel('Password', { exact: false }).fill('secret_smtp_password');
-    await page.getByRole('textbox', { name: 'From Address' }).fill('hr@lokaslip.com');
+    await page.getByRole('textbox', { name: 'From Address' }).fill('hr@slipakar.com');
 
     await page.getByRole('button', { name: 'Create connection' }).click();
     await expect(page.getByRole('heading', { name: 'smtp.mailtrap.io:587' })).toBeVisible();

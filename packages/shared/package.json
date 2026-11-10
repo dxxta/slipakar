@@ -1,5 +1,5 @@
 {
-  "name": "@lokaslip/shared",
+  "name": "@slipakar/shared",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

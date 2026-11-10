@@ -1,3 +1,6 @@
+# Upgrading from Lokaslip: keep COMPOSE_PROJECT_NAME and the data-service names aligned with existing volumes.
+name: ${COMPOSE_PROJECT_NAME:-slipakar}
+
 services:
   api:
     build:
@@ -18,15 +21,15 @@ services:
       garage-init:
         condition: service_completed_successfully
     environment:
-      DATABASE_URL: "postgresql://lokaslip:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/lokaslip"
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-slipakar}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/${POSTGRES_DB:-slipakar}"
       REDIS_URL: "redis://redis:6379"
-      RABBITMQ_URL: "amqp://lokaslip:${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}@rabbitmq:5672"
+      RABBITMQ_URL: "amqp://${RABBITMQ_USER:-slipakar}:${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}@rabbitmq:5672"
       S3_ENDPOINT: "garage"
       S3_PORT: 3900
       S3_USE_SSL: "false"
       S3_ACCESS_KEY: "${S3_ACCESS_KEY:?S3_ACCESS_KEY is required}"
       S3_SECRET_KEY: "${S3_SECRET_KEY:?S3_SECRET_KEY is required}"
-      S3_BUCKET: "lokaslip"
+      S3_BUCKET: "${S3_BUCKET:-slipakar}"
       S3_REGION: "garage"
       S3_PATH_STYLE: "true"
       APP_ENCRYPTION_KEY: "${APP_ENCRYPTION_KEY:?APP_ENCRYPTION_KEY is required}"
@@ -94,13 +97,13 @@ services:
     image: postgres:16
     restart: unless-stopped
     environment:
-      POSTGRES_USER: lokaslip
-      POSTGRES_DB: lokaslip
+      POSTGRES_USER: "${POSTGRES_USER:-slipakar}"
+      POSTGRES_DB: "${POSTGRES_DB:-slipakar}"
       POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U lokaslip -d lokaslip"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-slipakar} -d ${POSTGRES_DB:-slipakar}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -120,7 +123,7 @@ services:
     image: rabbitmq:3.13-alpine
     restart: unless-stopped
     environment:
-      RABBITMQ_DEFAULT_USER: lokaslip
+      RABBITMQ_DEFAULT_USER: "${RABBITMQ_USER:-slipakar}"
       RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASSWORD:?RABBITMQ_PASSWORD is required}"
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
@@ -159,7 +162,7 @@ services:
       GARAGE_ADMIN_TOKEN: "${GARAGE_ADMIN_TOKEN:?GARAGE_ADMIN_TOKEN is required}"
       S3_ACCESS_KEY: "${S3_ACCESS_KEY:?S3_ACCESS_KEY is required}"
       S3_SECRET_KEY: "${S3_SECRET_KEY:?S3_SECRET_KEY is required}"
-      S3_BUCKET: "lokaslip"
+      S3_BUCKET: "${S3_BUCKET:-slipakar}"
     volumes:
       - ./infra/garage/bootstrap.sh:/bootstrap.sh:ro
 

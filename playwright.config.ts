@@ -24,13 +24,13 @@ export default defineConfig({
   ],
   webServer: [
     {
-      command: 'npm run start -w @lokaslip/user-web -- --port 4300',
+      command: 'npm run start -w @slipakar/user-web -- --port 4300',
       url: 'http://localhost:4300',
       reuseExistingServer: !process.env.CI,
       timeout: 180_000,
     },
     {
-      command: 'npm run start -w @lokaslip/admin-web -- --port 4301 --configuration e2e --serve-path /console/',
+      command: 'npm run start -w @slipakar/admin-web -- --port 4301 --configuration e2e --serve-path /console/',
       url: 'http://localhost:4301/console/',
       reuseExistingServer: !process.env.CI,
       timeout: 180_000,

@@ -1,5 +1,5 @@
 # ==============================================================================
-# LokaSlip landing web - run this app by itself. Usage: cd apps/landing-web && make help
+# Slipakar landing web - run this app by itself. Usage: cd apps/landing-web && make help
 # ==============================================================================
 
 .DEFAULT_GOAL := help

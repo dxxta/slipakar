@@ -9,7 +9,7 @@ import { buildErrorReporter } from './reporter.js';
 describe('Error reporting MinIO storage integration', () => {
   let garage: Awaited<ReturnType<typeof startGarage>>;
   let storage: StorageInterface;
-  const bucket = 'lokaslip-error-logs';
+  const bucket = 'slipakar-error-logs';
 
   beforeAll(async () => {
     garage = await startGarage();

@@ -1,5 +1,5 @@
 {
-  "name": "lokaslip",
+  "name": "slipakar",
   "private": true,
   "version": "2.0.0",
   "license": "Apache-2.0",
@@ -8,15 +8,15 @@
     "packages/*"
   ],
   "scripts": {
-    "dev:api": "npm run dev -w @lokaslip/api",
+    "dev:api": "npm run dev -w @slipakar/api",
     "build": "npm run build --workspaces --if-present",
     "test": "vitest run",
     "lint": "eslint .",
     "typecheck": "tsc -b",
-    "dev:admin": "npm run start -w @lokaslip/admin-web",
-    "test:admin": "npm run test -w @lokaslip/admin-web ",
-    "dev:user": "npm run start -w @lokaslip/user-web",
-    "test:user": "npm run test -w @lokaslip/user-web",
+    "dev:admin": "npm run start -w @slipakar/admin-web",
+    "test:admin": "npm run test -w @slipakar/admin-web ",
+    "dev:user": "npm run start -w @slipakar/user-web",
+    "test:user": "npm run test -w @slipakar/user-web",
     "e2e": "playwright test",
     "release": "commit-and-tag-version"
   },

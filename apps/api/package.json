@@ -1,5 +1,5 @@
 {
-  "name": "@lokaslip/api",
+  "name": "@slipakar/api",
   "private": true,
   "type": "module",
   "scripts": {
@@ -7,7 +7,7 @@
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "@lokaslip/shared": "*",
+    "@slipakar/shared": "*",
     "@prisma/adapter-pg": "7.10.1",
     "@prisma/client": "7.10.1",
     "@scalar/api-reference": "1.77.0",

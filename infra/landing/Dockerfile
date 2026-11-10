@@ -13,7 +13,7 @@ COPY packages/ui/package.json packages/ui/package.json
 RUN npm ci
 
 COPY . .
-RUN npm run build --workspace=@lokaslip/landing-web
+RUN npm run build --workspace=@slipakar/landing-web
 
 FROM node:26-alpine AS runtime
 

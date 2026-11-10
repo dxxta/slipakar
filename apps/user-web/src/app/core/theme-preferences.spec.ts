@@ -29,13 +29,14 @@ describe('theme preference application', () => {
 describe('ThemePreferencesService', () => {
   afterEach(() => {
     TestBed.inject(HttpTestingController).verify();
+    localStorage.removeItem('slipakar.theme-preferences');
     localStorage.removeItem('lokaslip.theme-preferences');
     TestBed.resetTestingModule();
   });
 
   it('applies a cached preference before loading the saved preference', () => {
     const cached: ThemePreference = { themeMode: 'dark', themeAccent: 'blue' };
-    localStorage.setItem('lokaslip.theme-preferences', JSON.stringify(cached));
+    localStorage.setItem('slipakar.theme-preferences', JSON.stringify(cached));
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
     const service = TestBed.inject(ThemePreferencesService);
     const http = TestBed.inject(HttpTestingController);
@@ -47,6 +48,47 @@ describe('ThemePreferencesService', () => {
     http.expectOne('/me/preferences').flush({ message: 'ok', data: cached, success: true });
   });
 
+  it('honors the old cached preference when the new key is absent', () => {
+    const legacy: ThemePreference = { themeMode: 'dark', themeAccent: 'green' };
+    localStorage.setItem('lokaslip.theme-preferences', JSON.stringify(legacy));
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    const service = TestBed.inject(ThemePreferencesService);
+    const http = TestBed.inject(HttpTestingController);
+
+    service.initialize();
+
+    expect(service.preference()).toEqual(legacy);
+    http.expectOne('/me/preferences').flush({ message: 'ok', data: legacy, success: true });
+  });
+
+  it('prefers the new key when both current and legacy preferences exist', () => {
+    const current: ThemePreference = { themeMode: 'light', themeAccent: 'violet' };
+    const legacy: ThemePreference = { themeMode: 'dark', themeAccent: 'green' };
+    localStorage.setItem('slipakar.theme-preferences', JSON.stringify(current));
+    localStorage.setItem('lokaslip.theme-preferences', JSON.stringify(legacy));
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    const service = TestBed.inject(ThemePreferencesService);
+    const http = TestBed.inject(HttpTestingController);
+
+    service.initialize();
+
+    expect(service.preference()).toEqual(current);
+    http.expectOne('/me/preferences').flush({ message: 'ok', data: current, success: true });
+  });
+
+  it('migrates a valid legacy preference into the new storage key', () => {
+    const legacy: ThemePreference = { themeMode: 'dark', themeAccent: 'amber' };
+    localStorage.setItem('lokaslip.theme-preferences', JSON.stringify(legacy));
+    TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
+    const service = TestBed.inject(ThemePreferencesService);
+    const http = TestBed.inject(HttpTestingController);
+
+    service.initialize();
+
+    expect(JSON.parse(localStorage.getItem('slipakar.theme-preferences') ?? 'null')).toEqual(legacy);
+    http.expectOne('/me/preferences').flush({ message: 'ok', data: legacy, success: true });
+  });
+
   it('saves a changed preference to the API and local cache', () => {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
     const service = TestBed.inject(ThemePreferencesService);
@@ -55,7 +97,7 @@ describe('ThemePreferencesService', () => {
 
     service.setPreference(changed);
 
-    expect(JSON.parse(localStorage.getItem('lokaslip.theme-preferences') ?? 'null')).toEqual(changed);
+    expect(JSON.parse(localStorage.getItem('slipakar.theme-preferences') ?? 'null')).toEqual(changed);
     const request = http.expectOne('/me/preferences');
     expect(request.request.method).toBe('PATCH');
     expect(request.request.body).toEqual(changed);

@@ -1,7 +1,7 @@
 import { Component, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { Avatar } from '@lokaslip/ui/avatar';
+import { Avatar } from '@slipakar/ui/avatar';
 import { buttonVariants } from '../button/src/lib/hlm-button';
 import { ListBody } from './list-body';
 import { PageHeader } from './page-header';

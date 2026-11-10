@@ -1,4 +1,4 @@
-import { PLACEHOLDER_REGEX } from '@lokaslip/shared';
+import { PLACEHOLDER_REGEX } from '@slipakar/shared';
 import { AppError } from '../../../lib/app-error.js';
 
 function placeholderRegex(): RegExp {

@@ -1,6 +1,6 @@
 import { Directive, input } from '@angular/core';
 import { BrnToggle } from '@spartan-ng/brain/toggle';
-import { classes } from '@lokaslip/ui/utils';
+import { classes } from '@slipakar/ui/utils';
 import { cva, type VariantProps } from 'class-variance-authority';
 
 export const toggleVariants = cva(

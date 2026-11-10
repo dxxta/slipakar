@@ -1,4 +1,4 @@
-import { PLACEHOLDER_REGEX } from '@lokaslip/shared';
+import { PLACEHOLDER_REGEX } from '@slipakar/shared';
 
 export const PDF_PAGE_WIDTH = 595;
 export const PDF_PAGE_HEIGHT = 842;

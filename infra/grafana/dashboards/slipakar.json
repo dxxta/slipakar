@@ -15,7 +15,7 @@
       "type": "stat",
       "datasource": {
         "type": "prometheus",
-        "uid": "lokaslip-prometheus"
+        "uid": "slipakar-prometheus"
       },
       "gridPos": {
         "h": 4,
@@ -27,9 +27,9 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "lokaslip-prometheus"
+            "uid": "slipakar-prometheus"
           },
-          "expr": "up{job=\"lokaslip-api\"}",
+          "expr": "up{job=\"slipakar-api\"}",
           "refId": "A"
         }
       ]
@@ -40,7 +40,7 @@
       "type": "stat",
       "datasource": {
         "type": "prometheus",
-        "uid": "lokaslip-prometheus"
+        "uid": "slipakar-prometheus"
       },
       "gridPos": {
         "h": 4,
@@ -52,9 +52,9 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "lokaslip-prometheus"
+            "uid": "slipakar-prometheus"
           },
-          "expr": "increase(lokaslip_campaigns_finished_total[1h])",
+          "expr": "increase(slipakar_campaigns_finished_total[1h])",
           "refId": "A"
         }
       ]
@@ -65,7 +65,7 @@
       "type": "stat",
       "datasource": {
         "type": "prometheus",
-        "uid": "lokaslip-prometheus"
+        "uid": "slipakar-prometheus"
       },
       "gridPos": {
         "h": 4,
@@ -77,7 +77,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "lokaslip-prometheus"
+            "uid": "slipakar-prometheus"
           },
           "expr": "process_resident_memory_bytes",
           "refId": "A"
@@ -90,7 +90,7 @@
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
-        "uid": "lokaslip-prometheus"
+        "uid": "slipakar-prometheus"
       },
       "gridPos": {
         "h": 4,
@@ -102,7 +102,7 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "lokaslip-prometheus"
+            "uid": "slipakar-prometheus"
           },
           "expr": "nodejs_eventloop_lag_seconds",
           "refId": "A"
@@ -115,7 +115,7 @@
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
-        "uid": "lokaslip-prometheus"
+        "uid": "slipakar-prometheus"
       },
       "gridPos": {
         "h": 8,
@@ -127,9 +127,9 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "lokaslip-prometheus"
+            "uid": "slipakar-prometheus"
           },
-          "expr": "sum by (status) (rate(lokaslip_http_requests_total[5m]))",
+          "expr": "sum by (status) (rate(slipakar_http_requests_total[5m]))",
           "refId": "A"
         }
       ]
@@ -140,7 +140,7 @@
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
-        "uid": "lokaslip-prometheus"
+        "uid": "slipakar-prometheus"
       },
       "gridPos": {
         "h": 8,
@@ -152,9 +152,9 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "lokaslip-prometheus"
+            "uid": "slipakar-prometheus"
           },
-          "expr": "histogram_quantile(0.95, sum by (le, route) (rate(lokaslip_http_request_duration_seconds_bucket[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le, route) (rate(slipakar_http_request_duration_seconds_bucket[5m])))",
           "refId": "A"
         }
       ]
@@ -165,7 +165,7 @@
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
-        "uid": "lokaslip-prometheus"
+        "uid": "slipakar-prometheus"
       },
       "gridPos": {
         "h": 8,
@@ -177,9 +177,9 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "lokaslip-prometheus"
+            "uid": "slipakar-prometheus"
           },
-          "expr": "sum by (result) (increase(lokaslip_emails_total[1m]))",
+          "expr": "sum by (result) (increase(slipakar_emails_total[1m]))",
           "refId": "A"
         }
       ]
@@ -190,7 +190,7 @@
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
-        "uid": "lokaslip-prometheus"
+        "uid": "slipakar-prometheus"
       },
       "gridPos": {
         "h": 8,
@@ -202,9 +202,9 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "lokaslip-prometheus"
+            "uid": "slipakar-prometheus"
           },
-          "expr": "sum by (queue, outcome) (increase(lokaslip_queue_messages_total[5m]))",
+          "expr": "sum by (queue, outcome) (increase(slipakar_queue_messages_total[5m]))",
           "refId": "A"
         }
       ]
@@ -215,7 +215,7 @@
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
-        "uid": "lokaslip-prometheus"
+        "uid": "slipakar-prometheus"
       },
       "gridPos": {
         "h": 8,
@@ -227,9 +227,9 @@
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "lokaslip-prometheus"
+            "uid": "slipakar-prometheus"
           },
-          "expr": "histogram_quantile(0.95, sum by (le) (rate(lokaslip_rate_limit_wait_seconds_bucket[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(slipakar_rate_limit_wait_seconds_bucket[5m])))",
           "refId": "A"
         }
       ]
@@ -238,14 +238,14 @@
   "refresh": "30s",
   "schemaVersion": 39,
   "style": "dark",
-  "tags": ["lokaslip", "production"],
+  "tags": ["slipakar", "production"],
   "time": {
     "from": "now-6h",
     "to": "now"
   },
   "timepicker": {},
   "timezone": "browser",
-  "title": "LokaSlip overview",
-  "uid": "lokaslip-overview",
+  "title": "Slipakar overview",
+  "uid": "slipakar-overview",
   "version": 1
 }

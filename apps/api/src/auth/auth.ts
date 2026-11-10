@@ -109,7 +109,7 @@ function buildAuth({ prisma, env, authEmailSender, loginActivityUseCase }: AuthD
         const html = `
           <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <h2>Verify your new email address</h2>
-            <p>You requested to change your email address for your LokaSlip account.</p>
+            <p>You requested to change your email address for your Slipakar account.</p>
             <p>Please click the link below to confirm this change:</p>
             <p style="margin: 24px 0;">
               <a href="${verifyUrl.toString()}" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">

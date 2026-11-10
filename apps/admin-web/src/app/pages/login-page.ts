@@ -13,7 +13,7 @@ import { SessionService } from '../core/session.service';
       <section class="w-full max-w-sm rounded-xl border border-border bg-card p-8 shadow-sm" aria-labelledby="login-title">
         <div class="mb-8 flex items-center gap-3">
           <span class="grid size-10 place-items-center rounded-lg bg-primary font-semibold text-primary-foreground" aria-hidden="true">L</span>
-          <span class="text-lg font-semibold">Lokaslip</span>
+          <span class="text-lg font-semibold">Slipakar</span>
         </div>
         <h1 id="login-title" class="text-2xl font-semibold tracking-tight">Sign in to your workspace</h1>
         <p class="mt-2 text-sm text-muted-foreground">Use your Google account to continue to the admin console.</p>

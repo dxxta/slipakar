@@ -504,9 +504,9 @@ export class AdminSetupUseCase implements AdminSetupUseCaseInterface {
       await transporter.sendMail({
         from: fromAddress,
         to: validated.to,
-        subject: 'LokaSlip Platform Mailer Test',
-        text: 'This is a test message from your LokaSlip setup.',
-        html: '<p>This is a test message from your LokaSlip setup.</p>',
+        subject: 'Slipakar Platform Mailer Test',
+        text: 'This is a test message from your Slipakar setup.',
+        html: '<p>This is a test message from your Slipakar setup.</p>',
       });
       return { ok: true };
     } catch (err: unknown) {

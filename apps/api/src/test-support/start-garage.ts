@@ -5,7 +5,7 @@ import { startContainer } from './start-container.js';
 
 const image = 'dxflrs/garage:v1.0.1';
 const configPath = '/etc/garage.toml';
-const bucket = 'lokaslip';
+const bucket = 'slipakar';
 const region = 'garage';
 const accessKey = 'GK0123456789abcdef01234567';
 const secretKey = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
@@ -120,7 +120,7 @@ export async function startGarage(): Promise<Garage> {
     const [nodeId] = await Promise.all([waitForNodeId(container), waitForS3Endpoint(endpoint, port)]);
     await runGarageCommand(container, ['/garage', '-c', configPath, 'layout', 'assign', '-z', 'dc1', '-c', '10G', nodeId]);
     await runGarageCommand(container, ['/garage', '-c', configPath, 'layout', 'apply', '--version', '1']);
-    await runGarageCommand(container, ['/garage', '-c', configPath, 'key', 'import', '-n', 'lokaslip-key', '--yes', accessKey, secretKey]);
+    await runGarageCommand(container, ['/garage', '-c', configPath, 'key', 'import', '-n', 'slipakar-key', '--yes', accessKey, secretKey]);
     await runGarageCommand(container, ['/garage', '-c', configPath, 'key', 'allow', '--create-bucket', accessKey]);
     await runGarageCommand(container, ['/garage', '-c', configPath, 'bucket', 'create', bucket]);
     await runGarageCommand(container, ['/garage', '-c', configPath, 'bucket', 'allow', '--read', '--write', '--owner', bucket, '--key', accessKey]);

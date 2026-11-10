@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-LokaSlip is currently in active pre-release development (0.x). Security patches are applied exclusively to the latest released version and the `main` branch.
+Slipakar is currently in active pre-release development (0.x). Security patches are applied exclusively to the latest released version and the `main` branch.
 
 | Version | Supported          |
 | ------- | ------------------ |
@@ -12,7 +12,7 @@ LokaSlip is currently in active pre-release development (0.x). Security patches 
 
 ## Reporting a Vulnerability
 
-We take the security of LokaSlip seriously. If you discover a vulnerability, please do not open a public GitHub issue or discussion.
+We take the security of Slipakar seriously. If you discover a vulnerability, please do not open a public GitHub issue or discussion.
 
 Send a security report by email to dintasyaifuddin@gmail.com with the following details:
 
@@ -33,7 +33,7 @@ Send a security report by email to dintasyaifuddin@gmail.com with the following 
 
 ### In Scope
 
-* LokaSlip Express API and background workers.
+* Slipakar Express API and background workers.
 * Admin and User web applications.
 * The official Docker Compose deployment configurations.
 * Authentication and session management mechanisms.
@@ -55,7 +55,7 @@ We consider security research conducted under this policy to be authorized. If y
 
 ## Hardening Notes for Self-Hosters
 
-When self-hosting LokaSlip, keep the following security practices in mind:
+When self-hosting Slipakar, keep the following security practices in mind:
 
 * **Generate strong random secrets**: Generate cryptographically secure secrets for `POSTGRES_PASSWORD`, `RABBITMQ_PASSWORD`, `S3_SECRET_KEY`, `GARAGE_RPC_SECRET`, `GARAGE_ADMIN_TOKEN`, `BETTER_AUTH_SECRET`, and `METRICS_TOKEN`.
 * **Bind ports to localhost**: Keep container ports bound to `127.0.0.1` (using `BIND_ADDRESS=127.0.0.1`) and expose services to the Internet only through an HTTPS reverse proxy with TLS termination.
@@ -65,7 +65,7 @@ When self-hosting LokaSlip, keep the following security practices in mind:
 
 ## Privacy & Data Retention
 
-* **Login Activity & Device Metadata**: LokaSlip records login event metadata (`ipAddress`, best-effort proxy flag, browser, OS, device type, and approximate geolocation derived offline via `geoip-lite`) when a user signs in.
+* **Login Activity & Device Metadata**: Slipakar records login event metadata (`ipAddress`, best-effort proxy flag, browser, OS, device type, and approximate geolocation derived offline via `geoip-lite`) when a user signs in.
 * **Local Network IPs & `TRUST_PROXY`**: Private, loopback, and Docker bridge gateway addresses (such as `172.18.0.1` when accessing local Compose ports directly) have no public geolocation and are shown as "Local network" in the UI with `null` coordinates. Behind a reverse proxy (including the bundled Nginx container), Express resolves the client IP from `X-Forwarded-For` according to `TRUST_PROXY` (`1` by default in Docker Compose for the single Nginx hop, `false` by default for bare API).
 * **Proxy Detection**: The proxy indicator is best-effort only: it is set only when the resolved client IP is public and `X-Forwarded-For` contains multiple hops. Private, loopback, and Docker network IPs never set `proxy=true`. It is an informational signal, not a guarantee.
 * **SSRF Protection in Integrations**: External integration endpoints (`/admin/setup`) enforce strict SSRF protections: only HTTP and HTTPS schemes are permitted, credentials in URLs are rejected, redirects are not followed during connectivity checks, and link-local/cloud metadata IPs (`169.254.0.0/16`, `fe80::/10`) are blocked.

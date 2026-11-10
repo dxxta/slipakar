@@ -5,10 +5,10 @@ import { buildOpenApiDocument } from './document.js';
 
 describe('buildOpenApiDocument', () => {
   it('builds top-level shape with openapi 3.1.0, info, securitySchemes, and Error schema', () => {
-    const doc = buildOpenApiDocument([], { title: 'LokaSlip API', version: '1.0.0' });
+    const doc = buildOpenApiDocument([], { title: 'Slipakar API', version: '1.0.0' });
 
     expect(doc.openapi).toBe('3.1.0');
-    expect(doc.info).toEqual({ title: 'LokaSlip API', version: '1.0.0' });
+    expect(doc.info).toEqual({ title: 'Slipakar API', version: '1.0.0' });
     expect(doc.paths).toEqual({});
     expect(doc.components?.securitySchemes).toEqual({
       sessionCookie: {

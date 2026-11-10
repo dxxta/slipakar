@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
 import { describe, expect, it } from 'vitest';
-import { Avatar } from '@lokaslip/ui/avatar';
+import { Avatar } from '@slipakar/ui/avatar';
 
 describe('Avatar', () => {
   it('shows deterministic uppercase initials when no image is available', async () => {

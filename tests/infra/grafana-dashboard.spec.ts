@@ -39,21 +39,21 @@ function flattenPanels(panels: GrafanaPanel[]): GrafanaPanel[] {
 
 describe('Grafana Dashboard Specification', () => {
   const rootDir = process.cwd();
-  const dashboardPath = path.join(rootDir, 'infra/grafana/dashboards/lokaslip.json');
+  const dashboardPath = path.join(rootDir, 'infra/grafana/dashboards/slipakar.json');
 
   it('dashboard file exists and has valid top-level metadata', () => {
     expect(fs.existsSync(dashboardPath)).toBe(true);
     const content = fs.readFileSync(dashboardPath, 'utf8');
     const parsed: GrafanaDashboard = JSON.parse(content);
 
-    expect(parsed.uid).toBe('lokaslip-overview');
-    expect(parsed.title).toBe('LokaSlip overview');
+    expect(parsed.uid).toBe('slipakar-overview');
+    expect(parsed.title).toBe('Slipakar overview');
     expect(parsed.schemaVersion).toBe(39);
     expect(parsed.refresh).toBe('30s');
     expect(parsed.time?.from).toMatch(/now-6h/);
   });
 
-  it('contains at least 8 panels, unique IDs, datasource lokaslip-prometheus, and valid targets', () => {
+  it('contains at least 8 panels, unique IDs, datasource slipakar-prometheus, and valid targets', () => {
     const content = fs.readFileSync(dashboardPath, 'utf8');
     const parsed: GrafanaDashboard = JSON.parse(content);
     const allPanels = flattenPanels(parsed.panels || []);
@@ -67,12 +67,12 @@ describe('Grafana Dashboard Specification', () => {
     const uniqueIds = new Set(ids);
     expect(uniqueIds.size).toBe(ids.length);
 
-    // Every panel uses datasource lokaslip-prometheus and has non-empty expr
+    // Every panel uses datasource slipakar-prometheus and has non-empty expr
     for (const panel of metricPanels) {
       if (typeof panel.datasource === 'string') {
-        expect(panel.datasource).toBe('lokaslip-prometheus');
+        expect(panel.datasource).toBe('slipakar-prometheus');
       } else if (panel.datasource) {
-        expect(panel.datasource.uid).toBe('lokaslip-prometheus');
+        expect(panel.datasource.uid).toBe('slipakar-prometheus');
       } else {
         expect.fail(`Panel ${panel.title || panel.id} has no datasource defined`);
       }
@@ -86,7 +86,7 @@ describe('Grafana Dashboard Specification', () => {
     }
   });
 
-  it('key consistency: every lokaslip_, process_, nodejs_, and up metric used in panel expr exists in rendered metrics', async () => {
+  it('key consistency: every slipakar_, process_, nodejs_, and up metric used in panel expr exists in rendered metrics', async () => {
     const content = fs.readFileSync(dashboardPath, 'utf8');
     const parsed: GrafanaDashboard = JSON.parse(content);
     const allPanels = flattenPanels(parsed.panels || []);
@@ -113,7 +113,7 @@ describe('Grafana Dashboard Specification', () => {
     }
 
     // Extract metric names from expressions
-    const exprRegex = /(lokaslip_[a-zA-Z0-9_]+|process_[a-zA-Z0-9_]+|nodejs_[a-zA-Z0-9_]+|\bup\b)/g;
+    const exprRegex = /(slipakar_[a-zA-Z0-9_]+|process_[a-zA-Z0-9_]+|nodejs_[a-zA-Z0-9_]+|\bup\b)/g;
 
     for (const panel of metricPanels) {
       for (const target of panel.targets || []) {
@@ -124,7 +124,7 @@ describe('Grafana Dashboard Specification', () => {
             continue; // Prometheus built-in
           }
 
-          if (metricName.startsWith('lokaslip_')) {
+          if (metricName.startsWith('slipakar_')) {
             // Histogram buckets/sums/counts
             const baseHistogramName = metricName
               .replace(/_bucket$/, '')

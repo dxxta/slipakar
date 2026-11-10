@@ -39,7 +39,7 @@ describe('SessionService', () => {
 
 describe('adminAuthCallbackUrl', () => {
   it('uses the app base path in production and root in development', () => {
-    expect(adminAuthCallbackUrl('https://lokaslip.example', '/console/')).toBe('https://lokaslip.example/console/');
+    expect(adminAuthCallbackUrl('https://slipakar.example', '/console/')).toBe('https://slipakar.example/console/');
     expect(adminAuthCallbackUrl('http://localhost:4301', '/')).toBe('http://localhost:4301/');
   });
 });

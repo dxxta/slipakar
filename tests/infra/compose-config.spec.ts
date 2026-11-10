@@ -20,12 +20,16 @@ describe('docker-compose.yml configuration', () => {
       dockerComposeAvailable = false;
     }
 
-    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lokaslip-compose-test-'));
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'slipakar-compose-test-'));
     validEnvFile = path.join(tmpDir, 'valid.env');
 
     const validEnvContent = [
       'POSTGRES_PASSWORD=fake-postgres-pw',
+      'POSTGRES_USER=slipakar',
+      'POSTGRES_DB=slipakar',
       'RABBITMQ_PASSWORD=fake-rabbitmq-pw',
+      'RABBITMQ_USER=slipakar',
+      'S3_BUCKET=slipakar',
       'S3_ACCESS_KEY=GK0123456789abcdef01234567',
       'S3_SECRET_KEY=00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff',
       'GARAGE_RPC_SECRET=00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff',
@@ -64,6 +68,7 @@ describe('docker-compose.yml configuration', () => {
     );
 
     const config = JSON.parse(output);
+    expect(config.name).toBe('slipakar');
     expect(config.services).toBeDefined();
 
     const expectedServices = [
@@ -126,6 +131,13 @@ describe('docker-compose.yml configuration', () => {
     expect(config.services.web.depends_on.api.condition).toBe('service_healthy');
     expect(config.services.web.restart).toBe('unless-stopped');
     expect(config.services.api.environment.TRUSTED_ORIGINS).toBe('http://localhost:8080');
+    expect(config.services.postgres.environment.POSTGRES_USER).toBe('slipakar');
+    expect(config.services.postgres.environment.POSTGRES_DB).toBe('slipakar');
+    expect(config.services.rabbitmq.environment.RABBITMQ_DEFAULT_USER).toBe('slipakar');
+    expect(config.services.api.environment.DATABASE_URL).toBe('postgresql://slipakar:fake-postgres-pw@postgres:5432/slipakar');
+    expect(config.services.api.environment.RABBITMQ_URL).toBe('amqp://slipakar:fake-rabbitmq-pw@rabbitmq:5672');
+    expect(config.services.api.environment.S3_BUCKET).toBe('slipakar');
+    expect(config.services['garage-init'].environment.S3_BUCKET).toBe('slipakar');
 
     expect(config.services.landing).toBeUndefined();
     const landingConfigOutput = execFileSync(
@@ -147,6 +159,43 @@ describe('docker-compose.yml configuration', () => {
     }
     expect(apiDepends['garage-init'], 'Expected api to depend on garage-init').toBeDefined();
     expect(apiDepends['garage-init'].condition).toBe('service_completed_successfully');
+  });
+
+  it('allows existing deployments to retain their database, queue, bucket, and compose project names', ({ skip }) => {
+    if (!dockerComposeAvailable) {
+      skip('docker compose command is unavailable in this environment');
+    }
+
+    const legacyEnvFile = path.join(tmpDir, 'legacy-names.env');
+    const legacyValues = [
+      'COMPOSE_PROJECT_NAME=existing-stack',
+      'POSTGRES_USER=existing-user',
+      'POSTGRES_DB=existing-db',
+      'POSTGRES_PASSWORD=fake-postgres-pw',
+      'RABBITMQ_USER=existing-user',
+      'RABBITMQ_PASSWORD=fake-rabbitmq-pw',
+      'S3_BUCKET=existing-bucket',
+    ];
+    const otherValues = fs.readFileSync(validEnvFile, 'utf8').split('\n').filter((line) =>
+      !/^(COMPOSE_PROJECT_NAME|POSTGRES_USER|POSTGRES_DB|POSTGRES_PASSWORD|RABBITMQ_USER|RABBITMQ_PASSWORD|S3_BUCKET)=/.test(line),
+    );
+    fs.writeFileSync(legacyEnvFile, [...legacyValues, ...otherValues].join('\n'), 'utf8');
+
+    const output = execFileSync(
+      'docker',
+      ['compose', '-f', composeFile, '--env-file', legacyEnvFile, 'config', '--format', 'json'],
+      { stdio: ['pipe', 'pipe', 'pipe'], encoding: 'utf8' },
+    );
+    const config = JSON.parse(output);
+
+    expect(config.name).toBe('existing-stack');
+    expect(config.services.postgres.environment.POSTGRES_USER).toBe('existing-user');
+    expect(config.services.postgres.environment.POSTGRES_DB).toBe('existing-db');
+    expect(config.services.rabbitmq.environment.RABBITMQ_DEFAULT_USER).toBe('existing-user');
+    expect(config.services.api.environment.DATABASE_URL).toBe('postgresql://existing-user:fake-postgres-pw@postgres:5432/existing-db');
+    expect(config.services.api.environment.RABBITMQ_URL).toBe('amqp://existing-user:fake-rabbitmq-pw@rabbitmq:5672');
+    expect(config.services.api.environment.S3_BUCKET).toBe('existing-bucket');
+    expect(config.services['garage-init'].environment.S3_BUCKET).toBe('existing-bucket');
   });
 
   it('fails compose config when POSTGRES_PASSWORD is missing', ({ skip }) => {

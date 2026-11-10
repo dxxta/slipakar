@@ -16,8 +16,8 @@ import {
   tablerLoader2,
 } from '@ng-icons/tabler-icons';
 import { BrnSonnerImports, type ToasterProps } from '@spartan-ng/brain/sonner';
-import { HlmButtonImports } from '@lokaslip/ui/button';
-import { hlm } from '@lokaslip/ui/utils';
+import { HlmButtonImports } from '@slipakar/ui/button';
+import { hlm } from '@slipakar/ui/utils';
 import type { ClassValue } from 'clsx';
 
 @Component({

@@ -1,5 +1,5 @@
 {
-  "name": "@lokaslip/admin-web",
+  "name": "@slipakar/admin-web",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",

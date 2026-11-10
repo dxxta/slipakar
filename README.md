@@ -1,4 +1,4 @@
-# Lokaslip
+# Slipakar
 
 ![Angular](https://img.shields.io/badge/Angular-DD0031?style=flat&logo=angular&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
@@ -16,7 +16,7 @@
 ![Uptime Kuma](https://img.shields.io/badge/Uptime_Kuma-5CDD8B?style=flat&logo=uptimekuma&logoColor=white)
 ![Garage S3](https://img.shields.io/badge/Garage_S3-1E1E1E?style=flat)
 
-LokaSlip is an open-source, self-hostable platform for personalized bulk email. It lets a company send messages through its own SMTP server and optionally attach a personalized PDF, such as an employee payslip, to each recipient.
+Slipakar is an open-source, self-hostable platform for personalized bulk email. It lets a company send messages through its own SMTP server and optionally attach a personalized PDF, such as an employee payslip, to each recipient.
 
 The primary use case is HR, finance, or operations uploading a spreadsheet, mapping its columns to a reusable email or PDF template, previewing the result, and sending a campaign without writing code.
 
@@ -191,8 +191,8 @@ make dev-landing
 The API defaults to port `3000`. Angular `ng serve` defaults to port `4200`; run the apps separately or start them on different ports. For example, these workspace scripts accept Angular CLI arguments:
 
 ```bash
-npm run start -w @lokaslip/user-web -- --port 4300
-npm run start -w @lokaslip/admin-web -- --port 4301
+npm run start -w @slipakar/user-web -- --port 4300
+npm run start -w @slipakar/admin-web -- --port 4301
 ```
 
 The web dev-server proxies API requests to port `3000`.
@@ -260,8 +260,8 @@ Useful Make targets are listed below. `make check` runs typechecking, lint, and 
 | `test-all` | Run all test suites across the API and frontend apps. |
 | `check` | Run all quality checks: `typecheck`, `lint`, and `test-all`. |
 | `build` | Build all TypeScript packages and applications across the workspace. |
-| `docker-build` | Build the production Docker image for the API service (`lokaslip-api:dev`). |
-| `docker-build-web` | Build the combined production Docker image for both web apps (`lokaslip-web:dev`). |
+| `docker-build` | Build the production Docker image for the API service (`slipakar-api:dev`). |
+| `docker-build-web` | Build the combined production Docker image for both web apps (`slipakar-web:dev`). |
 | `db-generate` | Generate the Prisma Client from `apps/api/prisma/schema.prisma`. |
 | `db-migrate-dev` | Create and apply a new Prisma database migration in development. |
 | `db-migrate-deploy` | Deploy pending Prisma database migrations to the target database. |
@@ -318,7 +318,7 @@ The API environment schema is in `apps/api/src/config/env.ts`. Compose-specific 
 | `S3_USE_SSL` | No | `false` | Whether to use TLS to the object store. |
 | `S3_ACCESS_KEY` | API/Compose: yes | None | Object-store access key; Garage keys use the `GK` prefix plus 24 hex characters. |
 | `S3_SECRET_KEY` | API/Compose: yes | None | Object-store secret key; Garage expects 64 hex characters. |
-| `S3_BUCKET` | API: yes | Compose uses `lokaslip` | Bucket for attachments, generated PDFs, and error records. |
+| `S3_BUCKET` | API: yes | Compose uses `slipakar` | Bucket for attachments, generated PDFs, and error records. |
 | `S3_REGION` | No | `garage` | S3 signing region. |
 | `S3_PATH_STYLE` | No | `true` | Use path-style S3 requests. |
 | `REDIS_URL` | API: yes | Compose uses `redis://redis:6379` | Redis connection URL. |
@@ -383,11 +383,11 @@ Participation in the project is covered by the [Code of Conduct](CODE_OF_CONDUCT
 
 ## License
 
-LokaSlip is distributed under the [Apache License 2.0](LICENSE).
+Slipakar is distributed under the [Apache License 2.0](LICENSE).
 
 ## Acknowledgements
 
-LokaSlip stands on the work of many open-source projects and free services. Thank you to the maintainers and communities behind:
+Slipakar stands on the work of many open-source projects and free services. Thank you to the maintainers and communities behind:
 
 - **Frontend**: [Angular](https://angular.dev), [Spartan NG](https://www.spartan.ng), [Tailwind CSS](https://tailwindcss.com), [ng-icons](https://ng-icons.github.io/ng-icons/) with [Tabler Icons](https://tabler.io/icons), [RxJS](https://rxjs.dev).
 - **Backend**: [Node.js](https://nodejs.org), [Express](https://expressjs.com), [Better Auth](https://www.better-auth.com), [Prisma](https://www.prisma.io), [Zod](https://zod.dev), [Pino](https://getpino.io), [Nodemailer](https://nodemailer.com), [PDFKit](https://pdfkit.org), [ExcelJS](https://github.com/exceljs/exceljs), [Scalar](https://scalar.com).
@@ -395,4 +395,10 @@ LokaSlip stands on the work of many open-source projects and free services. Than
 - **Observability**: [Prometheus](https://prometheus.io), [Grafana](https://grafana.com), [Uptime Kuma](https://github.com/louislam/uptime-kuma), and [Sentry](https://sentry.io) for optional browser error reporting.
 - **Data**: [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors for map tiles, and [geoip-lite](https://github.com/geoip-lite/node-geoip), which includes GeoLite data created by [MaxMind](https://www.maxmind.com).
 
-Each project keeps its own license; please read them before redistributing or offering LokaSlip as a hosted service.
+Each project keeps its own license; please read them before redistributing or offering Slipakar as a hosted service.
+
+## Brand assets (TODO)
+
+- Create a Slipakar favicon for the three web apps: `apps/user-web/public`, `apps/admin-web/public`, and `apps/landing-web/public`.
+- Create a landing-page Open Graph image at 1200×630 pixels.
+- Create a Slipakar wordmark.

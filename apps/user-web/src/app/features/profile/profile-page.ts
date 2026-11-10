@@ -8,7 +8,7 @@ import { environment } from '../../../environments/environment';
 import { SessionService } from '../../core/session.service';
 import { ThemePreferencesService } from '../../core/theme-preferences.service';
 import type { ThemeAccent, ThemeMode } from '../../core/theme-preferences';
-import { Avatar } from '@lokaslip/ui/avatar';
+import { Avatar } from '@slipakar/ui/avatar';
 import { HlmButton } from '../../ui/button/src';
 import { PageHeader, SelectControl } from '../../ui';
 
@@ -149,7 +149,7 @@ import { PageHeader, SelectControl } from '../../ui';
     <section class="space-y-5 rounded-ui-lg border border-border bg-card p-card" aria-labelledby="appearance-heading">
       <div>
         <h2 id="appearance-heading" class="text-lg font-semibold">Appearance</h2>
-        <p class="mt-1 text-sm text-muted-foreground">Choose how Lokaslip looks on this device and your account.</p>
+        <p class="mt-1 text-sm text-muted-foreground">Choose how Slipakar looks on this device and your account.</p>
       </div>
       <div class="grid gap-5 sm:grid-cols-2">
         <div class="grid content-start gap-2">
@@ -213,17 +213,17 @@ export class ProfilePage {
     const user = this.session.user();
     this.name.set(user?.name ?? '');
     this.image.set(user?.image ?? '');
-    const oldEmail = sessionStorage.getItem('lokaslip:pending-email-old');
+    const oldEmail = sessionStorage.getItem('slipakar:pending-email-old');
     void this.session.loadSession().then((updated) => {
       if (updated?.name) this.name.set(updated.name);
       if (updated?.image) this.image.set(updated.image);
       if (oldEmail && updated && updated.email !== oldEmail) {
-        sessionStorage.removeItem('lokaslip:pending-email-old');
-        sessionStorage.removeItem('lokaslip:pending-email-new');
+        sessionStorage.removeItem('slipakar:pending-email-old');
+        sessionStorage.removeItem('slipakar:pending-email-new');
         this.success.set('Your email address has been updated.');
       }
     });
-    const pending = sessionStorage.getItem('lokaslip:pending-email-new');
+    const pending = sessionStorage.getItem('slipakar:pending-email-new');
     if (pending) this.pendingEmail.set(pending);
   }
 
@@ -315,8 +315,8 @@ export class ProfilePage {
     this.http.post('/api/auth/change-email', { newEmail, callbackURL: '/profile' }).subscribe({
       next: () => {
         const current = this.session.user();
-        if (current?.email) sessionStorage.setItem('lokaslip:pending-email-old', current.email);
-        sessionStorage.setItem('lokaslip:pending-email-new', newEmail);
+        if (current?.email) sessionStorage.setItem('slipakar:pending-email-old', current.email);
+        sessionStorage.setItem('slipakar:pending-email-new', newEmail);
         this.pendingEmail.set(newEmail);
         this.newEmail.set('');
         this.emailSending.set(false);
@@ -338,7 +338,7 @@ export class ProfilePage {
   }
 
   accentLabel(accent: ThemeAccent): string {
-    if (accent === 'slate') return 'Lokaslip accent';
+    if (accent === 'slate') return 'Slipakar accent';
     return `${accent.charAt(0).toUpperCase()}${accent.slice(1)} accent`;
   }
 
