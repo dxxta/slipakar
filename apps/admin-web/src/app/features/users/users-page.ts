@@ -4,10 +4,11 @@ import { HlmBadge } from '../../ui/badge/src';
 import { HlmButton } from '../../ui/button/src';
 import { ConfirmModal, DataTableControls, Drawer, ListBody, PageHeader, Pagination, RowActions, type RowActionItem, SelectControl } from '../../ui';
 import { type AdminUser, type AdminUserSort, UsersService } from './users.service';
+import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
   selector: 'app-users-page',
-  imports: [CommonModule, HlmBadge, HlmButton, ConfirmModal, DataTableControls, Drawer, ListBody, PageHeader, Pagination, RowActions, SelectControl],
+  imports: [Ripple, CommonModule, HlmBadge, HlmButton, ConfirmModal, DataTableControls, Drawer, ListBody, PageHeader, Pagination, RowActions, SelectControl],
   template: `
     <app-page-header
       title="Users"
@@ -32,18 +33,18 @@ import { type AdminUser, type AdminUserSort, UsersService } from './users.servic
       (clearQuery)="search('')"
     >
       <div list-content class="overflow-x-auto rounded-ui-lg border border-border bg-card">
-        <table class="w-full text-left text-sm" aria-label="Users">
+        <table data-responsive class="w-full text-left text-sm" aria-label="Users">
           <thead class="border-b border-border bg-muted/40 text-xs uppercase text-muted-foreground">
             <tr><th class="px-4 py-3">User</th><th class="px-4 py-3">Role</th><th class="px-4 py-3">Projects</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-right">Actions</th></tr>
           </thead>
           <tbody class="divide-y divide-border">
             @for (user of users(); track user.id) {
               <tr class="hover:bg-muted/40">
-                <td class="max-w-xs px-4 py-4"><p class="truncate font-medium">{{ user.name || 'Unnamed user' }}</p><p class="truncate text-xs text-muted-foreground">{{ user.email }}</p></td>
-                <td class="px-4 py-4">{{ user.role }}</td>
-                <td class="px-4 py-4 tabular-nums">{{ user.projectCount }}</td>
-                <td class="px-4 py-4">@if (user.disabledAt) { <span hlmBadge variant="destructive">Disabled</span> } @else { <span hlmBadge variant="secondary">Active</span> }</td>
-                <td class="px-4 py-4 text-right">
+                <td data-label="User" class="max-w-xs px-4 py-4"><p class="truncate font-medium">{{ user.name || 'Unnamed user' }}</p><p class="truncate text-xs text-muted-foreground">{{ user.email }}</p></td>
+                <td data-label="Role" class="px-4 py-4">{{ user.role }}</td>
+                <td data-label="Projects" class="px-4 py-4 tabular-nums">{{ user.projectCount }}</td>
+                <td data-label="Status" class="px-4 py-4">@if (user.disabledAt) { <span hlmBadge variant="destructive">Disabled</span> } @else { <span hlmBadge variant="secondary">Active</span> }</td>
+                <td data-label="Actions" class="px-4 py-4 text-right">
                   <div class="flex justify-end">
                     <app-row-actions
                       [label]="'Actions for ' + user.email"
