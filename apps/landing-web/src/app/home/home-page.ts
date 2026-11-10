@@ -12,6 +12,9 @@ import { HOME_SECTION_COMPONENTS } from './home-sections';
   imports: [...HOME_SECTION_COMPONENTS],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <div class="tile-backdrop" aria-hidden="true">
+      @for (tile of backdropTiles; track tile) { <span></span> }
+    </div>
     <landing-header [copy]="content.home" [language]="content.language" />
     <main>
       <landing-hero [copy]="content.home" />
@@ -28,6 +31,7 @@ import { HOME_SECTION_COMPONENTS } from './home-sections';
   `,
 })
 export class HomePageComponent implements OnInit {
+  protected readonly backdropTiles = Array.from({ length: 320 }, (_, index) => index);
   private readonly route = inject(ActivatedRoute);
   private readonly seo = inject(SeoService);
   protected readonly content: LandingDictionary = this.route.snapshot.data['language'] === 'id' ? contentId : contentEn;

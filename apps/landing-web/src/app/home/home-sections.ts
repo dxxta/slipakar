@@ -1,24 +1,30 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { HomeCopy } from '../content/content.types';
 import { LANDING_CONFIG } from '../runtime-config';
-import { inject } from '@angular/core';
-import { HlmToggleGroup } from '@slipakar/ui/toggle-group';
+import { HlmToggleGroupImports } from '@slipakar/ui/toggle-group';
 
 @Component({
   selector: 'landing-language-toggle',
   standalone: true,
-  imports: [HlmToggleGroup],
+  imports: [...HlmToggleGroupImports],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div hlmToggleGroup role="group" class="language-toggle" [attr.aria-label]="language() === 'en' ? 'Language' : 'Bahasa'">
-      <a class="language-option" [class.language-option-active]="language() === 'id'" [href]="languagePathFor('id')" lang="id" hreflang="id" [attr.aria-current]="language() === 'id' ? 'true' : null" [attr.aria-pressed]="language() === 'id'">ID</a>
-      <a class="language-option" [class.language-option-active]="language() === 'en'" [href]="languagePathFor('en')" lang="en" hreflang="en" [attr.aria-current]="language() === 'en' ? 'true' : null" [attr.aria-pressed]="language() === 'en'">EN</a>
+    <div hlmToggleGroup type="single" [value]="language()" [nullable]="false" class="language-toggle" [attr.aria-label]="language() === 'en' ? 'Language' : 'Bahasa'">
+      <button hlmToggleGroupItem class="language-option" [class.language-option-active]="language() === 'id'" value="id" lang="id" type="button" (click)="selectLanguage('id')">ID</button>
+      <button hlmToggleGroupItem class="language-option" [class.language-option-active]="language() === 'en'" value="en" lang="en" type="button" (click)="selectLanguage('en')">EN</button>
     </div>
   `,
 })
 export class LandingLanguageToggleComponent {
   readonly language = input.required<'en' | 'id'>();
   readonly path = input.required<string>();
+  private readonly document = inject(DOCUMENT);
+
+  protected selectLanguage(targetLanguage: 'en' | 'id'): void {
+    const targetPath = this.languagePathFor(targetLanguage);
+    if (targetPath !== this.path()) this.document.defaultView?.location.assign(targetPath);
+  }
 
   protected languagePathFor(targetLanguage: 'en' | 'id'): string {
     const path = this.path();
@@ -62,7 +68,7 @@ export class LandingHeaderComponent {
   template: `
     <section class="hero section-shell" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <h1 id="hero-title">{{ copy().hero.title }}</h1>
+        <h1 id="hero-title">{{ titleParts().lead }} <span class="accent">{{ titleParts().accent }}</span></h1>
         <p class="hero-description">{{ copy().hero.description }}</p>
         <div class="hero-actions">
           <a class="button button-primary" [href]="config.appUrl">{{ copy().hero.signIn }}<span class="arrow-mark" aria-hidden="true"></span></a>
@@ -89,6 +95,11 @@ export class LandingHeaderComponent {
 export class LandingHeroComponent {
   readonly copy = input.required<HomeCopy>();
   protected readonly placeholderLabel = '{{name}}';
+  protected readonly titleParts = computed(() => {
+    const title = this.copy().hero.title.trim();
+    const lastSpace = title.lastIndexOf(' ');
+    return { lead: lastSpace < 0 ? '' : title.slice(0, lastSpace), accent: title.slice(lastSpace + 1) };
+  });
   protected readonly config = inject(LANDING_CONFIG);
 }
 
@@ -97,11 +108,13 @@ export class LandingHeroComponent {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="audience section-shell" aria-labelledby="audience-title">
-      <h2 id="audience-title">{{ copy().audience.title }}</h2>
-      <ul class="audience-list">
-        @for (item of copy().audience.items; track item) { <li>{{ item }}</li> }
-      </ul>
+    <section class="audience" aria-labelledby="audience-title">
+      <div class="audience-inner section-shell">
+        <h2 id="audience-title">{{ copy().audience.title }}</h2>
+        <ul class="audience-list">
+          @for (item of copy().audience.items; track item) { <li>{{ item }}</li> }
+        </ul>
+      </div>
     </section>
   `,
 })

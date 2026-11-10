@@ -23,7 +23,7 @@ describe('App', () => {
     expect(compiled.querySelector('router-outlet')).not.toBeNull();
   });
 
-  it('renders real, localized language links with the active language marked', async () => {
+  it('renders an accessible Spartan language toggle group with the active language marked', async () => {
     await TestBed.configureTestingModule({
       imports: [LandingHeaderComponent],
       providers: [{ provide: LANDING_CONFIG, useValue: { appUrl: '/', siteUrl: 'https://example.test', repoUrl: '/', docsUrl: '/' } }],
@@ -37,15 +37,12 @@ describe('App', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    const group = fixture.nativeElement.querySelector('[aria-label="Language"]') as HTMLElement;
-    const links = [...group.querySelectorAll('a')] as HTMLAnchorElement[];
-    expect(links.map((link) => link.textContent?.trim())).toEqual(['ID', 'EN']);
-    expect(links.map((link) => link.getAttribute('href'))).toEqual(['/id', '/']);
-    expect(links.map((link) => link.getAttribute('hreflang'))).toEqual(['id', 'en']);
-    expect(links.map((link) => link.getAttribute('lang'))).toEqual(['id', 'en']);
-    expect(links.map((link) => link.getAttribute('aria-current'))).toEqual([null, 'true']);
-    expect(links.every((link) => link.getAttribute('aria-pressed') !== null)).toBe(true);
-    expect(links.every((link) => link.getAttribute('class')?.includes('language-option'))).toBe(true);
+    const group = fixture.nativeElement.querySelector('[role="group"][aria-label="Language"]') as HTMLElement;
+    const toggles = [...group.querySelectorAll('button[hlmToggleGroupItem]')] as HTMLButtonElement[];
+    expect(toggles.map((toggle) => toggle.textContent?.trim())).toEqual(['ID', 'EN']);
+    expect(toggles.map((toggle) => toggle.getAttribute('lang'))).toEqual(['id', 'en']);
+    expect(toggles.map((toggle) => toggle.getAttribute('aria-pressed'))).toEqual(['false', 'true']);
+    expect(toggles.every((toggle) => toggle.getAttribute('class')?.includes('language-option'))).toBe(true);
   });
 
   it('keeps language links for the matching localized terms path', async () => {
@@ -56,8 +53,8 @@ describe('App', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    const links = [...(fixture.nativeElement as HTMLElement).querySelectorAll('a')] as HTMLAnchorElement[];
-    expect(links.map((link) => link.getAttribute('href'))).toEqual(['/id/terms', '/terms']);
-    expect(links.map((link) => link.getAttribute('aria-current'))).toEqual(['true', null]);
+    const toggles = [...(fixture.nativeElement as HTMLElement).querySelectorAll('button[hlmToggleGroupItem]')] as HTMLButtonElement[];
+    expect(toggles.map((toggle) => toggle.getAttribute('aria-pressed'))).toEqual(['true', 'false']);
+    expect(fixture.nativeElement.querySelector('[aria-label="Bahasa"]')).not.toBeNull();
   });
 });
