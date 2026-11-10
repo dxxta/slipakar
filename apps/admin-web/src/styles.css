@@ -82,3 +82,16 @@
 @keyframes loading-bar-run { from { transform: scaleX(0.08); } to { transform: scaleX(0.92); } }
 .loading-bar-running { animation: loading-bar-run 8s cubic-bezier(0.1, 0.6, 0.2, 1) forwards; }
 @media (prefers-reduced-motion: reduce) { .loading-bar-running { animation: none; transform: scaleX(0.5); } }
+
+/* Mobile filters: search on its own row, every filter shares the next row evenly. */
+@media (max-width: 767px) {
+  app-data-table-controls div[table-filters] {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: var(--ui-list-gap, 0.75rem);
+    width: 100%;
+  }
+  app-data-table-controls div[table-filters] label { min-width: 0 !important; width: 100%; }
+  app-data-table-controls div[table-filters] select { width: 100%; }
+}
+
