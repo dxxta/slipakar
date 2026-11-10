@@ -1,6 +1,94 @@
 # Changelog
 
 
+## [3.1.2](///compare/v3.1.1...v3.1.2) (2026-11-10)
+
+### Features
+
+* **admin-web:** add a shared ripple directive with click tooltips 5ace35d
+* **admin-web:** add a top loading bar driven by API requests 5489fca
+* **admin-web:** add an icon-only back button 2428649
+* **admin-web:** add segmented pill tabs d6a8dbe
+* **admin-web:** add sticky drawer footer slot b097f0b
+* **admin-web:** align broadcasts page sizes, card tables on mobile and ripple fe1245d
+* **admin-web:** align confirm modal control sizes 1679370
+* **admin-web:** align feature flags page sizes, card tables on mobile and ripple 17c9b39
+* **admin-web:** align list body action sizes 576425c
+* **admin-web:** align login activity page sizes, card tables on mobile and ripple 1b386ce
+* **admin-web:** align monitoring page sizes, card tables on mobile and ripple c191210
+* **admin-web:** align page header 3249254
+* **admin-web:** align page state ripple and sizes b3e14e0
+* **admin-web:** align pagination spacing and sizes 2c0953a
+* **admin-web:** align preferences page sizes, card tables on mobile and ripple 6abe770
+* **admin-web:** align select control height b2267f0
+* **admin-web:** align setup page sizes, card tables on mobile and ripple 6e19d5d
+* **admin-web:** align tabs a95e70b
+* **admin-web:** align users page sizes, card tables on mobile and ripple d366faf
+* **admin-web:** broadcast drawers use the sticky footer for actions 96d208b
+* **admin-web:** broadcasts page action becomes a 3-dot menu on mobile a8ed220
+* **admin-web:** export back button and segmented tabs 1fd24ea
+* **admin-web:** fixed collapsible icon sidebar and surface mobile header e137d10
+* **admin-web:** float the account menu above the sidebar with the theme toggle a2ff974
+* **admin-web:** move the theme toggle into a menu item ba27f2b
+* **admin-web:** right-align row actions with icon set and solid variant c4ea218
+* **admin-web:** setup drawer uses the sticky footer for actions 6991ca4
+* **admin-web:** stack list filters evenly on mobile 4e81900
+* **admin-web:** users drawer uses the sticky footer for actions e8ac63f
+* **landing-web:** floating theme toggle e201057
+* **landing-web:** palette, fonts and pressed directive be9c7c8
+* **landing-web:** playful redesign with chunky type, pill buttons and bold colour blocks c93a6c2
+* **landing-web:** refine playful landing design cc2cb0b
+* **pdf:** add a resizable solid sheet element and a template name header card 96d1d8a
+* **pdf:** show uploaded images in the editor, add print preview and fold the template name into the editor card 2826599
+* **theme:** tint surfaces, borders and muted colors with the chosen accent and fix accent swatch spacing 29a10f6
+* **user-web:** accent table headers, drawer footers, surface mobile header and card-style tables on mobile e010661
+* **user-web:** add plus icons to new actions 680f26b
+* **user-web:** add styled and unstyled appearance e364a60
+* **user-web:** align the sidebar toggle with the row-action button style 2c0179f
+* **user-web:** align theme tokens and fonts 7f2a1c4
+* **user-web:** card-per-row mobile tables with a main column, status aside and action button 1428bd4
+* **user-web:** customize per-theme base colors c31b0c9
+* **user-web:** mobile icon-only actions, desktop control sizes, even filters, scrollable summary cards and profile remove fix 8b0e543
+* **user-web:** put project tabs beside the back link and move detail back buttons next to page actions 0748f63
+* **user-web:** top loading bar, two-column mobile tables and a shared ripple directive 3c80083
+* **user-web:** upload images into PDF templates and use icon chips for new elements 5a5501c
+* **user-web:** use solid icon buttons to duplicate or delete a PDF node 47c8b4b
+
+### Bug Fixes
+
+* **admin-web:** keep drawer footers in their own blocks so they project into the footer e1fa27c
+* **api:** explain why an integration connection test failed bcc9061
+* **landing-web:** audience cards, dark accent text, language tabs and section dividers 939562a
+* **landing-web:** remove open-source borders and keep ink borders on coloured blocks f2aab9f
+* **user-web:** apply content link styling inside layout 80266c6
+* **user-web:** apply tactile styling to standalone buttons efc9269
+* **user-web:** drop the duplicate close button from detail drawers cf12b03
+* **user-web:** keep accent swatches consistent across themes 14fcc9b
+* **user-web:** keep content links readable across themes 38b202b
+* **user-web:** keep page actions beside headings 049b722
+* **user-web:** keep sortable headers plain eea87e8
+* **user-web:** let the pressed state win over hover on sidebar buttons 0d0ac20
+* **user-web:** make avatar URL and Remove a true joined input group c7d7c0f
+* **user-web:** make PDF editor chips quiet controls 50a3ab2
+* **user-web:** make sidebar toggle and account button press like New project 0b164bc
+* **user-web:** match collapsed profile button radius to the sidebar toggle 84a5604
+* **user-web:** remove logo eafb509
+* **user-web:** render accent swatches with real colors cceabc4
+* **user-web:** render sortable column names as plain header text 4a54ad7
+* **user-web:** restore lime accent and black third e343424
+* **user-web:** restore pressed style on sidebar collapse button 064f709
+* **user-web:** restyle account menu actions d844dce
+* **user-web:** show unsaved changes beside the template name label 1b4f328
+* **user-web:** simplify account menu sign out 55cdf97
+* **user-web:** simplify dropdown menu rows 81912e1
+* **user-web:** square sidebar navigation controls 4f18b54
+* **user-web:** unify avatar URL input group 1d82c0c
+* **user-web:** wrap multi-line mobile table values below each other, right-aligned 65a5b41
+
+### Chores
+
+* **infra:** allow Google Fonts in web CSP 6176e5a
+
 ## [3.1.1](///compare/v3.1.0...v3.1.1) (2026-11-10)
 
 ### Bug Fixes
