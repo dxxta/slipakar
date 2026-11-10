@@ -22,6 +22,8 @@ RUN if [ -n "$SENTRY_DSN_USER" ]; then \
       sed -i "s|sentryDsn: ''|sentryDsn: '${SENTRY_DSN_ADMIN}'|" apps/admin-web/src/environments/environment.production.ts; \
     fi
 
+RUN npm run build --workspace=@slipakar/shared
+
 RUN cd apps/user-web && npx ng build --configuration production && \
     cd ../admin-web && npx ng build --configuration production --base-href /console/
 
