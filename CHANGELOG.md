@@ -1,5 +1,36 @@
 # Changelog
 
+
+## [3.0.0](///compare/v2.0.0...v3.0.0) (2026-11-10)
+
+### ⚠ BREAKING CHANGES
+
+* npm workspace packages move to the `@slipakar` scope, Prometheus metrics use the slipakar_ prefix, the Grafana dashboard, datasource and job are renamed, the browser theme storage key changes (the previous key is still read as a fallback), and the default PostgreSQL, RabbitMQ, S3 bucket and Compose project names change. Existing deployments keep their data by setting POSTGRES_USER, POSTGRES_DB, RABBITMQ_USER, S3_BUCKET and COMPOSE_PROJECT_NAME to the previous values; see the upgrade section in docs/SELF-HOSTING.md.
+
+### Features
+
+* **landing-web:** public Angular SSR landing site fdfb6e0
+* rebrand to Slipakar 403d037
+* **ui:** align admin and user themes with the landing palette ef8416d
+
+### Bug Fixes
+
+* **user-web:** use the default size for the remove-avatar button 492b43d
+
+### Refactoring
+
+* **landing-web:** remove the dev-only admin link and keep admin and API paths off the page bbcc8f0
+* **web:** serve user and admin apps from a single origin 7a33d93
+* **web:** switch admin and user apps to Tabler icons 6b2d8c7
+
+### Documentation
+
+* **dev:** document running the landing site locally 277fbc3
+
+### Chores
+
+* **dev:** run each app locally against dockerized infrastructure 31af8c4
+
 ## 2.0.0 (2026-11-08)
 
 ### Features
