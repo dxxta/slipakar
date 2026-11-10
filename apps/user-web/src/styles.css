@@ -302,19 +302,19 @@ table:not(.preview-table) thead th button { color: inherit !important; }
 }
 
 /* Standalone actions share the landing page's tactile control treatment. */
-button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]),
+button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.account-menu-signout),
 a[data-slot='button'] {
   border: var(--border-width-strong) solid var(--ink-fixed) !important;
   border-radius: var(--radius-pill) !important;
   box-shadow: var(--shadow-hard) !important;
   transition: transform 140ms ease-out, box-shadow 140ms ease-out;
 }
-button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):hover:not(:disabled),
+button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.account-menu-signout):hover:not(:disabled),
 a[data-slot='button']:hover:not([aria-disabled='true']) {
   transform: translateY(-2px);
   box-shadow: var(--shadow-hover) !important;
 }
-button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):active:not(:disabled),
+button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.account-menu-signout):active:not(:disabled),
 a[data-slot='button']:active:not([aria-disabled='true']) {
   transform: translate(var(--press-x), var(--press-y));
   box-shadow: 0 0 0 var(--shadow-color) !important;
@@ -380,17 +380,26 @@ button.theme-accent-swatch[aria-pressed='true'] { outline: 3px solid var(--ring)
 .avatar-url-group > button[data-slot='button']:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):hover:not(:disabled) { transform: none !important; box-shadow: none !important; }
 button:disabled { cursor: not-allowed; opacity: 0.55; }
 button.account-menu-signout {
-  border: var(--border-width-strong) solid var(--ink-fixed) !important;
-  border-radius: var(--radius-pill) !important;
-  background: var(--lime) !important;
-  color: var(--ink-fixed) !important;
-  box-shadow: var(--shadow-hard) !important;
-  transition: transform 140ms ease-out, box-shadow 140ms ease-out;
+  height: var(--ui-control-9) !important;
+  width: 100% !important;
+  border: 2px solid color-mix(in srgb, var(--primary) 48%, var(--foreground)) !important;
+  border-radius: var(--ui-radius-md) !important;
+  background: var(--card) !important;
+  color: var(--foreground) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  font-weight: 500 !important;
+  transition: background-color 120ms ease-out;
 }
-button.account-menu-signout:hover:not(:disabled) { background: var(--lime) !important; transform: translateY(-2px); box-shadow: var(--shadow-hover) !important; }
+button.account-menu-signout:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--primary) 12%, var(--card)) !important;
+  color: var(--foreground) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
 button.account-menu-signout:active:not(:disabled), button.account-menu-signout[data-pressed] {
-  transform: translate(var(--press-x), var(--press-y));
-  box-shadow: 0 0 0 var(--shadow-color) !important;
+  box-shadow: none !important;
+  transform: none !important;
 }
 
 :is(.rounded-xl, .rounded-ui-lg, [data-slot='card']) { border-radius: var(--radius-card); }
@@ -575,10 +584,10 @@ button.bg-destructive { color: var(--destructive-foreground) !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):hover:not(:disabled),
+  button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.account-menu-signout):hover:not(:disabled),
   button[data-row-action-trigger]:hover:not(:disabled),
   a[data-slot='button']:hover:not([aria-disabled='true']) { transform: none; }
-  button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]),
+  button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.account-menu-signout),
   button[data-row-action-trigger], a[data-slot='button'] { transition-duration: 0.01ms !important; }
 }
 
