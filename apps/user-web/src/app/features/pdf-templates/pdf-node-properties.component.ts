@@ -179,7 +179,7 @@ import { Pressed } from '../../ui/shared/pressed';
                     @for (p of placeholders; track p) {
                       <button
                         type="button"
-                        class="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground hover:bg-primary/10 hover:text-primary transition-colors"
+                        class="rounded bg-muted px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground hover:bg-primary/10 hover:text-foreground transition-colors"
                         [attr.data-testid]="'insert-placeholder-' + p"
                         (click)="insertTextPlaceholder(asTextNode(node), p)"
                       >

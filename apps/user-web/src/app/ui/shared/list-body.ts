@@ -22,7 +22,7 @@ export type ListBodyState = 'loading' | 'error' | 'ready';
     } @else if (query().trim()) {
       <section data-list-state="search-empty" role="status" class="rounded-ui-lg border border-dashed border-border px-card py-10 text-center">
         <h2 class="font-medium">{{ emptyResultLabel() }} “{{ query().trim() }}”</h2>
-        <button type="button" data-action="clear-search" class="mt-3 h-control-9 rounded-ui-md px-3 text-sm font-medium text-primary underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" (click)="clearQuery.emit()">{{ clearLabel() }}</button>
+        <button type="button" data-action="clear-search" class="mt-3 h-control-9 rounded-ui-md px-3 text-sm font-medium text-foreground underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" (click)="clearQuery.emit()">{{ clearLabel() }}</button>
       </section>
     } @else {
       <section data-list-state="empty" role="status" class="rounded-ui-lg border border-dashed border-border px-card py-12 text-center">

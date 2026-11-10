@@ -91,7 +91,7 @@ interface FieldMappingSummary {
                 <li>
                   <a
                     [href]="'/projects/' + projectId() + '/' + item.tab"
-                    class="font-semibold underline hover:text-amber-950"
+                    class="font-semibold"
                     (click)="navigateToSection($event, item.tab)"
                   >
                     {{ item.label }}
@@ -154,7 +154,7 @@ interface FieldMappingSummary {
                 <span>No field mapping found for this template and upload combination. </span>
                 <a
                   [href]="'/projects/' + projectId() + '/data'"
-                  class="font-semibold underline hover:text-amber-950"
+                  class="font-semibold"
                   (click)="navigateToSection($event, 'data')"
                 >
                   Configure mapping in Data tab &rarr;

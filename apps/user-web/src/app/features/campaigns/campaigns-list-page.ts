@@ -60,7 +60,7 @@ import { Ripple } from '../../ui/shared/ripple';
                   <td data-label="Campaign" class="px-6 py-4 font-medium">
                     <a
                       [href]="'/projects/' + projectId() + '/campaigns/' + campaign.id"
-                      class="text-primary hover:underline tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      class="tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       (click)="navigateToDetail($event, campaign.id)"
                     >
                       Campaign #{{ campaign.id.slice(0, 8) }}

@@ -240,7 +240,7 @@ interface Project {
                         </span>
                       } @else {
                         <span
-                          class="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary"
+                          class="flex size-8 items-center justify-center rounded-full bg-primary/10 text-foreground"
                         >
                           <ng-icon name="tablerInfoCircle" class="size-4" />
                         </span>

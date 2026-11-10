@@ -22,7 +22,7 @@ export const buttonVariants = cva(
           'border-destructive/50 bg-background text-destructive hover:bg-destructive/10 focus-visible:border-destructive focus-visible:ring-destructive/30',
         destructiveSolid:
           'border-destructive bg-destructive text-[var(--destructive-foreground)] hover:bg-destructive/90 focus-visible:border-destructive focus-visible:ring-destructive/30',
-        link: 'text-primary underline-offset-4 hover:underline',
+        link: 'text-foreground underline-offset-4 hover:underline',
       },
       size: {
         default:

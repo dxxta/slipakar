@@ -123,7 +123,7 @@ type ProjectCounts = { campaigns: number; templates: number; uploads: number };
                     <a
                       [href]="'/projects/' + project.id"
                       (click)="openProject($event, project.id)"
-                      class="font-medium hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      class="font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       {{ project.name }}
                     </a>

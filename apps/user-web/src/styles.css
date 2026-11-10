@@ -492,3 +492,20 @@ button.bg-destructive { color: var(--destructive-foreground) !important; }
   button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle),
   button[data-row-action-trigger], a[data-slot='button'] { transition-duration: 0.01ms !important; }
 }
+
+/* Content links stay readable and identifiable without borrowing accent colors. */
+a:not([hlmBtn]):not(.btn):not([role='tab']):not([role='menuitem']):not([data-slot='button']):not(app-user-layout a):not(.wordmark) {
+  color: var(--foreground) !important;
+  text-decoration-line: underline !important;
+  text-decoration-color: currentColor !important;
+  text-decoration-thickness: 2px !important;
+  text-underline-offset: 0.2em !important;
+}
+a:not([hlmBtn]):not(.btn):not([role='tab']):not([role='menuitem']):not([data-slot='button']):not(app-user-layout a):not(.wordmark):hover {
+  color: var(--foreground) !important;
+  font-weight: 600;
+  text-decoration-thickness: 3px !important;
+}
+:is(.bg-primary, .bg-secondary, [class*='bg-amber-']) a:not([hlmBtn]):not(.btn):not([role='tab']):not([role='menuitem']):not([data-slot='button']) {
+  color: var(--ink-fixed) !important;
+}
