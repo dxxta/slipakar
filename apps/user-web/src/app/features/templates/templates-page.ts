@@ -28,7 +28,7 @@ import { type EmailTemplate, TemplatesService } from './templates.service';
               @for (template of templates(); track template.id) {
                 <tr [attr.data-testid]="'template-row-' + template.id" class="hover:bg-muted/30">
                   <th scope="row" class="px-4 py-3 font-medium text-foreground">{{ template.name }}</th><td class="max-w-md truncate px-4 py-3 text-muted-foreground">{{ template.subject }}</td><td class="px-4 py-3 text-muted-foreground tabular-nums">{{ (template.updatedAt || template.createdAt) | date: 'mediumDate' }}</td>
-                  <td class="px-4 py-2 text-right"><app-row-actions [attr.data-testid]="'template-actions-' + template.id" [label]="'Actions for ' + template.name" [items]="templateActions" (actionSelect)="handleTemplateAction($event, template)" />@if (confirmingDeleteId() === template.id) { <app-confirm-modal [open]="true" [title]="'Delete ' + template.name + '?'" message="This action cannot be undone." confirmLabel="Delete template" [confirmTestId]="'confirm-delete-' + template.id" (cancelled)="confirmingDeleteId.set(null)" (confirmed)="deleteTemplate(template.id)" /> }</td>
+                  <td class="px-4 py-2 text-right"><app-row-actions [attr.data-testid]="'template-actions-' + template.id" [label]="'Actions for ' + template.name" [items]="templateActions" (actionSelect)="handleTemplateAction($event, template)" /></td>
                 </tr>
               }
             </tbody>
@@ -41,6 +41,15 @@ import { type EmailTemplate, TemplatesService } from './templates.service';
         @if (detailTemplate(); as template) { <dl class="space-y-4"><div><dt class="text-xs font-medium text-muted-foreground">Name</dt><dd class="mt-1 font-medium">{{ template.name }}</dd></div><div><dt class="text-xs font-medium text-muted-foreground">Subject</dt><dd class="mt-1">{{ template.subject }}</dd></div><div><dt class="text-xs font-medium text-muted-foreground">HTML body</dt><dd class="mt-1 whitespace-pre-wrap break-words rounded-ui-md bg-muted p-3 font-mono text-xs">{{ template.bodyHtml }}</dd></div></dl> }
       </app-drawer>
     </div>
+    <app-confirm-modal
+      [open]="pendingDelete() !== null"
+      [title]="'Delete ' + (pendingDelete()?.name ?? 'this item') + '?'"
+      message="This will permanently remove this email template."
+      confirmLabel="Delete template"
+      [confirmTestId]="'confirm-delete-' + (pendingDelete()?.id ?? '')"
+      (cancelled)="confirmingDeleteId.set(null)"
+      (confirmed)="pendingDelete() && deleteTemplate(pendingDelete()!.id)"
+    />
   `,
 })
 export class TemplatesPage implements OnInit {
@@ -59,6 +68,7 @@ export class TemplatesPage implements OnInit {
   readonly listState = computed(() => this.loading() ? 'loading' as const : this.loadError() ? 'error' as const : 'ready' as const);
   readonly templateActions: RowActionItem[] = [{ id: 'detail', label: 'Detail', icon: 'eye' }, { id: 'edit', label: 'Edit', icon: 'pencil' }, { id: 'delete', label: 'Delete', icon: 'trash', destructive: true }];
   readonly confirmingDeleteId = signal<string | null>(null);
+  protected readonly pendingDelete = computed(() => this.templates().find((template) => template.id === this.confirmingDeleteId()) ?? null);
   readonly actionError = signal<string | null>(null);
   readonly actionSuccess = signal<string | null>(null);
 

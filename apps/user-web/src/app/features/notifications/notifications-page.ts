@@ -59,8 +59,8 @@ interface Project {
         </div>
       }
     </app-page-header>
-
-    <app-segmented-tabs class="mt-4"
+      <br/>
+    <app-segmented-tabs 
       ariaLabel="Notification categories"
       [items]="categoryTabs"
       [selected]="activeTab()"
@@ -117,6 +117,8 @@ interface Project {
       </div>
     </app-data-table-controls>
 
+    <br/>
+
     @if (actionError()) {
       <div
         role="alert"
@@ -125,10 +127,11 @@ interface Project {
       >
         {{ actionError() }}
       </div>
+        <br/>
     }
 
     @if (activeTab() === 'announcements') {
-      <section class="mt-4 space-y-4" aria-label="Announcements">
+      <section aria-label="Announcements">
         <app-list-body
           [state]="noticeLoading() ? 'loading' : noticeError() ? 'error' : 'ready'"
           [itemCount]="notices().length"
@@ -186,6 +189,7 @@ interface Project {
             </div>
           </div>
         </app-list-body>
+          <br/>
         <app-pagination [metadata]="noticeMetadata()" (pageChange)="loadNotices($event)" />
       </section>
     } @else {
@@ -291,6 +295,7 @@ interface Project {
 
         </div>
       </app-list-body>
+  <br/>
       <app-pagination
         [metadata]="{ page: currentPage(), limit: pageSize(), total: totalItems() }"
         (pageChange)="onPageChange($event)"

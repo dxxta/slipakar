@@ -28,7 +28,7 @@ import type { AttachmentItem } from './pdf-templates.service';
         </div>
       } @else {
         <!-- Header: Node Type & Actions -->
-        <div class="flex items-center justify-between border-b border-border pb-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-border pb-3">
           <div class="flex items-center gap-2">
             <span hlmBadge variant="outline" class="font-mono text-xs uppercase">
               {{ node.type }}
@@ -205,11 +205,11 @@ import type { AttachmentItem } from './pdf-templates.service';
 
               <div>
                 <label [for]="'text-color-' + node.id" class="mb-1 block text-xs font-medium">Color</label>
-                <div class="flex items-center gap-2">
+                <div class="flex min-w-0 items-center gap-2">
                   <input
                     type="color"
                     data-testid="text-color-picker"
-                    class="h-8 w-8 cursor-pointer rounded border border-input bg-background p-0.5"
+                    class="size-9 shrink-0 cursor-pointer rounded-ui-md border border-input bg-background p-0.5"
                     [ngModel]="asTextNode(node).style.color"
                     (ngModelChange)="onPatchStyle({ color: $event })"
                   />
@@ -217,7 +217,7 @@ import type { AttachmentItem } from './pdf-templates.service';
                     type="text"
                     [id]="'text-color-' + node.id"
                     data-testid="text-color"
-                    class="h-8 flex-1 font-mono uppercase rounded-md border border-input bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    class="h-control-9 min-w-0 flex-1 font-mono uppercase rounded-md border border-input bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     placeholder="#111827"
                     maxlength="7"
                     [ngModel]="asTextNode(node).style.color"
@@ -298,7 +298,7 @@ import type { AttachmentItem } from './pdf-templates.service';
                           <td class="p-1 border border-border/50">
                             <input
                               type="text"
-                              class="h-7 w-24 rounded border border-input bg-background px-1 text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                              class="h-8 w-full min-w-24 rounded border border-input bg-background px-1 text-xs outline-none focus-visible:ring-1 focus-visible:ring-ring"
                               placeholder="Cell value"
                               [attr.data-testid]="'cell-' + rowIndex + '-' + colIndex"
                               [ngModel]="cell"
@@ -324,12 +324,12 @@ import type { AttachmentItem } from './pdf-templates.service';
               </div>
 
               <!-- Column Alignments & Widths -->
-              <div class="flex flex-wrap gap-2 pt-1">
+              <div class="grid grid-cols-1 gap-2 pt-1 sm:grid-cols-2">
                 @for (dummy of getColumnsArray(asTableNode(node)); track colIdx; let colIdx = $index) {
                   <div class="flex items-center gap-1 rounded bg-muted/40 p-1.5 text-[11px] border border-border">
                     <span class="font-mono text-muted-foreground">Col {{ colIdx + 1 }}:</span>
                     <select appSelect
-                      class="h-6 rounded border border-input bg-background text-[11px] px-1"
+                      class="h-8 w-24 rounded border border-input bg-background text-[11px] pl-2 pr-7"
                       [attr.data-testid]="'table-col-align-' + colIdx"
                       [ngModel]="getColumnAlign(asTableNode(node), colIdx)"
                       (ngModelChange)="setColumnAlign(asTableNode(node), colIdx, $event)"
@@ -354,14 +354,14 @@ import type { AttachmentItem } from './pdf-templates.service';
             </div>
 
             <!-- Table Style Controls -->
-            <div class="grid grid-cols-2 gap-3 pt-2">
+            <div class="grid grid-cols-1 gap-3 pt-2 sm:grid-cols-2 [&>div]:min-w-0">
               <div>
                 <label [for]="'table-font-size-' + node.id" class="mb-1 block text-xs font-medium">Font Size</label>
                 <input
                   type="number"
                   [id]="'table-font-size-' + node.id"
                   data-testid="table-font-size"
-                  class="h-8 w-full rounded-md border border-input bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  class="h-control-9 w-full min-w-0 rounded-md border border-input bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   placeholder="10"
                   [min]="limits.table.fontSize.min"
                   [max]="limits.table.fontSize.max"
@@ -372,11 +372,11 @@ import type { AttachmentItem } from './pdf-templates.service';
 
               <div>
                 <label [for]="'table-border-color-' + node.id" class="mb-1 block text-xs font-medium">Border Color</label>
-                <div class="flex items-center gap-2">
+                <div class="flex min-w-0 items-center gap-2">
                   <input
                     type="color"
                     data-testid="table-border-color-picker"
-                    class="h-8 w-8 cursor-pointer rounded border border-input bg-background p-0.5"
+                    class="size-9 shrink-0 cursor-pointer rounded-ui-md border border-input bg-background p-0.5"
                     [ngModel]="asTableNode(node).style.borderColor"
                     (ngModelChange)="onPatchStyle({ borderColor: $event })"
                   />
@@ -384,7 +384,7 @@ import type { AttachmentItem } from './pdf-templates.service';
                     type="text"
                     [id]="'table-border-color-' + node.id"
                     data-testid="table-border-color"
-                    class="h-8 flex-1 font-mono uppercase rounded-md border border-input bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    class="h-control-9 min-w-0 flex-1 font-mono uppercase rounded-md border border-input bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     placeholder="#9CA3AF"
                     maxlength="7"
                     [ngModel]="asTableNode(node).style.borderColor"
@@ -395,11 +395,11 @@ import type { AttachmentItem } from './pdf-templates.service';
 
               <div>
                 <label [for]="'table-header-fill-' + node.id" class="mb-1 block text-xs font-medium">Header Fill</label>
-                <div class="flex items-center gap-2">
+                <div class="flex min-w-0 items-center gap-2">
                   <input
                     type="color"
                     data-testid="table-header-fill-picker"
-                    class="h-8 w-8 cursor-pointer rounded border border-input bg-background p-0.5"
+                    class="size-9 shrink-0 cursor-pointer rounded-ui-md border border-input bg-background p-0.5"
                     [ngModel]="asTableNode(node).headerFill || '#f3f4f6'"
                     (ngModelChange)="onPatch({ headerFill: $event })"
                   />
@@ -407,7 +407,7 @@ import type { AttachmentItem } from './pdf-templates.service';
                     type="text"
                     [id]="'table-header-fill-' + node.id"
                     data-testid="table-header-fill"
-                    class="h-8 flex-1 font-mono uppercase rounded-md border border-input bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    class="h-control-9 min-w-0 flex-1 font-mono uppercase rounded-md border border-input bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     maxlength="7"
                     [ngModel]="asTableNode(node).headerFill || ''"
                     (ngModelChange)="onPatch({ headerFill: $event || undefined })"
@@ -416,7 +416,7 @@ import type { AttachmentItem } from './pdf-templates.service';
                 </div>
               </div>
 
-              <div class="space-y-2 pt-2">
+              <div class="col-span-full flex flex-wrap gap-x-6 gap-y-2 pt-1">
                 <label class="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
@@ -505,11 +505,11 @@ import type { AttachmentItem } from './pdf-templates.service';
 
               <div>
                 <label [for]="'divider-color-' + node.id" class="mb-1 block text-xs font-medium">Color</label>
-                <div class="flex items-center gap-2">
+                <div class="flex min-w-0 items-center gap-2">
                   <input
                     type="color"
                     data-testid="divider-color-picker"
-                    class="h-8 w-8 cursor-pointer rounded border border-input bg-background p-0.5"
+                    class="size-9 shrink-0 cursor-pointer rounded-ui-md border border-input bg-background p-0.5"
                     [ngModel]="asDividerNode(node).style.color"
                     (ngModelChange)="onPatchStyle({ color: $event })"
                   />
@@ -517,7 +517,7 @@ import type { AttachmentItem } from './pdf-templates.service';
                     type="text"
                     [id]="'divider-color-' + node.id"
                     data-testid="divider-color"
-                    class="h-8 flex-1 font-mono uppercase rounded-md border border-input bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    class="h-control-9 min-w-0 flex-1 font-mono uppercase rounded-md border border-input bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     placeholder="#9CA3AF"
                     maxlength="7"
                     [ngModel]="asDividerNode(node).style.color"

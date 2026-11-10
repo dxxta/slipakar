@@ -25,6 +25,8 @@ import { PageHeader, SelectControl } from '../../ui';
       description="Manage your name, avatar, and account email."
     />
 
+    <br/>
+
     @if (success()) {
       <p role="status" class="rounded-ui-md bg-emerald-500/10 p-3 text-sm text-emerald-800 dark:text-emerald-200">
         {{ success() }}

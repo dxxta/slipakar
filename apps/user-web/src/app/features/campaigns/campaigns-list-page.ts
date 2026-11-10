@@ -8,6 +8,7 @@ import { DataTableControls } from '../../ui/shared/data-table-controls';
 import { ListBody } from '../../ui/shared/list-body';
 import { PageHeader } from '../../ui/shared/page-header';
 import { Pagination } from '../../ui/shared/pagination';
+import { RowActions, RowActionItem } from '../../ui/shared/row-actions';
 import { type PageMetadata } from '../../core/api-client';
 import {
   type CampaignDetail,
@@ -18,6 +19,7 @@ import {
 @Component({
   selector: 'app-campaigns-list-page',
   imports: [
+    RowActions,
     SelectControl, CommonModule, HlmButton, HlmBadge, DataTableControls, ListBody, PageHeader, Pagination],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -46,7 +48,7 @@ import {
                 <th scope="col" class="px-6 py-3">Status</th>
                 <th scope="col" class="px-6 py-3">Progress</th>
                 <th scope="col" class="px-6 py-3">Created</th>
-                <th scope="col" class="px-6 py-3 text-right">Action</th>
+                <th scope="col" class="px-6 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-border">
@@ -89,18 +91,7 @@ import {
                   <td class="px-6 py-4 text-xs text-muted-foreground tabular-nums">
                     {{ campaign.createdAt | date: 'mediumDate' }}
                   </td>
-                  <td class="px-6 py-4 text-right">
-                    <button
-                      hlmBtn
-                      variant="outline"
-                      size="sm"
-                      type="button"
-                      [attr.data-testid]="'view-campaign-' + campaign.id"
-                      (click)="navigateToDetail(null, campaign.id)"
-                    >
-                      View
-                    </button>
-                  </td>
+                  <td class="px-6 py-4 text-right"><app-row-actions [attr.data-testid]="'campaign-actions-' + campaign.id" [label]="'Actions for campaign ' + campaign.id.slice(0, 8)" [items]="campaignActions" (actionSelect)="navigateToDetail(null, campaign.id)" /></td>
                 </tr>
               }
             </tbody>
@@ -113,6 +104,7 @@ import {
   `,
 })
 export class CampaignsListPage implements OnInit {
+  protected readonly campaignActions: RowActionItem[] = [{ id: 'view', label: 'View', icon: 'eye' }];
   private readonly campaignsService = inject(CampaignsService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);

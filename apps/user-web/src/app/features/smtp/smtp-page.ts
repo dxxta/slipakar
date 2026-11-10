@@ -36,6 +36,8 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+
+  <div class="app-list-layout">
     <app-page-header
       title="SMTP Connections"
       [topLevel]="false"
@@ -97,9 +99,10 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
     }
 
     <!-- Add / Edit Drawer -->
-    <app-drawer [open]="showForm()" [title]="editingId() ? 'Edit SMTP connection' : 'Add SMTP connection'" (closed)="closeForm()">
+    @if (showForm()) {
+      <app-drawer [open]="showForm()" [title]="editingId() ? 'Edit SMTP connection' : 'Add SMTP connection'" (closed)="closeForm()">
       <div hlmCard data-testid="smtp-form-card" class="border-0 shadow-none">
-        <div hlmCardContent class="px-0">
+        <div hlmCardContent>
           <p class="mb-4 text-sm text-muted-foreground">
             {{ editingId() ? 'Update connection details. Leave password empty to keep existing password.' : 'Enter your SMTP server configuration.' }}
           </p>
@@ -209,8 +212,10 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
         </div>
       </div>
     </app-drawer>
+    }
 
-    <!-- Read-only Detail Drawer without secrets -->
+ <!-- Read-only Detail Drawer without secrets -->
+    @if(detailConnection() !== null){
     <app-drawer [open]="detailConnection() !== null" [title]="detailConnection() ? (detailConnection()!.host + ':' + detailConnection()!.port) : 'Connection details'" (closed)="detailConnection.set(null)">
       @if (detailConnection(); as conn) {
         <dl class="space-y-4 text-sm">
@@ -248,6 +253,7 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
         </div>
       }
     </app-drawer>
+    }
 
     <app-list-body
       [state]="listState()"
@@ -271,7 +277,7 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
                 <th scope="row" class="px-4 py-3 font-medium tabular-nums">{{ conn.host }}:{{ conn.port }} @if (conn.secure) { <span hlmBadge variant="outline" class="ml-2 text-xs">SSL/TLS</span> }</th>
                 <td class="px-4 py-3 font-mono text-xs">{{ conn.username }}</td>
                 <td class="px-4 py-3 font-mono text-xs">{{ conn.fromAddress || '—' }}</td>
-                <td class="px-4 py-2 text-right"><div class="flex items-center justify-end gap-2"><div class="text-right">@if (isTestingId() === conn.id) { <p aria-live="polite" role="status" class="text-xs text-muted-foreground">Testing SMTP connection…</p> } @else if (testResults()[conn.id]?.ok) { <p aria-live="polite" role="status" class="text-xs text-green-700 dark:text-green-300">SMTP test connection successful!</p> } @else if (testResults()[conn.id]) { <p aria-live="polite" role="alert" class="text-xs text-destructive">SMTP test failed: {{ testResults()[conn.id]?.error }}</p> }</div><app-row-actions [label]="'Actions for ' + conn.host" [items]="rowActions" [attr.data-testid]="'smtp-actions-' + conn.id" (actionSelect)="handleAction($event, conn)" />@if (confirmingDeleteId() === conn.id) { <app-confirm-modal [open]="true" [title]="'Delete ' + conn.host + '?'" message="This action cannot be undone." confirmLabel="Delete connection" [confirmTestId]="'confirm-delete-' + conn.id" (cancelled)="confirmingDeleteId.set(null)" (confirmed)="deleteConnection(conn.id)" /> }</div></td>
+                <td class="px-4 py-2 text-right"><div class="flex items-center justify-end gap-2"><div class="text-right">@if (isTestingId() === conn.id) { <p aria-live="polite" role="status" class="text-xs text-muted-foreground">Testing SMTP connection…</p> } @else if (testResults()[conn.id]?.ok) { <p aria-live="polite" role="status" class="text-xs text-green-700 dark:text-green-300">SMTP test connection successful!</p> } @else if (testResults()[conn.id]) { <p aria-live="polite" role="alert" class="text-xs text-destructive">SMTP test failed: {{ testResults()[conn.id]?.error }}</p> }</div><app-row-actions [label]="'Actions for ' + conn.host" [items]="rowActions" [attr.data-testid]="'smtp-actions-' + conn.id" (actionSelect)="handleAction($event, conn)" /></div></td>
               </tr>
             }
           </tbody>
@@ -291,6 +297,16 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
     </app-list-body>
 
     <app-pagination [metadata]="listMetadata()" (pageChange)="changeListPage($event)" />
+          </div>
+    <app-confirm-modal
+      [open]="pendingDelete() !== null"
+      [title]="'Delete ' + (pendingDelete()?.host ?? 'this item') + '?'"
+      message="This will permanently remove this SMTP connection."
+      confirmLabel="Delete connection"
+      [confirmTestId]="'confirm-delete-' + (pendingDelete()?.id ?? '')"
+      (cancelled)="confirmingDeleteId.set(null)"
+      (confirmed)="pendingDelete() && deleteConnection(pendingDelete()!.id)"
+    />
   `,
 })
 export class SmtpPage implements OnInit {
@@ -322,6 +338,7 @@ export class SmtpPage implements OnInit {
   readonly isSaving = signal(false);
 
   readonly confirmingDeleteId = signal<string | null>(null);
+  protected readonly pendingDelete = computed(() => this.connections().find((conn) => conn.id === this.confirmingDeleteId()) ?? null);
   readonly isTestingId = signal<string | null>(null);
   readonly testResults = signal<Record<string, { ok: boolean; error?: string }>>({});
 

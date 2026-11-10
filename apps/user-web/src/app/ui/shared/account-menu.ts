@@ -16,7 +16,7 @@ import { ThemeToggle } from './theme-toggle';
         [attr.aria-expanded]="open()"
         aria-label="Account menu"
         class="flex h-control-9 w-full min-w-0 items-center gap-2 rounded-ui-md px-2 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11"
-        (click)="open.update((value) => !value)"
+        (click)="toggle()"
       >
         <app-avatar size="sm" [name]="name() || email()" [imageUrl]="imageUrl()" />
         @if (!collapsed()) {
@@ -25,7 +25,7 @@ import { ThemeToggle } from './theme-toggle';
         }
       </button>
       @if (open()) {
-        <div role="menu" aria-label="Account actions" [class.left-0]="!collapsed()" [class.left-full]="collapsed()" [class.bottom-full]="!collapsed()" [class.bottom-0]="collapsed()" [class.ml-2]="collapsed()" class="absolute z-20 mb-2 min-w-56 rounded-ui-md border border-border bg-popover p-1 shadow-lg">
+        <div role="menu" aria-label="Account actions" class="fixed z-[80] min-w-56 rounded-ui-md border border-border bg-popover p-1 text-popover-foreground shadow-lg" [style.left.px]="position().left" [style.bottom.px]="position().bottom">
           <app-theme-toggle />
           <button role="menuitem" type="button" class="h-control-9 w-full rounded-ui-sm px-3 text-left text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11" (click)="signOutRequested.emit(); open.set(false)">Sign out</button>
         </div>
@@ -40,7 +40,23 @@ export class AccountMenu {
   readonly collapsed = input(false);
   readonly signOutRequested = output<void>();
   readonly open = signal(false);
+  protected readonly position = signal({ left: 8, bottom: 8 });
   private readonly host = inject(ElementRef<HTMLElement>);
+
+  protected toggle(): void {
+    if (!this.open()) {
+      const root = this.host.nativeElement as HTMLElement;
+      const bounds = root.querySelector('button')?.getBoundingClientRect();
+      const view = root.ownerDocument.defaultView;
+      if (bounds && view) {
+        const menuWidth = 224;
+        const left = this.collapsed() ? bounds.right + 8 : Math.max(8, Math.min(bounds.left, view.innerWidth - menuWidth - 8));
+        const bottom = this.collapsed() ? Math.max(8, view.innerHeight - bounds.bottom) : view.innerHeight - bounds.top + 8;
+        this.position.set({ left, bottom });
+      }
+    }
+    this.open.update((value) => !value);
+  }
 
   @HostListener('document:pointerdown', ['$event'])
   protected closeOutside(event: PointerEvent): void {

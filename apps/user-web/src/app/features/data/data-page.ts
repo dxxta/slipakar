@@ -170,11 +170,7 @@ function extractPlaceholders(text: string): string[] {
                     <td class="align-middle px-4 py-3 text-muted-foreground text-xs font-mono tabular-nums">{{ file.columns.length }} cols</td>
                     <td class="align-middle px-4 py-3 text-muted-foreground text-xs tabular-nums">{{ file.createdAt | date: 'short' }}</td>
                     <td class="align-middle px-4 py-2 text-right" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
-                      @if (confirmingDeleteId() === file.id) {
-                        <app-confirm-modal [open]="true" [title]="'Delete ' + file.fileName + '?'" message="This uploaded file will be permanently removed." confirmLabel="Delete upload" [confirmTestId]="'confirm-delete-upload-' + file.id" (cancelled)="confirmingDeleteId.set(null)" (confirmed)="deleteUpload(file.id)" />
-                      } @else {
-                        <app-row-actions [attr.data-testid]="'upload-actions-' + file.id" [label]="'Actions for ' + file.fileName" [items]="uploadActions" (actionSelect)="handleUploadAction($event, file)" />
-                      }
+                      <app-row-actions [attr.data-testid]="'upload-actions-' + file.id" [label]="'Actions for ' + file.fileName" [items]="uploadActions" (actionSelect)="handleUploadAction($event, file)" />
                     </td>
                   </tr>
                 }
@@ -433,6 +429,15 @@ function extractPlaceholders(text: string): string[] {
         </div>
       </section>
     </div>
+    <app-confirm-modal
+      [open]="pendingDelete() !== null"
+      [title]="'Delete ' + (pendingDelete()?.fileName ?? 'this item') + '?'"
+      message="This uploaded file will be permanently removed."
+      confirmLabel="Delete upload"
+      [confirmTestId]="'confirm-delete-upload-' + (pendingDelete()?.id ?? '')"
+      (cancelled)="confirmingDeleteId.set(null)"
+      (confirmed)="pendingDelete() && deleteUpload(pendingDelete()!.id)"
+    />
   `,
 })
 export class DataPage implements OnInit {
@@ -473,6 +478,7 @@ export class DataPage implements OnInit {
 
   readonly isDeletingUploadId = signal<string | null>(null);
   readonly confirmingDeleteId = signal<string | null>(null);
+  protected readonly pendingDelete = computed(() => this.uploads().find((upload) => upload.id === this.confirmingDeleteId()) ?? null);
 
   handleUploadAction(action: RowActionItem, upload: UploadItem): void {
     if (action.id === 'detail') this.detailUpload.set(upload);

@@ -383,7 +383,8 @@ export class ProjectsPage {
 
   handleProjectAction(action: RowActionItem, project: Project): void {
     if (action.id === 'detail') {
-      this.openDetail(project);
+      // this.openDetail(project);
+      this.router.navigate([`/projects/${project.id}/overview`])
     } else if (action.id === 'rename') {
       this.openEditForm(project);
     } else if (action.id === 'delete') {

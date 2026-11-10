@@ -1,17 +1,18 @@
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { Component, ElementRef, HostListener, inject, input, output, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { tablerDots, tablerEye, tablerPencil, tablerPower, tablerTrash } from '@ng-icons/tabler-icons';
+import { tablerDots, tablerEye, tablerPencil, tablerPower, tablerRefresh, tablerTrash } from '@ng-icons/tabler-icons';
 
-export type RowActionIcon = 'eye' | 'pencil' | 'trash' | 'power';
+export type RowActionIcon = 'eye' | 'pencil' | 'trash' | 'power' | 'refresh';
 export type RowActionItem = { id: string; label: string; icon: RowActionIcon; destructive?: boolean; disabled?: boolean };
 type MenuPosition = { top: number; left: number };
 
 @Component({
   selector: 'app-row-actions',
   standalone: true,
+  host: { class: 'flex justify-end' },
   imports: [CommonModule, NgIcon],
-  providers: [provideIcons({ tablerDots, tablerEye, tablerPencil, tablerTrash, tablerPower })],
+  providers: [provideIcons({ tablerDots, tablerEye, tablerPencil, tablerTrash, tablerPower, tablerRefresh })],
   template: `
     <button #trigger data-row-action-trigger type="button" class="grid size-9 shrink-0 place-items-center rounded-ui-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:size-11" [attr.aria-label]="label()" aria-haspopup="menu" [attr.aria-expanded]="open()" (click)="toggle()">
       <ng-icon name="tablerDots" aria-hidden="true" class="size-5" />
@@ -59,6 +60,7 @@ export class RowActions {
       pencil: 'tablerPencil',
       trash: 'tablerTrash',
       power: 'tablerPower',
+      refresh: 'tablerRefresh',
     };
     return names[icon];
   }

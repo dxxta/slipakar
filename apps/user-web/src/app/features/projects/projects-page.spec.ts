@@ -1,8 +1,8 @@
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { Router, provideRouter } from '@angular/router';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ProjectsPage } from './projects-page';
 
 type Project = {
@@ -72,48 +72,22 @@ describe('ProjectsPage', () => {
     });
   });
 
-  it('opens the detail drawer and loads counts', () => {
+  it('navigates to the project overview from the Detail row action', () => {
+    const navigate = vi.spyOn(TestBed.inject(Router), 'navigate').mockResolvedValue(true);
     const fixture = TestBed.createComponent(ProjectsPage);
     fixture.detectChanges();
     http.expectOne('/projects?page=1&limit=20&sortBy=createdAt&sortDir=desc').flush(pageEnvelope([project]));
     fixture.detectChanges();
 
-    // Trigger row action menu
-    const trigger = fixture.nativeElement.querySelector('[data-row-action-trigger]') as HTMLButtonElement;
-    trigger.click();
+    (fixture.nativeElement.querySelector('[data-row-action-trigger]') as HTMLButtonElement).click();
     fixture.detectChanges();
-
-    // Click "Detail" action
     const detailBtn = Array.from(fixture.nativeElement.querySelectorAll('button[role="menuitem"]')).find(
       (btn) => (btn as HTMLElement).textContent?.includes('Detail')
     ) as HTMLButtonElement;
     expect(detailBtn).toBeTruthy();
     detailBtn.click();
-    fixture.detectChanges();
 
-    // Should fetch campaigns, templates, uploads counts
-    http.expectOne('/projects/p-1/campaigns?page=1&limit=1').flush({
-      message: 'ok',
-      data: [],
-      metadata: { page: 1, limit: 1, total: 2 },
-      success: true,
-    });
-    http.expectOne('/projects/p-1/templates?page=1&limit=1').flush({
-      message: 'ok',
-      data: [],
-      metadata: { page: 1, limit: 1, total: 3 },
-      success: true,
-    });
-    http.expectOne('/projects/p-1/uploads').flush({
-      message: 'ok',
-      data: [{ id: 'u-1' }],
-      success: true,
-    });
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.textContent).toContain('10,000 rows');
-    expect(fixture.nativeElement.textContent).toContain('2');
-    expect(fixture.nativeElement.textContent).toContain('3');
+    expect(navigate).toHaveBeenCalledWith(['/projects/p-1/overview']);
   });
 
   it('renames a project with a patch request via row action', () => {

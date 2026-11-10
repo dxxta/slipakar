@@ -36,20 +36,20 @@ const RESIZE_HANDLES: PdfResizeHandle[] = ['n', 'ne', 'e', 'se', 's', 'sw', 'w',
   template: `
     <div
       data-testid="pdf-builder-application"
-      class="grid min-h-[680px] gap-4 rounded-lg border border-border bg-background p-4 lg:grid-cols-[150px_minmax(360px,1fr)_minmax(260px,320px)]"
+      class="grid min-h-[680px] gap-4 rounded-lg border border-border bg-background p-4 lg:grid-cols-[minmax(360px,1fr)_minmax(260px,320px)]"
       role="application"
       aria-label="PDF template editor"
       tabindex="0"
       (keydown)="onKeydown($event)"
     >
-      <aside class="space-y-4" aria-label="PDF elements">
+      <aside class="flex flex-wrap items-start gap-x-8 gap-y-4 lg:col-span-2" aria-label="PDF elements">
         <div>
           <h2 class="text-sm font-semibold">Add element</h2>
-          <div class="mt-2 grid gap-2">
+          <div class="mt-2 flex flex-wrap gap-2">
             @for (type of nodeTypes; track type) {
               <button
                 type="button"
-                class="rounded-md border border-border px-3 py-2 text-left text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                class="h-control-9 min-w-24 rounded-ui-md border border-border px-3 text-left text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 [attr.data-testid]="'add-' + type + '-node'"
                 [attr.aria-label]="'Add ' + type + ' element'"
                 (click)="addNode(type)"

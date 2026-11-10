@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { SelectControl } from '../../ui/shared/select-control';
-import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { tablerAlertTriangle } from '@ng-icons/tabler-icons';
@@ -78,9 +78,6 @@ import { Pagination } from '../../ui/shared/pagination';
                     <td class="px-6 py-4 text-muted-foreground tabular-nums"><time [attr.datetime]="template.updatedAt" [attr.title]="template.updatedAt">{{ formatDate(template.updatedAt) }}</time></td>
                     <td class="px-6 py-4 text-right">
                       <app-row-actions [attr.data-testid]="'pdf-template-actions-' + template.id" [label]="'Actions for ' + template.name" [items]="templateActions" (actionSelect)="handleTemplateAction($event, template)" />
-                      @if (confirmingDeleteId() === template.id) {
-                        <app-confirm-modal [open]="true" [title]="'Delete ' + template.name + '?'" message="This action cannot be undone." confirmLabel="Delete template" [confirmTestId]="'confirm-delete-' + template.id" (cancelled)="confirmingDeleteId.set(null)" (confirmed)="deleteTemplate(template)" />
-                      }
                     </td>
                   </tr>
                 }
@@ -108,6 +105,15 @@ import { Pagination } from '../../ui/shared/pagination';
         }
       </app-drawer>
     </div>
+    <app-confirm-modal
+      [open]="pendingDelete() !== null"
+      [title]="'Delete ' + (pendingDelete()?.name ?? 'this item') + '?'"
+      message="This will permanently remove this PDF template and its layout."
+      confirmLabel="Delete template"
+      [confirmTestId]="'confirm-delete-' + (pendingDelete()?.id ?? '')"
+      (cancelled)="confirmingDeleteId.set(null)"
+      (confirmed)="pendingDelete() && deleteTemplate(pendingDelete()!)"
+    />
   `,
 })
 export class PdfTemplatesListPage implements OnInit {
@@ -120,6 +126,7 @@ export class PdfTemplatesListPage implements OnInit {
   readonly error = signal<string | null>(null);
   readonly featureDisabled = signal(false);
   readonly confirmingDeleteId = signal<string | null>(null);
+  protected readonly pendingDelete = computed(() => this.templates().find((template) => template.id === this.confirmingDeleteId()) ?? null);
   readonly deletingId = signal<string | null>(null);
   readonly detailTemplate = signal<PdfTemplateItem | null>(null);
   readonly query = signal('');

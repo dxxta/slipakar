@@ -1,9 +1,12 @@
 import { Component, HostListener, input, output } from '@angular/core';
+import { NgIcon, provideIcons } from '@ng-icons/core';
 import { CdkTrapFocus } from '@angular/cdk/a11y';
+import { tablerX } from '@ng-icons/tabler-icons';
 
 @Component({
   selector: 'app-drawer',
-  imports: [CdkTrapFocus],
+  imports: [CdkTrapFocus, NgIcon],
+  providers: [provideIcons({ tablerX })],
   template: `
     @if (open()) {
       <div data-drawer-overlay class="fixed inset-0 z-50 flex bg-black/40" [class.justify-start]="side() === 'left'" [class.justify-end]="side() === 'right'" (click)="onBackdrop($event)">
@@ -22,7 +25,7 @@ import { CdkTrapFocus } from '@angular/cdk/a11y';
         >
           <header class="flex items-center justify-between border-b border-border px-card py-4">
             <h2 id="drawer-title" class="text-lg font-semibold">{{ title() }}</h2>
-            <button type="button" class="grid size-9 shrink-0 place-items-center rounded-ui-md text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:size-11" aria-label="Close panel" (click)="closed.emit()">×</button>
+            <button type="button" class="grid size-9 shrink-0 place-items-center rounded-ui-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Close panel" (click)="closed.emit()"><ng-icon name="tablerX" class="size-5" aria-hidden="true" /></button>
           </header>
           <div class="min-h-0 flex-1 overflow-y-auto p-card"><ng-content /></div>
         </section>

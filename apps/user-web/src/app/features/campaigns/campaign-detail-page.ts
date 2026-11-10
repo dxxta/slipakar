@@ -18,6 +18,7 @@ import { ListBody } from '../../ui/shared/list-body';
 import { ConfirmModal } from '../../ui/shared/confirm-modal';
 import { BackButton } from '../../ui/shared/back-button';
 import { Pagination } from '../../ui/shared/pagination';
+import { RowActions, RowActionItem } from '../../ui/shared/row-actions';
 import {
   HlmCard,
   HlmCardContent,
@@ -35,6 +36,7 @@ import {
 @Component({
   selector: 'app-campaign-detail-page',
   imports: [
+    RowActions,
     SelectControl,
     CommonModule,
     HlmButton,
@@ -63,8 +65,8 @@ import {
 
       <header class="flex flex-wrap items-start gap-3">
         <app-back-button [link]="['/projects', projectId(), 'campaigns']" label="Back to campaigns" />
-        <div class="min-w-0 flex-1"><h1 class="text-3xl font-semibold tracking-tight">{{ 'Campaign #' + campaignId().slice(0, 8) }}</h1><p class="mt-2 text-sm text-muted-foreground">View real-time delivery status and recipient list.</p></div>
-        <div class="ml-auto flex shrink-0 items-center gap-2">@if (campaign(); as camp) { <span hlmBadge [variant]="badgeVariant(camp.status)" data-testid="campaign-status-badge">{{ statusLabel(camp.status) }}</span> }@if (campaign()?.status === 'draft') { <button hlmBtn type="button" data-testid="send-campaign-button" (click)="openSendConfirm()">Send campaign</button> }</div>
+        <div class="min-w-0 flex-1"><div class="flex items-center gap-3"><h1 class="text-3xl font-semibold tracking-tight">{{ 'Campaign #' + campaignId().slice(0, 8) }}</h1>@if (campaign(); as camp) { <span hlmBadge [variant]="badgeVariant(camp.status)" data-testid="campaign-status-badge">{{ statusLabel(camp.status) }}</span> }</div><p class="mt-2 text-sm text-muted-foreground">View real-time delivery status and recipient list.</p></div>
+        <div class="ml-auto flex shrink-0 items-center gap-2">@if (campaign()?.status === 'draft') { <button hlmBtn type="button" data-testid="send-campaign-button" (click)="openSendConfirm()">Send campaign</button> }</div>
       </header>
 
       @if (actionError()) {
@@ -123,12 +125,13 @@ import {
 
           </div>
 
-          <app-data-table-controls [query]="recipientQuery()" searchPlaceholder="Search recipients..." (queryChange)="searchRecipients($event)"><div table-filters class="flex flex-wrap items-end gap-3">
+
+
+          <div hlmCardContent>
+                    <app-data-table-controls [query]="recipientQuery()" searchPlaceholder="Search recipients..." (queryChange)="searchRecipients($event)"><div table-filters class="flex flex-wrap items-end gap-3">
             <label class="grid min-w-40 gap-1 text-xs font-medium text-muted-foreground">Status<select appSelect id="status-filter" data-testid="recipient-status-filter" class="h-control-9 rounded-ui-md border border-input bg-background px-2 text-sm" [value]="selectedStatusFilter()" (change)="onStatusFilterChange($event)"><option value="">All statuses</option><option value="pending">Pending</option><option value="sent">Sent</option><option value="failed">Failed</option></select></label>
             <label class="grid min-w-40 gap-1 text-xs font-medium text-muted-foreground">Sort recipients<select appSelect aria-label="Sort recipients" class="h-control-9 rounded-ui-md border border-input bg-background px-2 text-sm" [value]="recipientSortBy()" (change)="sortRecipients($event)"><option value="rowIndex">Row</option><option value="email">Email</option><option value="status">Status</option><option value="createdAt">Created</option><option value="updatedAt">Updated</option></select></label>
           </div></app-data-table-controls>
-
-          <div hlmCardContent class="p-0">
             <app-list-body [state]="loadingRecipients() ? 'loading' : recipientsError() ? 'error' : 'ready'" [itemCount]="recipients().length" [query]="recipientQuery()" errorTitle="Could not load recipients" [errorMessage]="recipientsError() ?? ''" emptyTitle="No recipients yet" emptyMessage="This campaign has no recipients to display." emptyResultLabel="No recipients match" (retry)="loadRecipients()" (clearQuery)="searchRecipients('')">
               <div list-content class="overflow-x-auto rounded-ui-lg border border-border">
                 <table class="w-full text-left text-sm" aria-label="Recipients delivery table">
@@ -138,7 +141,7 @@ import {
                       <th scope="col" class="px-6 py-3">Recipient Email</th>
                       <th scope="col" class="px-6 py-3">Status</th>
                       <th scope="col" class="px-6 py-3">Details / Error</th>
-                      <th scope="col" class="px-6 py-3 text-right">Action</th>
+                      <th scope="col" class="px-6 py-3 text-right">Actions</th>
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-border">
@@ -171,17 +174,7 @@ import {
                         </td>
                         <td class="px-6 py-3 text-right">
                           @if (rec.status === 'failed') {
-                            <button
-                              hlmBtn
-                              variant="outline"
-                              size="sm"
-                              type="button"
-                              [attr.data-testid]="'retry-recipient-' + rec.id"
-                              [disabled]="retryingRecipientId() === rec.id"
-                              (click)="retryRecipient(rec.id)"
-                            >
-                              {{ retryingRecipientId() === rec.id ? 'Retrying…' : 'Retry' }}
-                            </button>
+                            <app-row-actions [attr.data-testid]="'recipient-actions-' + rec.id" [label]="'Actions for ' + rec.email" [items]="recipientActions(rec.id)" (actionSelect)="retryRecipient(rec.id)" />
                           }
                         </td>
                       </tr>
@@ -229,6 +222,7 @@ export class CampaignDetailPage implements OnInit, OnDestroy {
   readonly recipientSortDir = signal<'asc' | 'desc'>('asc');
 
   readonly retryingRecipientId = signal<string | null>(null);
+  protected recipientActions(id: string): RowActionItem[] { return [{ id: 'retry', label: this.retryingRecipientId() === id ? 'Retrying…' : 'Retry delivery', icon: 'refresh', disabled: this.retryingRecipientId() === id }]; }
 
   private pollIntervalId: ReturnType<typeof setInterval> | null = null;
 

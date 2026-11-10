@@ -116,7 +116,7 @@ describe('CampaignDetailPage', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="recipient-error-r-2"]').textContent).toContain('SMTP 550 Mailbox unavailable');
 
     // Retry button visible for failed recipient
-    expect(fixture.nativeElement.querySelector('[data-testid="retry-recipient-r-2"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="recipient-actions-r-2"]')).not.toBeNull();
   });
 
   it('keeps recipient filters and pagination visible for a search-empty result', () => {

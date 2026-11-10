@@ -19,6 +19,7 @@ type Campaign = { status: string; createdAt: string };
   selector: 'app-project-overview-page',
   imports: [CommonModule, PageHeader, PageState],
   template: `
+    <div class="app-list-layout">
     <app-page-header
       title="Overview"
       [topLevel]="false"
@@ -32,7 +33,7 @@ type Campaign = { status: string; createdAt: string };
       [message]="error() ?? ''"
       (retry)="load()"
     >
-      <div class="mt-6 grid gap-4">
+      <div class="grid gap-4">
         <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="Project summary">
           <article class="min-h-24 rounded-ui-lg border border-border bg-card p-card">
             <p class="text-sm text-muted-foreground">Campaigns</p>
@@ -75,6 +76,7 @@ type Campaign = { status: string; createdAt: string };
         </section>
       </div>
     </app-page-state>
+        </div>
   `,
 })
 export class ProjectOverviewPage implements OnInit {

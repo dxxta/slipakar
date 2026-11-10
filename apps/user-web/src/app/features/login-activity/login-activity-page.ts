@@ -28,8 +28,8 @@ import { LoginActivityService, type LoginActivityItem, type LoginActivitySort } 
       [topLevel]="true"
       description="Recent sign-ins to your account and their best-effort location details."
     />
-
-    <app-data-table-controls class="mt-4 !mb-0" [query]="query()" searchPlaceholder="Search login activity..." (queryChange)="search($event)">
+  <br/>
+    <app-data-table-controls  [query]="query()" searchPlaceholder="Search login activity..." (queryChange)="search($event)">
       <div table-filters class="flex flex-wrap items-end gap-3">
         <label class="grid min-w-40 gap-1 text-xs font-medium text-muted-foreground">
           Sort by

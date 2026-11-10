@@ -68,3 +68,6 @@
     padding-right: 2.5rem;
   }
 }
+
+.wordmark { display: inline-flex; align-items: baseline; color: var(--ink); text-decoration: none; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.055em; white-space: nowrap; }
+.wordmark-dot { color: var(--teal); }
