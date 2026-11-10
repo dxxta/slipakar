@@ -338,10 +338,28 @@ section[aria-labelledby='activity-heading'][data-pressed] {
   transform: translate(var(--press-x), var(--press-y));
   box-shadow: 0 0 0 var(--shadow-color);
 }
-[aria-label='Profile details'], [aria-label='Email template editor'], [data-testid='feature-disabled-card'] {
+[data-testid='feature-disabled-card'] {
   border: 2px solid var(--border);
   border-radius: 1rem;
   background-color: var(--card);
+}
+section[aria-labelledby='email-heading'], section[aria-labelledby='appearance-heading'],
+section[aria-label='Profile details'], section[aria-label='Email template editor'] {
+  border: 2px solid var(--border);
+  border-radius: 1rem;
+  background: var(--card);
+}
+[aria-label='PDF template editor'], [data-testid='node-properties-panel'] {
+  border: 2px solid var(--border);
+  border-radius: 1rem;
+  background: var(--card);
+}
+app-list-body [data-list-state='empty'],
+app-list-body [data-list-state='search-empty'],
+app-list-body [data-list-state='error'] {
+  border-width: 2px;
+  border-radius: 1rem;
+  background: var(--card);
 }
 [data-focus-trap] {
   border: 2px solid var(--border);
@@ -392,6 +410,7 @@ app-user-layout > div > header {
   border-radius: 999px;
   box-shadow: var(--shadow-hard);
 }
+app-user-layout aside { border-right-width: 2px; border-color: var(--border); }
 
 app-user-layout aside nav a[aria-current='page'],
 app-user-layout app-drawer nav a[aria-current='page'] {
@@ -458,6 +477,12 @@ button.bg-destructive { color: var(--destructive-foreground) !important; }
   table[data-responsive] tbody tr {
     border: 2px solid var(--border);
     border-radius: 1rem;
+    box-shadow: 3px 3px 0 var(--shadow-color);
+  }
+  table[data-responsive] tbody td[data-label='Actions'] [data-row-action-trigger] {
+    border: 2px solid var(--ink-fixed);
+    border-radius: 999px;
+    background-color: var(--card);
     box-shadow: 3px 3px 0 var(--shadow-color);
   }
 }
