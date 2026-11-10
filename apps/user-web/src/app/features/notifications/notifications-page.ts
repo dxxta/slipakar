@@ -190,7 +190,6 @@ interface Project {
             </div>
           </div>
         </app-list-body>
-          <br/>
         <app-pagination [metadata]="noticeMetadata()" (pageChange)="loadNotices($event)" />
       </section>
     } @else {
@@ -296,7 +295,6 @@ interface Project {
 
         </div>
       </app-list-body>
-  <br/>
       <app-pagination
         [metadata]="{ page: currentPage(), limit: pageSize(), total: totalItems() }"
         (pageChange)="onPageChange($event)"
