@@ -9,6 +9,7 @@ import { HlmButton } from '../../ui/button/src';
 import { ConfirmModal, Drawer, PageHeader } from '../../ui';
 import { AdminSetupService, type IntegrationItem, type IntegrationKey, type IntegrationUpdate } from './admin-setup.service';
 import { Ripple } from '../../ui/shared/ripple';
+import { Pressed } from '../../ui/shared/pressed';
 
 type IntegrationForm = {
   baseUrl: string;
@@ -26,7 +27,7 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
 
 @Component({
   selector: 'app-setup-page',
-  imports: [Ripple, CommonModule, NgTemplateOutlet, FormsModule, RouterLink, NgIcon, HlmButton, ConfirmModal, Drawer, PageHeader],
+  imports: [Ripple, Pressed, CommonModule, NgTemplateOutlet, FormsModule, RouterLink, NgIcon, HlmButton, ConfirmModal, Drawer, PageHeader],
   viewProviders: [provideIcons({ tablerChevronDown, tablerInfoCircle })],
   template: `
     <app-page-header
@@ -41,7 +42,7 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
       @if (state.complete) { <div class="flex flex-wrap items-center justify-between gap-3 rounded-ui-md border border-emerald-500/30 bg-emerald-500/10 p-4"><p class="text-sm">All integrations are configured and passing their connection tests.</p><a routerLink="/flags" class="inline-flex min-h-10 items-center rounded-ui-md bg-primary px-4 py-2 text-sm text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Continue to admin</a></div> }
       <div class="grid grid-cols-1 gap-4" data-testid="setup-integration-rows">
         @for (integration of state.integrations; track integration.key) {
-          <article class="flex w-full min-w-0 flex-col rounded-ui-lg border border-border bg-card p-card" [attr.data-testid]="'setup-row-' + integration.key">
+          <article appPressed class="flex w-full min-w-0 flex-col rounded-ui-lg border border-border bg-card p-card" [attr.data-testid]="'setup-row-' + integration.key">
             <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-6">
               <div class="min-w-0 flex-1">
                 <div class="flex flex-wrap items-center gap-2.5">

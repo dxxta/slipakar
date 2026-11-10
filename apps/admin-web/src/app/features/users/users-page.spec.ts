@@ -51,7 +51,7 @@ describe('UsersPage', () => {
 
     // Close detail drawer
     const closeBtn = Array.from(fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>)
-      .find((b) => b.textContent?.trim() === 'Close');
+      .find((b) => b.getAttribute('aria-label') === 'Close panel');
     closeBtn?.click();
     fixture.detectChanges();
 

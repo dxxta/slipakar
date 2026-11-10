@@ -87,9 +87,7 @@ import { Ripple } from '../../ui/shared/ripple';
         }
       }
       @if (selectedUser()) {
-        @if (drawerMode() === 'view') {
-          <div drawer-footer class="contents"><button hlmBtn variant="outline" type="button" (click)="closeDrawer()">Close</button></div>
-        } @else {
+        @if (drawerMode() !== 'view') {
           <div drawer-footer class="contents">
             <button hlmBtn variant="outline" type="button" (click)="closeDrawer()">Cancel</button>
             <button hlmBtn type="submit" form="user-form" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save user' }}</button>

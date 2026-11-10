@@ -492,6 +492,7 @@ button.account-menu-signout:active:not(:disabled), button.account-menu-signout[d
 [data-slot='card']:not(.border-0) { border: var(--border-width-card) solid var(--border); }
 [data-slot='card']:not(.shadow-none) { box-shadow: var(--shadow-hard) !important; }
 [data-slot='card'][data-pressed] { transform: translate(var(--press-x), var(--press-y)); box-shadow: 0 0 0 var(--shadow-color) !important; }
+app-setup-page article[data-testid^='setup-row-'] { border: var(--border-width-card) solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow-hard); }
 section[appPressed].shadow-sm { border: var(--border-width-card) solid var(--border); border-radius: var(--radius-card); box-shadow: var(--shadow-hard) !important; }
 [aria-label='Project summary'] > article,
 section[aria-labelledby='activity-heading'] {
