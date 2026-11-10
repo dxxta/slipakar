@@ -52,6 +52,12 @@
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true
+            },
+            "e2e": {
+              "baseHref": "/console/",
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
             }
           },
           "defaultConfiguration": "production"
@@ -62,6 +68,9 @@
             "proxyConfig": "proxy.conf.json"
           },
           "configurations": {
+            "e2e": {
+              "buildTarget": "admin-web:build:e2e"
+            },
             "production": {
               "buildTarget": "admin-web:build:production"
             },

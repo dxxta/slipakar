@@ -52,6 +52,24 @@ async function renderScalarHtml(): Promise<string> {
 }
 
 describe('production web Nginx cache behavior', () => {
+  it('uses one templated Nginx listener and mounts the admin SPA under /console/', () => {
+    expect(nginxConfig.match(/\bserver\s*\{/g)).toHaveLength(1);
+    expect(nginxConfig).toContain('listen ${PORT};');
+    expect(nginxConfig).toContain('server ${API_UPSTREAM};');
+    expect(nginxConfig).toContain('location ^~ /console/ {');
+    expect(nginxConfig).toContain('root /usr/share/nginx/html;');
+    expect(nginxConfig).toContain('try_files $uri $uri/ /console/index.html;');
+    expect(nginxConfig).toContain('location ^~ /admin/ { proxy_pass http://api; }');
+    expect(nginxConfig).not.toContain('listen 8081;');
+  });
+
+  it('emits the no-index header even in locations that override add_header inheritance', () => {
+    expect(nginxConfig).toContain('include /etc/nginx/robots-header.conf;');
+    expect(fs.readFileSync(path.join(infraDir, 'robots-header.conf'), 'utf8'))
+      .toContain('add_header X-Robots-Tag "noindex, nofollow, noarchive" always;');
+    expect(nginxConfig.match(/include \/etc\/nginx\/robots-header\.conf;/g)?.length).toBeGreaterThan(1);
+  });
+
   it('forwards query-bearing project API requests unchanged while keeping HTML navigation on the SPA', async ({ skip }) => {
     try {
       execFileSync('docker', ['version'], { stdio: 'pipe' });
@@ -62,11 +80,11 @@ describe('production web Nginx cache behavior', () => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lokaslip-nginx-query-'));
     const htmlRoot = path.join(tempDir, 'html');
     const userRoot = path.join(htmlRoot, 'user');
-    const adminRoot = path.join(htmlRoot, 'admin');
+    const adminRoot = path.join(htmlRoot, 'console');
     fs.mkdirSync(userRoot, { recursive: true });
     fs.mkdirSync(adminRoot, { recursive: true });
     fs.writeFileSync(path.join(userRoot, 'index.html'), '<app-root>user app</app-root>');
-    fs.writeFileSync(path.join(adminRoot, 'index.html'), '<app-root>admin app</app-root>');
+    fs.writeFileSync(path.join(adminRoot, 'index.html'), '<base href="/console/"><app-root>admin app</app-root>');
 
     const upstream = createServer((request, response) => {
       response.writeHead(200, { 'content-type': 'application/json' });
@@ -78,7 +96,7 @@ describe('production web Nginx cache behavior', () => {
     if (!upstreamAddress || typeof upstreamAddress === 'string') throw new Error('Stub upstream did not bind a TCP port');
 
     const configPath = path.join(tempDir, 'default.conf');
-    const testConfig = nginxConfig.replace('server api:3000;', `server host.docker.internal:${upstreamAddress.port};`);
+    const testConfig = nginxConfig;
     fs.writeFileSync(configPath, testConfig);
     const containerName = `lokaslip-nginx-query-${process.pid}-${Date.now()}`;
 
@@ -86,15 +104,18 @@ describe('production web Nginx cache behavior', () => {
       execFileSync('docker', [
         'run', '--detach', '--name', containerName,
         '--add-host=host.docker.internal:host-gateway',
-        '--publish=127.0.0.1::8080',
-        `--volume=${configPath}:/etc/nginx/conf.d/default.conf:ro`,
+        '--publish=127.0.0.1:18080:8080',
+        '-e', 'PORT=8080',
+        '-e', `API_UPSTREAM=host.docker.internal:${upstreamAddress.port}`,
+        '-e', 'NGINX_ENVSUBST_FILTER=^(PORT|API_UPSTREAM)$',
+        `--volume=${configPath}:/etc/nginx/templates/default.conf.template:ro`,
         `--volume=${securityHeadersPath}:/etc/nginx/security-headers.conf:ro`,
+        `--volume=${path.join(infraDir, 'robots-header.conf')}:/etc/nginx/robots-header.conf:ro`,
         `--volume=${htmlRoot}:/usr/share/nginx/html:ro`,
         'nginxinc/nginx-unprivileged:stable-alpine',
       ], { stdio: 'pipe' });
 
-      const publishedAddress = execFileSync('docker', ['port', containerName, '8080/tcp'], { encoding: 'utf8' }).trim();
-      const baseUrl = `http://${publishedAddress}`;
+      const baseUrl = 'http://127.0.0.1:18080';
       let ready = false;
       for (let attempt = 0; attempt < 40; attempt += 1) {
         try {
@@ -114,6 +135,7 @@ describe('production web Nginx cache behavior', () => {
         '/me/preferences',
         '/me/login-activity?page=1&limit=20&sortBy=createdAt&sortDir=desc',
         '/me/notices?page=1&limit=20&unreadOnly=true',
+        '/admin/config',
       ];
       for (const requestUrl of expectedRequests) {
         const response = await fetch(`${baseUrl}${requestUrl}`, {
@@ -129,6 +151,25 @@ describe('production web Nginx cache behavior', () => {
       expect(htmlResponse.status).toBe(200);
       expect(await htmlResponse.text()).toContain('<app-root>user app</app-root>');
       expect(htmlResponse.headers.get('vary')).toContain('Accept');
+
+      for (const pathName of ['/console/', '/console/users']) {
+        const response = await fetch(`${baseUrl}${pathName}`, { headers: { accept: 'text/html' } });
+        expect(response.status).toBe(200);
+        expect(await response.text()).toContain('<base href="/console/">');
+      }
+
+      const adminApi = await fetch(`${baseUrl}/admin/config`, { headers: { accept: 'application/json' } });
+      expect(await adminApi.json()).toEqual({ url: '/admin/config' });
+
+      const robots = await fetch(`${baseUrl}/robots.txt`);
+      expect(await robots.text()).toBe('User-agent: *\nDisallow: /\n');
+      expect(robots.headers.get('x-robots-tag')).toBe('noindex, nofollow, noarchive');
+
+      for (const pathName of ['/', '/console/']) {
+        const response = await fetch(`${baseUrl}${pathName}`, { headers: { accept: 'text/html' } });
+        expect(response.status).toBe(200);
+        expect(response.headers.get('x-robots-tag')).toBe('noindex, nofollow, noarchive');
+      }
     } finally {
       try { execFileSync('docker', ['rm', '--force', containerName], { stdio: 'pipe' }); } catch { /* Container may not have started. */ }
       await new Promise<void>((resolve, reject) => upstream.close((error) => error ? reject(error) : resolve()));
@@ -174,20 +215,20 @@ describe('production web Nginx cache behavior', () => {
     expect(block).toContain('include /etc/nginx/security-headers.conf;');
   });
 
-  it('proxies same-origin avatar image URLs through both web servers', () => {
-    const userServer = nginxConfig.slice(nginxConfig.indexOf('server {'));
-    const adminStart = userServer.indexOf('server {', userServer.indexOf('server {') + 1);
-    const adminServer = userServer.slice(adminStart);
-    for (const config of [userServer, adminServer]) {
-      const block = getLocationBlock('^~ /me/', config);
-      expect(block).toContain('proxy_pass http://api;');
-      expect(block).toContain('add_header Cache-Control "no-store" always;');
-      expect(block).toContain('include /etc/nginx/security-headers.conf;');
-    }
+  it('proxies same-origin avatar image URLs through the single web origin', () => {
+    const block = getLocationBlock('^~ /me/');
+    expect(block).toContain('proxy_pass http://api;');
+    expect(block).toContain('add_header Cache-Control "no-store" always;');
+    expect(block).toContain('include /etc/nginx/security-headers.conf;');
   });
 
   it('does not cache the index HTML returned directly from its canonical path', () => {
     expect(getLocationBlock('= /index.html')).toContain('add_header Cache-Control "no-cache" always;');
+  });
+
+  it('keeps /admin/ as an API proxy while /console/ is the admin SPA', () => {
+    expect(getLocationBlock('^~ /admin/')).toContain('proxy_pass http://api;');
+    expect(getLocationBlock('^~ /console/')).toContain('try_files $uri $uri/ /console/index.html;');
   });
 
   it('keeps all security headers in the shared include used by overriding locations', () => {
@@ -212,8 +253,8 @@ describe('production web Nginx cache behavior', () => {
     }
   });
 
-  it('allows OpenStreetMap raster tiles on both web origins without broadening other CSP directives', () => {
-    const policies = [...nginxConfig.matchAll(/Content-Security-Policy "([^"]+)"/g)].map((match) => match[1] ?? '');
+  it('allows OpenStreetMap raster tiles on the shared web origin without broadening other CSP directives', () => {
+    const policies = [...`${nginxConfig}\n${securityHeaders}`.matchAll(/Content-Security-Policy "([^"]+)"/g)].map((match) => match[1] ?? '');
 
     expect(policies.length).toBeGreaterThan(1);
     for (const policy of policies) {
@@ -231,22 +272,18 @@ describe('production web Nginx cache behavior', () => {
     expect(inlineScripts).toHaveLength(1);
     const scriptHash = createHash('sha256').update(inlineScripts[0]?.[1] ?? '').digest('base64');
 
-    for (const block of [
-      getLocationBlock('= /docs', nginxConfig),
-      getLocationBlock('= /docs', nginxConfig.slice(nginxConfig.indexOf('server {', nginxConfig.indexOf('server {') + 1))),
+    const block = getLocationBlock('= /docs');
+    expect(block).not.toBe('');
+    const contentSecurityPolicy = block.match(/add_header Content-Security-Policy "([^"]+)"/)?.[1] ?? '';
+    expect(contentSecurityPolicy).toContain(`script-src 'self' 'sha256-${scriptHash}'`);
+    expect(contentSecurityPolicy).not.toMatch(/script-src[^;]*'unsafe-inline'/);
+    for (const header of [
+      'X-Content-Type-Options',
+      'X-Frame-Options',
+      'Referrer-Policy',
+      'Permissions-Policy',
     ]) {
-      expect(block).not.toBe('');
-      const contentSecurityPolicy = block.match(/add_header Content-Security-Policy "([^"]+)"/)?.[1] ?? '';
-      expect(contentSecurityPolicy).toContain(`script-src 'self' 'sha256-${scriptHash}'`);
-      expect(contentSecurityPolicy).not.toMatch(/script-src[^;]*'unsafe-inline'/);
-      for (const header of [
-        'X-Content-Type-Options',
-        'X-Frame-Options',
-        'Referrer-Policy',
-        'Permissions-Policy',
-      ]) {
-        expect(block).toContain(`add_header ${header} `);
-      }
+      expect(block).toContain(`add_header ${header} `);
     }
   });
 });

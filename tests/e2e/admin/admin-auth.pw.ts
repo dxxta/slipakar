@@ -5,7 +5,7 @@ test.describe('Admin authentication', () => {
   test('signed-out users are redirected to login', async ({ page }) => {
     await setupAdminApiMock(page, { user: null });
 
-    await page.goto('/flags');
+    await page.goto('/console/flags');
 
     await expect(page).toHaveURL(/\/login$/);
     await expect(page.getByRole('heading', { name: 'Sign in to your workspace' })).toBeVisible();
@@ -17,7 +17,7 @@ test.describe('Admin authentication', () => {
       user: { id: 'user-1', email: 'member@example.com', name: 'Member', role: 'user' },
     });
 
-    await page.goto('/flags');
+    await page.goto('/console/flags');
 
     await expect(page).toHaveURL(/\/forbidden$/);
     await expect(page.getByRole('heading', { name: 'This area is for administrators' })).toBeVisible();
@@ -26,7 +26,7 @@ test.describe('Admin authentication', () => {
   test('admins can open the feature flags page', async ({ page }) => {
     await setupAdminApiMock(page);
 
-    await page.goto('/flags');
+    await page.goto('/console/flags');
 
     await expect(page).toHaveURL(/\/flags$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Feature flags' })).toBeVisible();
@@ -38,7 +38,7 @@ test.describe('Admin authentication', () => {
   test('the user-app route redirects to the configured local user app', async ({ page }) => {
     await setupAdminApiMock(page);
     await page.route('http://localhost:4300/**', async (route) => route.fulfill({ status: 200, contentType: 'text/html', body: '<title>User app destination</title>' }));
-    await page.goto('/user-app');
+    await page.goto('/console/user-app');
     await expect(page).toHaveURL('http://localhost:4300/');
     await expect(page).toHaveTitle('User app destination');
   });

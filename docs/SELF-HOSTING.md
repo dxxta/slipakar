@@ -48,8 +48,8 @@ Before starting, ensure the host machine has the following tools installed:
      ```bash
      openssl rand -base64 32
      ```
-   - **`BETTER_AUTH_URL`**: Public URL users open for the user web app (for example `http://localhost:8080` locally or `https://app.example.com` behind Caddy). Better Auth uses this URL when constructing OAuth callback URLs.
-   - **`TRUSTED_ORIGINS`**: Comma-separated absolute browser origins accepted by Better Auth. Compose defaults to `http://localhost:8080,http://localhost:8081`; set both public origins when using custom hostnames.
+   - **`BETTER_AUTH_URL`**: The single public origin users open for both web apps (for example `http://localhost:8080` locally or `https://app.example.com` behind Caddy). The admin app is served under `/console/`. Better Auth uses this URL when constructing OAuth callback URLs.
+   - **`TRUSTED_ORIGINS`**: Comma-separated absolute browser origins accepted by Better Auth. Compose defaults to `http://localhost:8080`; the user and admin apps share this origin.
    - **`GOOGLE_CLIENT_ID`** & **`GOOGLE_CLIENT_SECRET`**: OAuth credentials from the Google Cloud Console.
    - **`METRICS_TOKEN`**: High-entropy secret token (at least 16 characters) used by Prometheus to scrape `/metrics`.
    - **`GRAFANA_ADMIN_PASSWORD`**: Password for the Grafana admin account (`admin`).
@@ -107,17 +107,17 @@ docker compose logs -f api
 
 ## 5. Web Interfaces & Endpoints
 
-One Nginx container serves both production Angular apps. User web listens on container port 8080 and admin web on 8081. Compose publishes host-facing services on `127.0.0.1` by default through `BIND_ADDRESS`; put a TLS reverse proxy in front of the web ports.
+One Nginx container serves both production Angular apps on container port `8080`: user web is at `/` and admin web at `/console/`. API routes such as `/admin/*` remain proxied to the API, so the admin SPA must stay under `/console/`. Compose publishes the web port on `127.0.0.1` by default through `BIND_ADDRESS`; put a TLS reverse proxy in front of that single origin.
 
 | Service | Container / host port | Default URL | Description |
 |---|---:|---|---|
-| **User web** | `8080` / `8080` | `http://127.0.0.1:8080` | Main user application |
-| **Admin web** | `8081` / `8081` | `http://127.0.0.1:8081` | Admin application |
+| **Web (user)** | `8080` / `8080` | `http://127.0.0.1:8080/` | Main user application |
+| **Web (admin)** | `8080` / `8080` | `http://127.0.0.1:8080/console/` | Admin application, same origin |
 | **API** | `3000` / `3000` | `http://127.0.0.1:3000` | Core API, health (`/health`), and interactive docs (`/docs`) |
 | **Grafana** | `3000` / `3001` | `http://127.0.0.1:3001` | Monitoring dashboards (default user: `admin`) |
 | **Uptime Kuma** | `3001` / `3002` | `http://127.0.0.1:3002` | Uptime and service status monitoring |
 
-Only these five services publish host ports. PostgreSQL, Redis, RabbitMQ, Garage, and Prometheus remain internal to the Compose network. `WEB_USER_PORT` and `WEB_ADMIN_PORT` can change the published host ports while the Nginx container ports stay 8080 and 8081.
+The `landing` site is an optional Compose profile, not part of a normal `docker compose up`. Start it with `docker compose --profile landing up -d`; it publishes loopback port `8082` by default and can use its own domain. PostgreSQL, Redis, RabbitMQ, Garage, and Prometheus remain internal to the Compose network. `WEB_PORT` changes the single published web host port while Nginx listens on container port `8080`.
 
 ### Google OAuth and public hostnames
 
@@ -127,19 +127,15 @@ Register this redirect URI in Google Cloud Console:
 ${BETTER_AUTH_URL}/api/auth/callback/google
 ```
 
-`BETTER_AUTH_URL` must be the public URL users open for user web. For local Compose, use `http://localhost:8080`; behind the reverse proxy below, use `https://app.example.com`. The browser sends Better Auth requests through the same-origin Nginx proxy.
+`BETTER_AUTH_URL` must be the public origin users open. For local Compose, use `http://localhost:8080`; behind the reverse proxy below, use `https://app.example.com`. User web lives at `/` and admin web at `/console/` on that origin. The browser sends Better Auth requests through the same-origin Nginx proxy.
 
-Cookies are shared between ports on the same hostname because cookies are not port-scoped. Cookies are not shared between different subdomains such as `app.example.com` and `admin.example.com`; each hostname has its own browser cookie scope.
+The admin and user apps share the same host and port, so their browser cookies are shared by origin. Keep authorization enforced by the API's role checks and the web security policy; the `/console/` path is not an authorization boundary.
 
-Example Caddy configuration for separate public hostnames:
+Example Caddy configuration for the single app origin:
 
 ```caddyfile
 app.example.com {
     reverse_proxy 127.0.0.1:8080
-}
-
-admin.example.com {
-    reverse_proxy 127.0.0.1:8081
 }
 ```
 
@@ -147,14 +143,37 @@ Set these values when using the example hostnames:
 
 ```dotenv
 BETTER_AUTH_URL=https://app.example.com
-TRUSTED_ORIGINS=https://app.example.com,https://admin.example.com
+TRUSTED_ORIGINS=https://app.example.com
 ```
 
 The user and admin Sentry DSNs are optional Docker build arguments. Set `SENTRY_DSN_USER` and `SENTRY_DSN_ADMIN` in the Compose environment before building `web`; each value is embedded in that app's production JavaScript bundle. Leave them empty to disable browser Sentry reporting.
 
 Nginx allows same-origin app assets and API requests, Sentry ingestion, Angular inline styles, and the same-origin sandboxed `srcdoc` email preview iframe. That iframe remains sandboxed without scripts or same-origin privileges.
 
-After starting the production stack, run `make smoke-web` to check the user and admin ports for SPA deep links, API content types, cache-variant headers, and the Scalar CSP hash on the protected `/docs` route (which returns 401 without a session). If the web ports use non-default local mappings, set `WEB_USER_URL` and `WEB_ADMIN_URL`, for example `make smoke-web WEB_USER_URL=http://localhost:18080 WEB_ADMIN_URL=http://localhost:18081`.
+After starting the production stack, run `make smoke-web` to check the shared web origin for both SPA entrypoints and deep links, API routing and content types, cache-variant headers, crawler policy, and the Scalar CSP hash on the protected `/docs` route (which returns 401 without a session). If the web port uses a non-default local mapping, set `WEB_URL`, for example `make smoke-web WEB_URL=http://localhost:18080`.
+
+### Public landing site
+
+The `landing` service is separate from the main web image and is disabled unless the `landing` Compose profile is selected. Start it with `docker compose --profile landing up -d` or `make up-landing`. It serves the public Angular site on container port `8082` (host port `LANDING_PORT`, default `8082`) and binds to `127.0.0.1` by default. Point a separate public domain's DNS at the server and terminate HTTPS at the proxy. For example, Caddy obtains and renews TLS certificates when the domain resolves to the host and ports 80 and 443 are reachable:
+
+```caddyfile
+landing.example.com {
+    reverse_proxy 127.0.0.1:8082
+}
+```
+
+The landing site's default `LANDING_APP_URL` follows `BETTER_AUTH_URL`; its other URL settings are independent. Set `API_UPSTREAM` if the Nginx web container needs a non-default API address. `PORT` is the Nginx container listener and defaults to `8080` (the Compose mapping targets that port).
+
+Set these public URLs in `.env` before starting or rebuilding the service:
+
+| Variable | Purpose |
+|---|---|
+| `LANDING_APP_URL` | User application URL used by the landing site's sign-in links. |
+| `LANDING_SITE_URL` | Public landing origin used for canonical, Open Graph, and sitemap URLs. |
+| `LANDING_REPO_URL` | Public source repository link. |
+| `LANDING_DOCS_URL` | Public self-hosting guide link. |
+
+The Express server reads these values at runtime and places them in an SSR-rendered metadata element; the Angular app reads that value through an injection token rather than a `window` global. Missing values use localhost defaults. The landing site serves a dynamic `robots.txt` that disallows the listed AI model crawlers while allowing general crawling and search crawlers. Express also returns `403` for requests whose user-agent matches the block list. These checks only guide or stop honest clients; user agents can be spoofed, so use a CDN or WAF if access must be enforced.
 
 ---
 
@@ -179,7 +198,7 @@ make seed-demo
 
 Alternatively, administrators can trigger the seed via the API:
 ```bash
-curl -X POST http://localhost:8081/admin/demo-project \
+curl -X POST http://localhost:8080/admin/demo-project \
   -H "Cookie: better-auth.session_token=..."
 ```
 This endpoint is idempotent and returns HTTP 200 whether the project was newly created or already existed.
@@ -249,7 +268,7 @@ To upgrade LokaSlip to the latest version:
 ## 9. Security Considerations & Privacy
 
 - **Localhost Binding**:
-  By default, `docker-compose.yml` binds `web` (8080 and 8081), `api` (3000), `grafana` (3001), and `uptime-kuma` (3002) to `127.0.0.1` using `${BIND_ADDRESS:-127.0.0.1}`.
+  By default, `docker-compose.yml` binds `web` (8080), `api` (3000), `grafana` (3001), and `uptime-kuma` (3002) to `127.0.0.1` using `${BIND_ADDRESS:-127.0.0.1}`. The optional landing service also defaults to `127.0.0.1` on port `8082`.
 - **Isolated Internal Services**:
   PostgreSQL, Redis, RabbitMQ, Garage, and Prometheus publish **no** host ports; they communicate entirely through the internal Docker network.
 - **Production Reverse Proxy & `TRUST_PROXY`**:
@@ -270,6 +289,6 @@ To upgrade LokaSlip to the latest version:
 - **`400 EMAIL_CHANGE_UNAVAILABLE`**:
   Returned by `POST /api/auth/change-email` when neither the Admin Setup `mail` integration (`/admin/setup`) nor the `AUTH_SMTP_HOST` + `AUTH_MAIL_FROM` environment variables are configured.
 - **`401 Unauthorized` on `/docs` or `/openapi.json`**:
-  The Scalar API reference (`/docs`) and OpenAPI specification (`/openapi.json`) require an authenticated session. Sign in to the user web (`8080`) or admin web (`8081`) first, then open `/docs` on that same origin. Nginx serves `/docs` with a dedicated per-location CSP `script-src` hash (`'sha256-lmba+p2ZA26l0frITlGt+zVDpF9V987twNchN6VQgQ8='`).
+  The Scalar API reference (`/docs`) and OpenAPI specification (`/openapi.json`) require an authenticated session. Sign in to the user app or admin app (`/console/`) on the shared origin first, then open `/docs`. Nginx serves `/docs` with a dedicated per-location CSP `script-src` hash (`'sha256-lmba+p2ZA26l0frITlGt+zVDpF9V987twNchN6VQgQ8='`).
 - **Login activity shows `"Local network"`**:
   Signing in from `localhost` or directly through the Docker bridge network records a loopback or Docker gateway IP (e.g. `172.18.0.1`), which is private and has no GeoIP coordinates (`null` location, `proxy: false`). Behind an external reverse proxy, ensure `X-Forwarded-For` is forwarded and `TRUST_PROXY` matches your proxy hop count or CIDRs.

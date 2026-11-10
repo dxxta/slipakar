@@ -7,7 +7,7 @@ test('admin login activity searches users and opens the on-demand map preview', 
     browser: 'Firefox', os: 'Linux', deviceType: 'Desktop', country: 'US', region: 'CA', city: 'San Francisco', latitude: 37.7,
     longitude: -122.4, createdAt: '2026-11-09T00:00:00.000Z',
   }] });
-  await page.goto('/login-activity');
+  await page.goto('/console/login-activity');
   await expect(page.getByRole('heading', { level: 1, name: 'Login activity' })).toBeVisible();
   await expect(page.getByRole('cell', { name: 'member@example.test' })).toBeVisible();
   await expect(page.getByText('Possible proxy', { exact: true })).toHaveAttribute('title', 'best effort');

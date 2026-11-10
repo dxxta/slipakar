@@ -4,7 +4,7 @@ import { setupAdminApiMock } from './admin-helpers';
 test('admin navigation opens from the mobile bar and closes after choosing a page', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await setupAdminApiMock(page);
-  await page.goto('/flags');
+  await page.goto('/console/flags');
 
   await expect(page.getByRole('heading', { name: 'Feature flags' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Open navigation' })).toBeVisible();

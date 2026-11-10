@@ -32,7 +32,7 @@ services:
       APP_ENCRYPTION_KEY: "${APP_ENCRYPTION_KEY:?APP_ENCRYPTION_KEY is required}"
       BETTER_AUTH_SECRET: "${BETTER_AUTH_SECRET:?BETTER_AUTH_SECRET is required}"
       BETTER_AUTH_URL: "${BETTER_AUTH_URL:?BETTER_AUTH_URL is required}"
-      TRUSTED_ORIGINS: "${TRUSTED_ORIGINS:-http://localhost:8080,http://localhost:8081}"
+      TRUSTED_ORIGINS: "${TRUSTED_ORIGINS:-http://localhost:8080}"
       GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID:?GOOGLE_CLIENT_ID is required}"
       GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET:?GOOGLE_CLIENT_SECRET is required}"
       ADMIN_EMAILS: "${ADMIN_EMAILS:-}"
@@ -60,10 +60,32 @@ services:
       api:
         condition: service_healthy
     ports:
-      - "${BIND_ADDRESS:-127.0.0.1}:${WEB_USER_PORT:-8080}:8080"
-      - "${BIND_ADDRESS:-127.0.0.1}:${WEB_ADMIN_PORT:-8081}:8081"
+      - "${BIND_ADDRESS:-127.0.0.1}:${WEB_PORT:-8080}:8080"
+    environment:
+      PORT: 8080
+      API_UPSTREAM: "${API_UPSTREAM:-api:3000}"
     healthcheck:
       test: ["CMD", "busybox", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  landing:
+    profiles: ["landing"]
+    build:
+      context: .
+      dockerfile: infra/landing/Dockerfile
+    restart: unless-stopped
+    ports:
+      - "${LANDING_BIND_ADDRESS:-127.0.0.1}:${LANDING_PORT:-8082}:8082"
+    environment:
+      PORT: 8082
+      LANDING_APP_URL: "${LANDING_APP_URL:-${BETTER_AUTH_URL:-http://localhost:8080}}"
+      LANDING_SITE_URL: "${LANDING_SITE_URL:-http://localhost:8082}"
+      LANDING_REPO_URL: "${LANDING_REPO_URL:-http://localhost:8082/#open-source}"
+      LANDING_DOCS_URL: "${LANDING_DOCS_URL:-http://localhost:8082/#self-host}"
+    healthcheck:
+      test: ["CMD", "busybox", "wget", "-q", "-O", "-", "http://127.0.0.1:8082/healthz"]
       interval: 30s
       timeout: 5s
       retries: 3

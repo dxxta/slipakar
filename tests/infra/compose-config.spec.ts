@@ -33,7 +33,7 @@ describe('docker-compose.yml configuration', () => {
       'APP_ENCRYPTION_KEY=0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef',
       'BETTER_AUTH_SECRET=fake-better-auth-secret-123456',
       'BETTER_AUTH_URL=http://localhost:8080',
-      'TRUSTED_ORIGINS=http://localhost:8080,http://localhost:8081',
+      'TRUSTED_ORIGINS=http://localhost:8080',
       'GOOGLE_CLIENT_ID=fake-google-client-id',
       'GOOGLE_CLIENT_SECRET=fake-google-client-secret',
       'METRICS_TOKEN=fake-metrics-token-16-chars-min',
@@ -120,11 +120,22 @@ describe('docker-compose.yml configuration', () => {
       }
     }
 
-    expect(config.services.web.ports.map((port: { target: number }) => port.target).sort()).toEqual([8080, 8081]);
-    expect(config.services.web.ports.map((port: { published: string }) => port.published).sort()).toEqual(['8080', '8081']);
+    expect(config.services.web.ports.map((port: { target: number }) => port.target).sort()).toEqual([8080]);
+    expect(config.services.web.ports.map((port: { published: string }) => port.published).sort()).toEqual(['8080']);
+    expect(config.services.web.environment.API_UPSTREAM).toBe('api:3000');
     expect(config.services.web.depends_on.api.condition).toBe('service_healthy');
     expect(config.services.web.restart).toBe('unless-stopped');
-    expect(config.services.api.environment.TRUSTED_ORIGINS).toBe('http://localhost:8080,http://localhost:8081');
+    expect(config.services.api.environment.TRUSTED_ORIGINS).toBe('http://localhost:8080');
+
+    expect(config.services.landing).toBeUndefined();
+    const landingConfigOutput = execFileSync(
+      'docker',
+      ['compose', '-f', composeFile, '--env-file', validEnvFile, '--profile', 'landing', 'config', '--format', 'json'],
+      { stdio: ['pipe', 'pipe', 'pipe'], encoding: 'utf8' },
+    );
+    const landingConfig = JSON.parse(landingConfigOutput);
+    expect(landingConfig.services.landing.profiles).toEqual(['landing']);
+    expect(landingConfig.services.landing.ports[0]).toMatchObject({ host_ip: '127.0.0.1', published: '8082', target: 8082 });
 
     // (5) the api depends on postgres, redis, rabbitmq, garage with service_healthy and garage-init with service_completed_successfully
     const apiDepends = config.services.api.depends_on;

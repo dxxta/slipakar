@@ -19,7 +19,7 @@ export default defineConfig({
     {
       name: 'admin-web',
       testDir: 'tests/e2e/admin',
-      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:4301' },
+      use: { ...devices['Desktop Chrome'], baseURL: 'http://localhost:4301/console/' },
     },
   ],
   webServer: [
@@ -30,8 +30,8 @@ export default defineConfig({
       timeout: 180_000,
     },
     {
-      command: 'npm run start -w @lokaslip/admin-web -- --port 4301',
-      url: 'http://localhost:4301',
+      command: 'npm run start -w @lokaslip/admin-web -- --port 4301 --configuration e2e --serve-path /console/',
+      url: 'http://localhost:4301/console/',
       reuseExistingServer: !process.env.CI,
       timeout: 180_000,
     },

@@ -4,7 +4,7 @@ import { setupAdminApiMock } from './admin-helpers';
 test.describe('Admin monitoring', () => {
   test('shows the four monitoring links with safe new-tab attributes', async ({ page }) => {
     await setupAdminApiMock(page);
-    await page.goto('/monitoring');
+    await page.goto('/console/monitoring');
 
     const links = [
       { name: 'Open Grafana', href: 'http://localhost:3001' },
@@ -22,7 +22,7 @@ test.describe('Admin monitoring', () => {
 
   test('shows Healthy after API health succeeds and Refresh makes another request', async ({ page }) => {
     const mock = await setupAdminApiMock(page);
-    await page.goto('/monitoring');
+    await page.goto('/console/monitoring');
     await expect(page.getByTestId('health-badge')).toContainText('Healthy');
     expect(mock.healthCalls).toBe(1);
 
@@ -38,7 +38,7 @@ test.describe('Admin monitoring', () => {
 
   test('shows Unreachable when the health endpoint fails', async ({ page }) => {
     await setupAdminApiMock(page, { failHealthCalls: [1] });
-    await page.goto('/monitoring');
+    await page.goto('/console/monitoring');
 
     await expect(page.getByTestId('health-badge')).toContainText('Unreachable');
   });

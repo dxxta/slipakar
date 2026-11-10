@@ -4,7 +4,7 @@ import { setupAdminApiMock } from './admin-helpers';
 test.describe('Admin setup gate', () => {
   test('keeps admin pages behind setup and treats environment mail as configured', async ({ page }) => {
     const mock = await setupAdminApiMock(page, { completeSetup: false, mailFromEnvironment: true });
-    await page.goto('/flags');
+    await page.goto('/console/flags');
 
     await expect(page).toHaveURL(/\/setup$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Setup' })).toBeVisible();
@@ -29,7 +29,7 @@ test.describe('Admin setup gate', () => {
 
   test('saves mail settings and tests without echoing its write-only password', async ({ page }) => {
     const mock = await setupAdminApiMock(page, { completeSetup: false });
-    await page.goto('/setup');
+    await page.goto('/console/setup');
     const mailCard = page.locator('article').filter({ has: page.getByRole('heading', { name: 'Mail' }) });
     await mailCard.getByRole('button', { name: 'Configure' }).click();
 

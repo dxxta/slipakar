@@ -3,7 +3,7 @@ import { setupAdminApiMock } from './admin-helpers';
 
 test('admins can search, view, edit, disable, and see user status', async ({ page }) => {
   const state = await setupAdminApiMock(page);
-  await page.goto('/users');
+  await page.goto('/console/users');
 
   await expect(page.getByRole('heading', { name: 'Users', level: 1 })).toBeVisible();
   const memberRow = page.getByRole('row').filter({ hasText: 'member@example.test' }).first();

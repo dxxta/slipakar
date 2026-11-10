@@ -3,7 +3,7 @@ import { setupAdminApiMock } from './admin-helpers';
 
 test('admin composes, previews, and confirms a broadcast against the strict API contract', async ({ page }) => {
   const state = await setupAdminApiMock(page);
-  await page.goto('/broadcasts');
+  await page.goto('/console/broadcasts');
   await expect(page.getByRole('heading', { level: 1, name: 'Broadcasts' })).toBeVisible();
   await page.getByRole('button', { name: 'Create broadcast' }).click();
   await page.getByLabel('Subject').fill('Quarterly update');

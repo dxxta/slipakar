@@ -23,7 +23,7 @@ RUN if [ -n "$SENTRY_DSN_USER" ]; then \
     fi
 
 RUN cd apps/user-web && npx ng build --configuration production && \
-    cd ../admin-web && npx ng build --configuration production
+    cd ../admin-web && npx ng build --configuration production --base-href /console/
 
 # Angular's critical-CSS helper injects an inline script to switch Beasties' stylesheet
 # from media="print" to media="all". Keep CSP script-src 'self' by applying that
@@ -48,11 +48,20 @@ NODE
 FROM nginxinc/nginx-unprivileged:stable-alpine AS runtime
 
 COPY --from=build /app/apps/user-web/dist/user-web/browser /usr/share/nginx/html/user
-COPY --from=build /app/apps/admin-web/dist/admin-web/browser /usr/share/nginx/html/admin
-COPY infra/web/nginx.conf /etc/nginx/conf.d/default.conf
+COPY --from=build /app/apps/admin-web/dist/admin-web/browser /usr/share/nginx/html/console
+COPY infra/web/nginx.conf /etc/nginx/templates/default.conf.template
 COPY infra/web/security-headers.conf /etc/nginx/security-headers.conf
+COPY infra/web/robots-header.conf /etc/nginx/robots-header.conf
 
-EXPOSE 8080 8081
+ENV API_UPSTREAM=api:3000 PORT=8080
+ENV NGINX_ENVSUBST_FILTER='^(PORT|API_UPSTREAM)$'
+ENV NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/conf.d
+
+USER root
+RUN chown nginx:nginx /etc/nginx/conf.d
+USER nginx
+
+EXPOSE 8080
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD busybox wget -q -O - http://127.0.0.1:8080/healthz || exit 1
+  CMD sh -c 'busybox wget -q -O - "http://127.0.0.1:${PORT}/healthz" || exit 1'

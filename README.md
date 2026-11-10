@@ -1,5 +1,21 @@
 # Lokaslip
 
+![Angular](https://img.shields.io/badge/Angular-DD0031?style=flat&logo=angular&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-5FA04E?style=flat&logo=nodedotjs&logoColor=white)
+![Express](https://img.shields.io/badge/Express-000000?style=flat&logo=express&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=flat&logo=prisma&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=flat&logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-DC382D?style=flat&logo=redis&logoColor=white)
+![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?style=flat&logo=rabbitmq&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=flat&logo=tailwindcss&logoColor=white)
+![Nginx](https://img.shields.io/badge/Nginx-009639?style=flat&logo=nginx&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
+![Prometheus](https://img.shields.io/badge/Prometheus-E6522C?style=flat&logo=prometheus&logoColor=white)
+![Grafana](https://img.shields.io/badge/Grafana-F46800?style=flat&logo=grafana&logoColor=white)
+![Uptime Kuma](https://img.shields.io/badge/Uptime_Kuma-5CDD8B?style=flat&logo=uptimekuma&logoColor=white)
+![Garage S3](https://img.shields.io/badge/Garage_S3-1E1E1E?style=flat)
+
 LokaSlip is an open-source, self-hostable platform for personalized bulk email. It lets a company send messages through its own SMTP server and optionally attach a personalized PDF, such as an employee payslip, to each recipient.
 
 The primary use case is HR, finance, or operations uploading a spreadsheet, mapping its columns to a reusable email or PDF template, previewing the result, and sending a campaign without writing code.
@@ -22,7 +38,8 @@ The primary use case is HR, finance, or operations uploading a spreadsheet, mapp
 | Compose service | Purpose | Published host port by default |
 |---|---|---:|
 | `api` | Express REST API, authentication, and background workers | `3000` |
-| `web` | One Nginx container serving user web on `8080` and admin web on `8081` | `8080`, `8081` |
+| `web` | One Nginx container serving user web at `/` and admin web at `/console/` | `8080` |
+| `landing` | Public Angular landing site with English and Indonesian pages | `8082` |
 | `postgres` | Application database | Internal only |
 | `redis` | Session/cache state, rate limiting, and feature-flag updates | Internal only |
 | `rabbitmq` | Background email and notification jobs | Internal only |
@@ -31,7 +48,9 @@ The primary use case is HR, finance, or operations uploading a spreadsheet, mapp
 | `grafana` | Metrics dashboards | `3001` |
 | `uptime-kuma` | Uptime and health monitoring | `3002` |
 
-The published ports bind to `127.0.0.1` by default. PostgreSQL, Redis, RabbitMQ, Garage, and Prometheus stay on the internal Compose network.
+The API, web, Grafana, and Uptime Kuma published ports bind to `127.0.0.1` by default. The landing site binds to `0.0.0.0` by default; set `LANDING_BIND_ADDRESS=127.0.0.1` when placing a reverse proxy in front. PostgreSQL, Redis, RabbitMQ, Garage, and Prometheus stay on the internal Compose network.
+
+The public landing site is served by the `landing` service on port `8082`. It provides English and Indonesian product information, a terms page, a dynamic sitemap, and a robots policy that blocks selected AI model crawlers while allowing search crawlers. Configure the public app, site, repository, and self-hosting guide URLs with the `LANDING_*_URL` variables.
 
 ### Monorepo layout
 
@@ -39,6 +58,7 @@ The published ports bind to `127.0.0.1` by default. PostgreSQL, Redis, RabbitMQ,
 apps/api/          Express API, domain and internal layers, Prisma schema and migrations
 apps/admin-web/    Angular administration app
 apps/user-web/     Angular user app
+apps/landing-web/  Public Angular SSR landing site
 packages/shared/   Shared TypeScript code
 packages/ui/       Shared UI package source
 infra/             Garage, Prometheus, Grafana, and web-server configuration
@@ -86,13 +106,14 @@ The API applies database migrations during startup. Wait for the services to bec
 
 | Service | URL | Binding |
 |---|---|---|
-| User app | `http://127.0.0.1:8080` | `127.0.0.1:8080` |
-| Admin app | `http://127.0.0.1:8081` | `127.0.0.1:8081` |
+| User app | `http://127.0.0.1:8080/` | `127.0.0.1:8080` |
+| Admin app | `http://127.0.0.1:8080/console/` | Same origin as user app |
 | API | `http://127.0.0.1:3000` | `127.0.0.1:3000` |
 | Grafana | `http://127.0.0.1:3001` | `127.0.0.1:3001` |
 | Uptime Kuma | `http://127.0.0.1:3002` | `127.0.0.1:3002` |
+| Landing site (optional) | `http://127.0.0.1:8082` | `127.0.0.1:8082` |
 
-`BIND_ADDRESS` controls the host IP. `WEB_USER_PORT` and `WEB_ADMIN_PORT` change the published web ports. For public access, place an HTTPS reverse proxy in front of the web ports; see [Self-Hosting](docs/SELF-HOSTING.md).
+`BIND_ADDRESS` controls the host IP and `WEB_PORT` changes the published web port. The admin app is served from `/console/` on that same origin. The landing site is opt-in: start it with `docker compose --profile landing up -d` or `make up-landing`. For public access, place an HTTPS reverse proxy in front of the web port; see [Self-Hosting](docs/SELF-HOSTING.md).
 
 To grant admin access, add the account's Google email to `ADMIN_EMAILS` before signing in. Admin-only routes compare the signed-in email with this configured list.
 
@@ -103,7 +124,7 @@ Google OAuth must be configured before users can sign in.
 1. In Google Cloud Console, create or choose a project.
 2. Configure the OAuth consent screen and add the intended users as test users if the consent screen remains in testing mode.
 3. Create an OAuth client ID with application type **Web application**.
-4. Add the user app and admin app origins under **Authorized JavaScript origins**. The default local origins are `http://localhost:8080` and `http://localhost:8081`.
+4. Add the shared app origin under **Authorized JavaScript origins**. The default local origin is `http://localhost:8080`; user and admin share it, with admin under `/console/`.
 5. Add this exact value under **Authorized redirect URIs**:
 
    ```text
@@ -113,9 +134,9 @@ Google OAuth must be configured before users can sign in.
    With the local default `BETTER_AUTH_URL=http://localhost:8080`, the URI is `http://localhost:8080/api/auth/callback/google`.
 
 6. Put the Google client ID and client secret in `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env`.
-7. Set `BETTER_AUTH_URL` to the public user-app URL that people open. Set `TRUSTED_ORIGINS` to a comma-separated list of browser origins, including the admin app origin and any custom frontend origins.
+7. Set `BETTER_AUTH_URL` to the public app origin people open. Set `TRUSTED_ORIGINS` to that origin and any other browser origin you explicitly use; the admin path does not need a separate trusted origin.
 8. Add admin account emails to `ADMIN_EMAILS` if needed.
-9. Recreate the API container so it receives the updated environment, then sign in from both the user and admin apps:
+9. Recreate the API container so it receives the updated environment, then sign in from the user app and the admin app at `/console/`:
 
    ```bash
    docker compose up -d --force-recreate api
@@ -129,6 +150,8 @@ Common sign-in problems:
 - **Consent screen in testing mode**: only Google accounts listed as test users can complete OAuth until the consent screen is published or otherwise approved.
 
 ## Local development
+
+To run the API, user app and admin app each on their own with per-app `.env` files and Makefiles (infrastructure stays in Docker), follow [docs/LOCAL-DEVELOPMENT.md](docs/LOCAL-DEVELOPMENT.md). The notes below describe the root-level workflow.
 
 Install workspace dependencies with either command:
 
@@ -162,6 +185,7 @@ Start the API and Angular apps with the Make targets:
 make dev-api
 make dev-user
 make dev-admin
+make dev-landing
 ```
 
 The API defaults to port `3000`. Angular `ng serve` defaults to port `4200`; run the apps separately or start them on different ports. For example, these workspace scripts accept Angular CLI arguments:
@@ -199,6 +223,7 @@ Run the Angular tests once in CI mode (Angular 22 `ng test` has no `--watch` opt
 ```bash
 cd apps/user-web && CI=1 npx ng test
 cd apps/admin-web && CI=1 npx ng test
+make test-landing
 ```
 
 Run browser flows with Playwright:
@@ -209,7 +234,7 @@ npm run e2e
 
 Playwright starts both web development servers and mocks API responses. Mocked browser tests do not replace a smoke test against a real Compose stack.
 
-With the production web service already running, `make smoke-web` checks the user and admin ports for deep-link HTML, API response content types, and the user app's `Vary: Accept` and cache policies. Set `WEB_USER_URL` and `WEB_ADMIN_URL` to check alternate local ports.
+With the production web service already running, `make smoke-web` checks the single `WEB_URL` for both app entrypoints, `/console/` deep links, API routing, crawler policy, and the user app's `Vary: Accept` and cache policies. Set `WEB_URL` to check an alternate local port.
 
 Useful Make targets are listed below. `make check` runs typechecking, lint, and the API and web unit/integration test targets. Playwright remains a separate `npm run e2e` (`make e2e`) step.
 
@@ -224,13 +249,15 @@ Useful Make targets are listed below. `make check` runs typechecking, lint, and 
 | `dev-api` | Start the API service in development watch mode. |
 | `dev-admin` | Start the admin web frontend in development mode. |
 | `dev-user` | Start the user web frontend in development mode. |
+| `dev-landing` | Start the public landing frontend in development mode. |
 | `typecheck` | Run TypeScript typechecking (`tsc -b`) across all workspace projects. |
 | `lint` | Run ESLint across the codebase. |
 | `test` | Run the API unit and integration test suite using Vitest (requires Docker for Testcontainers). |
 | `test-api-file` | Run a single API test spec file passed via `FILE=<path>`. |
 | `test-admin` | Run unit tests for the admin web frontend. |
 | `test-user` | Run unit tests for the user web frontend. |
-| `test-all` | Run all test suites across the API, admin-web, and user-web. |
+| `test-landing` | Run unit tests for the public landing frontend. |
+| `test-all` | Run all test suites across the API and frontend apps. |
 | `check` | Run all quality checks: `typecheck`, `lint`, and `test-all`. |
 | `build` | Build all TypeScript packages and applications across the workspace. |
 | `docker-build` | Build the production Docker image for the API service (`lokaslip-api:dev`). |
@@ -250,17 +277,18 @@ Useful Make targets are listed below. `make check` runs typechecking, lint, and 
 | `config` | Validate and render the Docker Compose configuration against the env file. |
 | `playwright-install` | Install Playwright Chromium browser binaries. |
 | `e2e` | Run end-to-end browser tests using Playwright. |
-| `smoke-web` | Check running user (`8080`) and admin (`8081`) web ports, API proxy MIME types, cache/Vary headers, and `/docs` CSP hash. |
+| `up-landing` | Start the optional `landing` Compose profile and build its image. |
+| `smoke-web` | Check both apps on the single web origin, API routing, crawler policy, cache/Vary headers, and `/docs` CSP hash. |
 | `clean` | Remove `dist`, `.angular`, and `*.tsbuildinfo` build artifacts across `apps` and `packages`. |
 
 ## Ports and routes
 
-In Docker Compose, a single Nginx container (`web`) serves the user web app on port `8080` and the admin web app on port `8081`, proxying backend paths to `api:3000`:
+In Docker Compose, a single Nginx container (`web`) serves both Angular apps on the same host port, proxying backend paths to `api:3000`:
 
 | Port / App | Frontend SPA Routes | Proxied API & System Paths |
 |---|---|---|
-| **User web (`8080`)** | `/login`, `/account-disabled`, `/projects`, `/projects/:projectId` (`overview`, `smtp`, `templates`, `data`, `campaigns`, `campaigns/new`, `campaigns/:campaignId`, `pdf-templates`, `pdf-templates/new`, `pdf-templates/:templateId`), `/notifications`, `/profile`, `/login-activity` | `/api/*`, `/health`, `/healthz` (Nginx), `/docs`, `/docs/*`, `/openapi.json`, `/notifications/unread-count`, `/me/*`, `/projects` & `/projects/*` (content-negotiated via `Accept`: `text/html` serves SPA `/index.html`, `application/json` proxies to API) |
-| **Admin web (`8081`)** | `/login`, `/forbidden`, `/flags`, `/monitoring`, `/users`, `/preferences`, `/broadcasts`, `/login-activity`, `/setup`, `/user-app` | `/api/*`, `/health`, `/healthz` (Nginx), `/docs`, `/docs/*`, `/openapi.json`, `/admin/*`, `/me/*` |
+| **User web (`/`)** | `/login`, `/account-disabled`, `/projects`, `/projects/:projectId` (`overview`, `smtp`, `templates`, `data`, `campaigns`, `campaigns/new`, `campaigns/:campaignId`, `pdf-templates`, `pdf-templates/new`, `pdf-templates/:templateId`), `/notifications`, `/profile`, `/login-activity` | `/api/*`, `/health`, `/healthz` (Nginx), `/docs`, `/docs/*`, `/openapi.json`, `/notifications/unread-count`, `/me/*`, `/projects` & `/projects/*` (content-negotiated via `Accept`: `text/html` serves SPA `/index.html`, `application/json` proxies to API) |
+| **Admin web (`/console/`)** | `/console/login`, `/console/forbidden`, `/console/flags`, `/console/monitoring`, `/console/users`, `/console/preferences`, `/console/broadcasts`, `/console/login-activity`, `/console/setup`, `/console/user-app` | `/api/*`, `/health`, `/healthz` (Nginx), `/docs`, `/docs/*`, `/openapi.json`, `/admin/*`, `/me/*` |
 | **Direct API (`3000`)** | — | All REST endpoints, `/health`, `/metrics` (bearer token `METRICS_TOKEN`), `/docs`, `/openapi.json` |
 
 Note: `/docs` and `/openapi.json` require an authenticated session (returning `401` when signed out, or `404` when the `scalar_docs` feature flag is disabled). Nginx serves `/docs` with a per-location Content-Security-Policy `script-src` hash (`'sha256-lmba+p2ZA26l0frITlGt+zVDpF9V987twNchN6VQgQ8='`) permitting Scalar's bootstrap script without relaxing the rest of the app's CSP.
@@ -284,7 +312,7 @@ The API environment schema is in `apps/api/src/config/env.ts`. Compose-specific 
 | `GOOGLE_CLIENT_SECRET` | API/Compose: yes | None | Google OAuth client secret. |
 | `BETTER_AUTH_SECRET` | API/Compose: yes | None | Secret used by Better Auth for sessions and tokens. |
 | `BETTER_AUTH_URL` | API/Compose: yes | Compose example: `http://localhost:8080` | Public user-app URL used to construct OAuth callback URLs. |
-| `TRUSTED_ORIGINS` | No for API; Compose supplies a default | Empty in API; Compose defaults to `http://localhost:8080,http://localhost:8081` | Comma-separated absolute browser origins accepted by Better Auth. |
+| `TRUSTED_ORIGINS` | No for API; Compose supplies a default | Empty in API; Compose defaults to `http://localhost:8080` | Comma-separated absolute browser origins accepted by Better Auth. User and admin share the same origin. |
 | `S3_ENDPOINT` | API: yes | Compose uses `garage`; local example uses `localhost` | Hostname of the S3-compatible object store. |
 | `S3_PORT` | No | `3900` | Object-store API port. |
 | `S3_USE_SSL` | No | `false` | Whether to use TLS to the object store. |
@@ -314,8 +342,9 @@ The API environment schema is in `apps/api/src/config/env.ts`. Compose-specific 
 | `GRAFANA_ADMIN_USER` | No | `admin` | Grafana login name. |
 | `GRAFANA_ADMIN_PASSWORD` | Compose: yes | None | Grafana login password. |
 | `BIND_ADDRESS` | No | `127.0.0.1` | Host IP used for published Compose ports. |
-| `WEB_USER_PORT` | No | `8080` | Host port for user web; Nginx listens on container port `8080`. |
-| `WEB_ADMIN_PORT` | No | `8081` | Host port for admin web; Nginx listens on container port `8081`. |
+| `WEB_PORT` | No | `8080` | Host port for the user and admin web apps; admin is under `/console/`. |
+| `API_UPSTREAM` | No | `api:3000` | Nginx upstream address for API requests inside Compose. |
+| `PORT` | No | `8080` | Nginx listener port inside the web container. |
 | `SENTRY_DSN_USER` | No | Empty | Build-time Sentry DSN embedded in the user-web production bundle. |
 | `SENTRY_DSN_ADMIN` | No | Empty | Build-time Sentry DSN embedded in the admin-web production bundle. |
 
@@ -324,7 +353,7 @@ The API environment schema is in `apps/api/src/config/env.ts`. Compose-specific 
 - **Backups:** PostgreSQL and service state live in named volumes. Back up the database and both Garage volumes (`garage_meta` and `garage_data`) consistently. The backup examples and volume list are in [Self-Hosting](docs/SELF-HOSTING.md).
 - **Upgrades:** rebuild and restart with the steps in [Self-Hosting](docs/SELF-HOSTING.md). API migrations run on startup. Keep a verified backup before upgrading.
 - **Sentry:** set `SENTRY_DSN_USER` and/or `SENTRY_DSN_ADMIN` in the build environment, then rebuild the `web` image. The DSNs are embedded in production browser bundles; keep them out of committed source.
-- **Reverse proxy and security:** Compose binds published services to loopback by default. Review [Self-Hosting](docs/SELF-HOSTING.md) for TLS proxy examples, cookie behavior, port details, and deployment security notes.
+- **Reverse proxy and security:** Compose binds the API and web service to loopback by default. The optional landing service also binds to loopback and can be started with the `landing` profile. Review [Self-Hosting](docs/SELF-HOSTING.md) for TLS proxy examples, cookie behavior, port details, and deployment security notes.
 
 ## Contributing
 
@@ -355,3 +384,15 @@ Participation in the project is covered by the [Code of Conduct](CODE_OF_CONDUCT
 ## License
 
 LokaSlip is distributed under the [Apache License 2.0](LICENSE).
+
+## Acknowledgements
+
+LokaSlip stands on the work of many open-source projects and free services. Thank you to the maintainers and communities behind:
+
+- **Frontend**: [Angular](https://angular.dev), [Spartan NG](https://www.spartan.ng), [Tailwind CSS](https://tailwindcss.com), [ng-icons](https://ng-icons.github.io/ng-icons/) with [Tabler Icons](https://tabler.io/icons), [RxJS](https://rxjs.dev).
+- **Backend**: [Node.js](https://nodejs.org), [Express](https://expressjs.com), [Better Auth](https://www.better-auth.com), [Prisma](https://www.prisma.io), [Zod](https://zod.dev), [Pino](https://getpino.io), [Nodemailer](https://nodemailer.com), [PDFKit](https://pdfkit.org), [ExcelJS](https://github.com/exceljs/exceljs), [Scalar](https://scalar.com).
+- **Infrastructure**: [PostgreSQL](https://www.postgresql.org), [Redis](https://redis.io), [RabbitMQ](https://www.rabbitmq.com), [Garage](https://garagehq.deuxfleurs.fr), [Nginx](https://nginx.org), [Docker](https://www.docker.com).
+- **Observability**: [Prometheus](https://prometheus.io), [Grafana](https://grafana.com), [Uptime Kuma](https://github.com/louislam/uptime-kuma), and [Sentry](https://sentry.io) for optional browser error reporting.
+- **Data**: [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors for map tiles, and [geoip-lite](https://github.com/geoip-lite/node-geoip), which includes GeoLite data created by [MaxMind](https://www.maxmind.com).
+
+Each project keeps its own license; please read them before redistributing or offering LokaSlip as a hosted service.

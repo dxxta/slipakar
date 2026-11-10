@@ -13,13 +13,13 @@ test('captures admin pages in light and dark themes for visual review', async ({
       await page.screenshot({ path: testInfo.outputPath(`${mode}-admin-${name}.png`), fullPage: true });
     };
 
-    await page.goto('/flags');
+    await page.goto('/console/flags');
     await expect(page.getByRole('heading', { level: 1, name: 'Feature flags' })).toBeVisible();
     if (mode === 'dark') await expect(page.locator('html')).toHaveClass(/dark/);
     else await expect(page.locator('html')).not.toHaveClass(/dark/);
     await capture('flags');
 
-    await page.goto('/users');
+    await page.goto('/console/users');
     const row = page.getByRole('row').filter({ hasText: 'member@example.test' }).first();
     await expect(row).toBeVisible();
     await row.getByRole('button', { name: 'Actions for member@example.test' }).click();
