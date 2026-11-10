@@ -8,6 +8,7 @@ import { ApiError } from '../../core/api-error';
 import { HlmButton } from '../../ui/button/src';
 import { ConfirmModal, Drawer, PageHeader } from '../../ui';
 import { AdminSetupService, type IntegrationItem, type IntegrationKey, type IntegrationUpdate } from './admin-setup.service';
+import { Ripple } from '../../ui/shared/ripple';
 
 type IntegrationForm = {
   baseUrl: string;
@@ -25,7 +26,7 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
 
 @Component({
   selector: 'app-setup-page',
-  imports: [CommonModule, NgTemplateOutlet, FormsModule, RouterLink, NgIcon, HlmButton, ConfirmModal, Drawer, PageHeader],
+  imports: [Ripple, CommonModule, NgTemplateOutlet, FormsModule, RouterLink, NgIcon, HlmButton, ConfirmModal, Drawer, PageHeader],
   viewProviders: [provideIcons({ tablerChevronDown, tablerInfoCircle })],
   template: `
     <app-page-header
@@ -119,25 +120,25 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
         </div>
         <form class="grid gap-4" (ngSubmit)="saveSettings()">
           @if (item.key === 'uptime' || item.key === 'grafana') {
-            <label class="grid gap-1.5 text-sm font-medium" for="integration-url">Base URL<input id="integration-url" name="baseUrl" type="url" required [(ngModel)]="form().baseUrl" placeholder="https://example.com" class="min-h-11 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
+            <label class="grid gap-1.5 text-sm font-medium" for="integration-url">Base URL<input id="integration-url" name="baseUrl" type="url" required [(ngModel)]="form().baseUrl" placeholder="https://example.com" class="h-control-9 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
           }
           @if (item.key === 'uptime') {
             <p class="text-xs text-muted-foreground">Use either an API key or a username and password. Leave saved secret fields blank to keep the current credential.</p>
-            <label class="grid gap-1.5 text-sm font-medium" for="uptime-api-key">API key<input id="uptime-api-key" name="apiKey" type="password" autocomplete="new-password" [(ngModel)]="form().apiKey" placeholder="Enter password" class="min-h-11 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
-            <label class="grid gap-1.5 text-sm font-medium" for="uptime-username">Username<input id="uptime-username" name="username" [(ngModel)]="form().username" placeholder="Username" class="min-h-11 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
-            <label class="grid gap-1.5 text-sm font-medium" for="uptime-password">Password<input id="uptime-password" name="password" type="password" autocomplete="new-password" [(ngModel)]="form().password" placeholder="Enter password" class="min-h-11 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
+            <label class="grid gap-1.5 text-sm font-medium" for="uptime-api-key">API key<input id="uptime-api-key" name="apiKey" type="password" autocomplete="new-password" [(ngModel)]="form().apiKey" placeholder="Enter password" class="h-control-9 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
+            <label class="grid gap-1.5 text-sm font-medium" for="uptime-username">Username<input id="uptime-username" name="username" [(ngModel)]="form().username" placeholder="Username" class="h-control-9 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
+            <label class="grid gap-1.5 text-sm font-medium" for="uptime-password">Password<input id="uptime-password" name="password" type="password" autocomplete="new-password" [(ngModel)]="form().password" placeholder="Enter password" class="h-control-9 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
           }
           @if (item.key === 'grafana') {
             <p class="text-xs text-muted-foreground">Leave the token blank to keep the saved credential. Tokens are never shown again.</p>
-            <label class="grid gap-1.5 text-sm font-medium" for="grafana-token">API token<input id="grafana-token" name="apiToken" type="password" autocomplete="new-password" [(ngModel)]="form().apiToken" placeholder="Enter password" class="min-h-11 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
+            <label class="grid gap-1.5 text-sm font-medium" for="grafana-token">API token<input id="grafana-token" name="apiToken" type="password" autocomplete="new-password" [(ngModel)]="form().apiToken" placeholder="Enter password" class="h-control-9 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
           }
           @if (item.key === 'mail') {
-            <label class="grid gap-1.5 text-sm font-medium" for="mail-host">SMTP host<input id="mail-host" name="host" required [(ngModel)]="form().host" placeholder="smtp.example.com" class="min-h-11 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
-            <label class="grid gap-1.5 text-sm font-medium" for="mail-port">Port<input id="mail-port" name="port" type="number" min="1" max="65535" required [(ngModel)]="form().port" placeholder="587" class="min-h-11 rounded-ui-md border border-input bg-background px-3 font-normal tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
-            <label class="flex min-h-11 items-center gap-3 text-sm font-medium" for="mail-secure"><input id="mail-secure" name="secure" type="checkbox" [(ngModel)]="form().secure" />Use TLS</label>
-            <label class="grid gap-1.5 text-sm font-medium" for="mail-from">From address<input id="mail-from" name="fromAddress" type="email" required [(ngModel)]="form().fromAddress" placeholder="name@example.com" class="min-h-11 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
-            <label class="grid gap-1.5 text-sm font-medium" for="mail-username">Username (optional)<input id="mail-username" name="username" [(ngModel)]="form().username" placeholder="Username" class="min-h-11 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
-            <label class="grid gap-1.5 text-sm font-medium" for="mail-password">Password (write only)<input id="mail-password" name="password" type="password" autocomplete="new-password" [(ngModel)]="form().password" placeholder="Enter password" class="min-h-11 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /><span class="text-xs font-normal text-muted-foreground">{{ item.hasCredentials ? 'Saved. Enter a value only to replace it.' : 'Leave empty if this server does not require authentication.' }}</span></label>
+            <label class="grid gap-1.5 text-sm font-medium" for="mail-host">SMTP host<input id="mail-host" name="host" required [(ngModel)]="form().host" placeholder="smtp.example.com" class="h-control-9 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
+            <label class="grid gap-1.5 text-sm font-medium" for="mail-port">Port<input id="mail-port" name="port" type="number" min="1" max="65535" required [(ngModel)]="form().port" placeholder="587" class="h-control-9 rounded-ui-md border border-input bg-background px-3 font-normal tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
+            <label class="flex h-control-9 items-center gap-3 text-sm font-medium" for="mail-secure"><input id="mail-secure" name="secure" type="checkbox" [(ngModel)]="form().secure" />Use TLS</label>
+            <label class="grid gap-1.5 text-sm font-medium" for="mail-from">From address<input id="mail-from" name="fromAddress" type="email" required [(ngModel)]="form().fromAddress" placeholder="name@example.com" class="h-control-9 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
+            <label class="grid gap-1.5 text-sm font-medium" for="mail-username">Username (optional)<input id="mail-username" name="username" [(ngModel)]="form().username" placeholder="Username" class="h-control-9 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
+            <label class="grid gap-1.5 text-sm font-medium" for="mail-password">Password (write only)<input id="mail-password" name="password" type="password" autocomplete="new-password" [(ngModel)]="form().password" placeholder="Enter password" class="h-control-9 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /><span class="text-xs font-normal text-muted-foreground">{{ item.hasCredentials ? 'Saved. Enter a value only to replace it.' : 'Leave empty if this server does not require authentication.' }}</span></label>
           }
           @if (actionError()) { <p role="alert" class="text-sm text-destructive">{{ actionError() }}</p> }
           <div class="flex flex-wrap justify-end gap-2 border-t border-border pt-4"><button hlmBtn variant="outline" type="button" (click)="editing.set(null)">Cancel</button><button hlmBtn type="submit" [disabled]="busy()">{{ busy() ? 'Saving…' : 'Save settings' }}</button></div>
