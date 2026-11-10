@@ -7,11 +7,11 @@ export type TablePageMetadata = { page: number; limit: number; total: number };
   host: { class: 'mb-3 block' },
   template: `
     <div data-filter-row class="flex flex-wrap items-end gap-3">
-      <label class="grid min-w-64 flex-1 gap-1 text-xs font-medium text-muted-foreground">
+      <label class="grid w-full min-w-0 gap-1 md:w-auto md:min-w-64 md:flex-1 text-xs font-medium text-muted-foreground">
         <span>Search</span>
-        <input type="search" class="h-control-9 w-full rounded-ui-md border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11" [placeholder]="searchPlaceholder()" [value]="query()" (input)="onQueryInput($event)" />
+        <input type="search" class="h-control-9 w-full rounded-ui-md border border-input bg-background px-3 text-sm text-foreground outline-none focus-visible:ring-2 focus-visible:ring-ring" [placeholder]="searchPlaceholder()" [value]="query()" (input)="onQueryInput($event)" />
       </label>
-      <div class="ml-auto flex flex-wrap items-end justify-end gap-3"><ng-content select="[table-filters]" /></div>
+      <div class="w-full md:ml-auto md:flex md:w-auto md:flex-wrap md:items-end md:justify-end md:gap-3"><ng-content select="[table-filters]" /></div>
     </div>
   `,
 })

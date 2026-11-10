@@ -18,6 +18,7 @@ import { environment } from '../../../environments/environment';
 import { HlmBadge } from '../../ui/badge/src';
 import { HlmButton } from '../../ui/button/src';
 import { Drawer } from '../../ui/shared/drawer';
+import { RowActions, type RowActionItem } from '../../ui/shared/row-actions';
 import { BackButton } from '../../ui/shared/back-button';
 import { PdfBuilderEditor } from '../pdf-builder/pdf-builder-editor';
 import {
@@ -44,13 +45,14 @@ import {
     PdfNodePropertiesComponent,
     PdfBuilderEditor,
     Drawer,
+    RowActions,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="app-list-layout">
       <header class="flex flex-wrap items-start gap-3 border-b border-border pb-4">
         <div class="min-w-0 flex-1"><h1 class="text-3xl font-semibold tracking-tight">{{ isNew() ? 'New PDF Template' : 'Edit PDF Template' }}</h1><p class="mt-2 text-sm text-muted-foreground">Configure visual nodes, bindings, and layout for this PDF template.</p></div>
-        <div class="ml-auto flex flex-wrap items-center justify-end gap-2"><app-back-button [link]="['/projects', projectId(), 'pdf-templates']" label="Back to PDF templates" />@if (isDirty()) { <span hlmBadge variant="outline" class="text-amber-700 dark:text-amber-300 border-amber-500/30 text-xs">Unsaved changes</span> }<button hlmBtn variant="outline" type="button" data-testid="cancel-button" (click)="onCancel()">Cancel</button><button hlmBtn type="button" data-testid="save-template-button" [disabled]="saving()" (click)="save()">{{ saving() ? 'Saving…' : 'Save template' }}</button></div>
+        <div class="ml-auto flex flex-wrap items-center justify-end gap-2"><app-back-button class="max-md:hidden" [link]="['/projects', projectId(), 'pdf-templates']" label="Back to PDF templates" /><app-row-actions class="md:hidden" [solid]="true" label="Template actions" [items]="mobileActions()" (actionSelect)="onMobileAction($event)" />@if (isDirty()) { <span hlmBadge variant="outline" class="text-amber-700 dark:text-amber-300 border-amber-500/30 text-xs">Unsaved changes</span> }<button hlmBtn variant="outline" type="button" class="max-md:hidden" data-testid="cancel-button" (click)="onCancel()">Cancel</button><button hlmBtn type="button" class="max-md:hidden" data-testid="save-template-button" [disabled]="saving()" (click)="save()">{{ saving() ? 'Saving…' : 'Save template' }}</button></div>
       </header>
 
       <!-- Feedback Alerts: Success or API Error -->
@@ -164,8 +166,8 @@ import {
                 <p class="mt-1 truncate text-lg font-semibold">{{ name() || 'Untitled template' }}</p>
               </div>
               <div class="flex shrink-0 flex-wrap items-center gap-2">
-                <button hlmBtn variant="outline" type="button" data-testid="preview-print-button" [disabled]="previewLoading()" (click)="openPreview()">{{ previewLoading() ? 'Rendering…' : 'Preview print' }}</button>
-                <button hlmBtn variant="outline" type="button" (click)="nameDrawerOpen.set(true)">Edit template name</button>
+                <button hlmBtn variant="outline" type="button" data-testid="preview-print-button" class="max-md:hidden" [disabled]="previewLoading()" (click)="openPreview()">{{ previewLoading() ? 'Rendering…' : 'Preview print' }}</button>
+                <button hlmBtn variant="outline" type="button" class="max-md:hidden" (click)="nameDrawerOpen.set(true)">Edit template name</button>
               </div>
             </div>
             <div panel>
@@ -213,6 +215,20 @@ export class PdfTemplateEditPage implements OnInit {
   private readonly sanitizer = inject(DomSanitizer);
   private readonly previewFrame = viewChild<ElementRef<HTMLIFrameElement>>('previewFrame');
   readonly attachmentBase = computed(() => `${environment.apiBase}/projects/${this.projectId()}/attachments`);
+  protected readonly mobileActions = computed<RowActionItem[]>(() => [
+    { id: 'back', label: 'Back to PDF templates', icon: 'back' },
+    { id: 'preview', label: 'Preview print', icon: 'print', disabled: this.previewLoading() },
+    { id: 'rename', label: 'Edit template name', icon: 'pencil' },
+    { id: 'cancel', label: 'Cancel', icon: 'close' },
+    { id: 'save', label: 'Save template', icon: 'save', disabled: this.saving() },
+  ]);
+  protected onMobileAction(action: RowActionItem): void {
+    if (action.id === 'back') void this.router.navigate(['/projects', this.projectId(), 'pdf-templates']);
+    else if (action.id === 'preview') this.openPreview();
+    else if (action.id === 'rename') this.nameDrawerOpen.set(true);
+    else if (action.id === 'cancel') this.onCancel();
+    else if (action.id === 'save') this.save();
+  }
   readonly uploadingImage = signal(false);
   readonly uploadError = signal<string | null>(null);
 

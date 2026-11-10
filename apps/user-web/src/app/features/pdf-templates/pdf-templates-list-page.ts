@@ -27,15 +27,18 @@ import { Pagination } from '../../ui/shared/pagination';
     <div class="app-list-layout">
       <app-page-header title="PDF Templates" description="Design pixel-perfect PDF attachments and documents using the visual builder." [topLevel]="false">
         @if (!featureDisabled()) {
-          <button
-            page-actions
+          <div page-actions class="flex items-center gap-2">
+<button
             hlmBtn
             type="button"
+            class="max-md:hidden"
             data-testid="create-template-button"
             (click)="navigateToCreate()"
           >
             New template
           </button>
+          <app-row-actions class="md:hidden" [solid]="true" label="Page actions" [items]="pageActions" (actionSelect)="navigateToCreate()" />
+</div>
         }
       </app-page-header>
 
@@ -125,6 +128,7 @@ export class PdfTemplatesListPage implements OnInit {
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly featureDisabled = signal(false);
+  protected readonly pageActions: RowActionItem[] = [{ id: 'new', label: 'New PDF template', icon: 'plus' }];
   readonly confirmingDeleteId = signal<string | null>(null);
   protected readonly pendingDelete = computed(() => this.templates().find((template) => template.id === this.confirmingDeleteId()) ?? null);
   readonly deletingId = signal<string | null>(null);

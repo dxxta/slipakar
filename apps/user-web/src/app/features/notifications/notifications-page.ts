@@ -48,7 +48,7 @@ interface Project {
           <select
             appSelect
             id="project-select"
-            class="h-control-9 max-md:min-h-11 rounded-md border border-input bg-background px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            class="h-control-9 rounded-md border border-input bg-background px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
             [value]="selectedProjectId()"
             (change)="onProjectChange($event)"
           >

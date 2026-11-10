@@ -34,7 +34,7 @@ type Campaign = { status: string; createdAt: string };
       (retry)="load()"
     >
       <div class="grid gap-4">
-        <section class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="Project summary">
+        <section class="flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pb-2 md:grid md:snap-none md:overflow-visible md:pb-0 [&>*]:w-[72%] [&>*]:shrink-0 [&>*]:snap-start md:[&>*]:w-auto md:grid-cols-2 xl:grid-cols-5" aria-label="Project summary">
           <article class="min-h-24 rounded-ui-lg border border-border bg-card p-card">
             <p class="text-sm text-muted-foreground">Campaigns</p>
             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ counts().campaigns }}</p>

@@ -53,9 +53,10 @@ type ProjectCounts = { campaigns: number; templates: number; uploads: number };
       [topLevel]="true"
       description="Manage the workspaces that hold your data and campaigns."
     >
-      <button hlmBtn type="button" page-actions data-action="new-project" (click)="openAddForm()">
+      <button hlmBtn type="button" page-actions class="max-md:hidden" data-action="new-project" (click)="openAddForm()">
         New project
       </button>
+      <app-row-actions page-actions class="md:hidden" [solid]="true" label="Page actions" [items]="pageActions" (actionSelect)="openAddForm()" />
     </app-page-header>
     
     <br/>
@@ -258,6 +259,7 @@ export class ProjectsPage {
   readonly formOpen = signal(false);
   readonly formName = signal('');
   readonly editingProject = signal<Project | null>(null);
+  protected readonly pageActions: RowActionItem[] = [{ id: 'new', label: 'New project', icon: 'plus' }];
   readonly confirmingDelete = signal<Project | null>(null);
   readonly saving = signal(false);
 

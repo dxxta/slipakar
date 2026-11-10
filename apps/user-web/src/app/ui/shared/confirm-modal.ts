@@ -23,8 +23,8 @@ import { HlmButton } from '../button/src/lib/hlm-button';
           <h2 id="confirm-title" class="text-lg font-semibold">{{ title() }}</h2>
           <p id="confirm-message" [attr.data-testid]="messageTestId()" class="mt-2 text-sm text-muted-foreground">{{ message() }}</p>
           <div class="mt-6 flex justify-end gap-2">
-            <button type="button" data-action="cancel" class="h-control-9 max-md:min-h-11 rounded-ui-md border border-border px-3 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" (click)="cancelled.emit()">{{ cancelLabel() }}</button>
-            <button hlmBtn type="button" variant="destructiveSolid" class="h-control-9 max-md:min-h-11" data-action="confirm" [attr.data-testid]="confirmTestId()" (click)="confirmed.emit()">{{ confirmLabel() }}</button>
+            <button type="button" data-action="cancel" class="h-control-9 rounded-ui-md border border-border px-3 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" (click)="cancelled.emit()">{{ cancelLabel() }}</button>
+            <button hlmBtn type="button" variant="destructiveSolid" class="h-control-9" data-action="confirm" [attr.data-testid]="confirmTestId()" (click)="confirmed.emit()">{{ confirmLabel() }}</button>
           </div>
         </section>
       </div>

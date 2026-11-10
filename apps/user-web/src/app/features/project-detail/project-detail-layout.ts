@@ -13,7 +13,7 @@ import type { TabItem } from '../../ui/shared/tabs';
       <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <a
           routerLink="/projects"
-          class="-ml-2 inline-flex h-control-9 max-md:min-h-11 shrink-0 items-center rounded-ui-sm px-2 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          class="-ml-2 inline-flex h-control-9 shrink-0 items-center rounded-ui-sm px-2 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           ← All projects
         </a>

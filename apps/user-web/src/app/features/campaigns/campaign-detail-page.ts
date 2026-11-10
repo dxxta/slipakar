@@ -6,8 +6,7 @@ import {
   OnDestroy,
   OnInit,
   inject,
-  signal,
-} from '@angular/core';
+  signal, computed } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiError } from '../../core/api-error';
 import { HlmAlert, HlmAlertDescription, HlmAlertTitle } from '../../ui/alert/src';
@@ -65,7 +64,7 @@ import {
 
       <header class="flex flex-wrap items-start gap-3">
         <div class="min-w-0 flex-1"><div class="flex items-center gap-3"><h1 class="text-3xl font-semibold tracking-tight">{{ 'Campaign #' + campaignId().slice(0, 8) }}</h1>@if (campaign(); as camp) { <span hlmBadge [variant]="badgeVariant(camp.status)" data-testid="campaign-status-badge">{{ statusLabel(camp.status) }}</span> }</div><p class="mt-2 text-sm text-muted-foreground">View real-time delivery status and recipient list.</p></div>
-        <div class="ml-auto flex shrink-0 items-center gap-2"><app-back-button [link]="['/projects', projectId(), 'campaigns']" label="Back to campaigns" />@if (campaign()?.status === 'draft') { <button hlmBtn type="button" data-testid="send-campaign-button" (click)="openSendConfirm()">Send campaign</button> }</div>
+        <div class="ml-auto flex shrink-0 items-center gap-2"><app-back-button class="max-md:hidden" [link]="['/projects', projectId(), 'campaigns']" label="Back to campaigns" /><app-row-actions class="md:hidden" [solid]="true" label="Campaign actions" [items]="mobileActions()" (actionSelect)="onMobileAction($event)" />@if (campaign()?.status === 'draft') { <button hlmBtn type="button" class="max-md:hidden" data-testid="send-campaign-button" (click)="openSendConfirm()">Send campaign</button> }</div>
       </header>
 
       @if (actionError()) {
@@ -95,7 +94,7 @@ import {
         </div>
       } @else if (campaign(); as camp) {
         <!-- Summary Cards Grid -->
-        <div class="grid auto-rows-fr gap-4 grid-cols-2 lg:grid-cols-4" data-testid="summary-cards">
+        <div class="flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pb-2 md:grid md:snap-none md:overflow-visible md:pb-0 [&>*]:w-[72%] [&>*]:shrink-0 [&>*]:snap-start md:[&>*]:w-auto md:auto-rows-fr md:grid-cols-2 lg:grid-cols-4" data-testid="summary-cards">
           <div hlmCard class="min-h-24 p-4">
             <p class="text-xs font-medium text-muted-foreground">Total Recipients</p>
             <p class="mt-2 text-2xl font-bold tabular-nums" data-testid="count-total">{{ camp.counts.total }}</p>
@@ -220,6 +219,14 @@ export class CampaignDetailPage implements OnInit, OnDestroy {
   readonly recipientSortBy = signal<'rowIndex' | 'email' | 'status' | 'createdAt' | 'updatedAt'>('rowIndex');
   readonly recipientSortDir = signal<'asc' | 'desc'>('asc');
 
+  protected readonly mobileActions = computed<RowActionItem[]>(() => [
+    { id: 'back', label: 'Back to campaigns', icon: 'back' },
+    ...(this.campaign()?.status === 'draft' ? [{ id: 'send', label: 'Send campaign', icon: 'send' } as RowActionItem] : []),
+  ]);
+  protected onMobileAction(action: RowActionItem): void {
+    if (action.id === 'send') this.openSendConfirm();
+    else void this.router.navigate(['/projects', this.projectId(), 'campaigns']);
+  }
   readonly retryingRecipientId = signal<string | null>(null);
   protected recipientActions(id: string): RowActionItem[] { return [{ id: 'retry', label: this.retryingRecipientId() === id ? 'Retrying…' : 'Retry delivery', icon: 'refresh', disabled: this.retryingRecipientId() === id }]; }
 

@@ -29,11 +29,13 @@ import {
           page-actions
           hlmBtn
           type="button"
+          class="max-md:hidden"
           data-testid="create-campaign-button"
           (click)="navigateToCreate()"
         >
           New campaign
         </button>
+        <app-row-actions page-actions class="md:hidden" [solid]="true" label="Page actions" [items]="pageActions" (actionSelect)="navigateToCreate()" />
       </app-page-header>
       <app-data-table-controls [query]="query()" searchPlaceholder="Search campaigns..." (queryChange)="search($event)"><div table-filters><label class="grid min-w-40 gap-1 text-xs font-medium text-muted-foreground">Sort campaigns
         <select appSelect aria-label="Sort campaigns" class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm" [value]="sortBy()" (change)="sort($event)"><option value="createdAt">Created</option><option value="updatedAt">Updated</option><option value="status">Status</option></select>
@@ -104,6 +106,7 @@ import {
   `,
 })
 export class CampaignsListPage implements OnInit {
+  protected readonly pageActions: RowActionItem[] = [{ id: 'new', label: 'New campaign', icon: 'plus' }];
   protected readonly campaignActions: RowActionItem[] = [{ id: 'view', label: 'View', icon: 'eye' }];
   private readonly campaignsService = inject(CampaignsService);
   private readonly route = inject(ActivatedRoute);

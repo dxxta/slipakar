@@ -8,8 +8,8 @@ export type PaginationMetadata = { page: number; limit: number; total: number };
   template: `
     <nav aria-label="Table pagination" class="flex items-center justify-end gap-3 text-sm">
       <span aria-live="polite" class="min-w-24 text-center text-muted-foreground tabular-nums">Page {{ metadata().page }} of {{ pageCount() }}</span>
-      <button type="button" aria-label="Previous page" data-action="previous-page" class="h-control-9 min-w-11 rounded-ui-md border border-border px-3 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40 max-md:min-h-11" [disabled]="metadata().page <= 1" (click)="pageChange.emit(metadata().page - 1)">Previous</button>
-      <button type="button" aria-label="Next page" data-action="next-page" class="h-control-9 min-w-11 rounded-ui-md border border-border px-3 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40 max-md:min-h-11" [disabled]="metadata().page >= pageCount()" (click)="pageChange.emit(metadata().page + 1)">Next</button>
+      <button type="button" aria-label="Previous page" data-action="previous-page" class="h-control-9 min-w-11 rounded-ui-md border border-border px-3 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40" [disabled]="metadata().page <= 1" (click)="pageChange.emit(metadata().page - 1)">Previous</button>
+      <button type="button" aria-label="Next page" data-action="next-page" class="h-control-9 min-w-11 rounded-ui-md border border-border px-3 hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-40" [disabled]="metadata().page >= pageCount()" (click)="pageChange.emit(metadata().page + 1)">Next</button>
     </nav>
   `,
 })

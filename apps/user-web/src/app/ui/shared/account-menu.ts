@@ -15,7 +15,7 @@ import { ThemeToggle } from './theme-toggle';
         aria-haspopup="menu"
         [attr.aria-expanded]="open()"
         aria-label="Account menu"
-        class="flex h-control-9 w-full min-w-0 items-center gap-2 rounded-ui-md px-2 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11"
+        class="flex h-control-9 w-full min-w-0 items-center gap-2 rounded-ui-md px-2 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         (click)="toggle()"
       >
         <app-avatar size="sm" [name]="name() || email()" [imageUrl]="imageUrl()" />
@@ -27,7 +27,7 @@ import { ThemeToggle } from './theme-toggle';
       @if (open()) {
         <div role="menu" aria-label="Account actions" class="fixed z-[80] min-w-56 rounded-ui-md border border-border bg-popover p-1 text-popover-foreground shadow-lg" [style.left.px]="position().left" [style.bottom.px]="position().bottom">
           <app-theme-toggle />
-          <button role="menuitem" type="button" class="h-control-9 w-full rounded-ui-sm px-3 text-left text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:min-h-11" (click)="signOutRequested.emit(); open.set(false)">Sign out</button>
+          <button role="menuitem" type="button" class="h-control-9 w-full rounded-ui-sm px-3 text-left text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" (click)="signOutRequested.emit(); open.set(false)">Sign out</button>
         </div>
       }
     </div>

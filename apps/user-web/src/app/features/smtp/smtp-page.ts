@@ -44,15 +44,18 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
       description="Configure SMTP connection settings to deliver emails."
     >
       @if (!showForm()) {
-        <button
+        <div page-actions class="flex items-center gap-2">
+<button
           hlmBtn
           type="button"
-          page-actions
+          class="max-md:hidden"
           data-testid="add-smtp-button"
           (click)="openAddForm()"
         >
           Add connection
         </button>
+        <app-row-actions class="md:hidden" [solid]="true" label="Page actions" [items]="pageActions" (actionSelect)="openAddForm()" />
+</div>
       }
     </app-page-header>
 
@@ -113,7 +116,7 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
                 <input
                   id="smtp-host"
                   data-testid="smtp-host-input"
-                  class="h-control-9 max-md:min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  class="h-control-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   placeholder="smtp.example.com"
                   [value]="formHost()"
                   (input)="formHost.set($any($event.target).value)"
@@ -126,7 +129,7 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
                   id="smtp-port"
                   data-testid="smtp-port-input"
                   type="number"
-                  class="h-control-9 max-md:min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  class="h-control-9 w-full rounded-md border border-input bg-background px-3 text-sm tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   placeholder="587"
                   [value]="formPort()"
                   (input)="formPort.set($any($event.target).value)"
@@ -146,7 +149,7 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
                 <input
                   id="smtp-username"
                   data-testid="smtp-username-input"
-                  class="h-control-9 max-md:min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  class="h-control-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   placeholder="user@example.com"
                   [value]="formUsername()"
                   (input)="onUsernameInput($any($event.target).value)"
@@ -162,7 +165,7 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
                   data-testid="smtp-password-input"
                   type="password"
                   autocomplete="new-password"
-                  class="h-control-9 max-md:min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  class="h-control-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   placeholder="Enter password"
                   [value]="formPassword()"
                   (input)="formPassword.set($any($event.target).value)"
@@ -177,7 +180,7 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
                 id="smtp-from-address"
                 data-testid="smtp-from-address-input"
                 type="email"
-                class="h-control-9 max-md:min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                class="h-control-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 placeholder="noreply@example.com"
                 [value]="formFromAddress()"
                 (input)="formFromAddress.set($any($event.target).value)"
@@ -337,6 +340,7 @@ export class SmtpPage implements OnInit {
   readonly formFromAddress = signal('');
   readonly isSaving = signal(false);
 
+  protected readonly pageActions: RowActionItem[] = [{ id: 'new', label: 'Add connection', icon: 'plus' }];
   readonly confirmingDeleteId = signal<string | null>(null);
   protected readonly pendingDelete = computed(() => this.connections().find((conn) => conn.id === this.confirmingDeleteId()) ?? null);
   readonly isTestingId = signal<string | null>(null);

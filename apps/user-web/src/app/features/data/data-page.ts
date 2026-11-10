@@ -268,7 +268,7 @@ function extractPlaceholders(text: string): string[] {
                 <select appSelect
                   id="template-select"
                   data-testid="template-select"
-                  class="h-control-9 max-md:min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  class="h-control-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   [value]="selectedTemplateId()"
                   (change)="onTemplateSelect($any($event.target).value)"
                 >
@@ -284,7 +284,7 @@ function extractPlaceholders(text: string): string[] {
                 <select appSelect
                   id="pdf-template-select"
                   data-testid="pdf-template-select"
-                  class="h-control-9 max-md:min-h-11 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  class="h-control-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   [value]="selectedPdfTemplateId()"
                   (change)="selectedPdfTemplateId.set($any($event.target).value)"
                 >
@@ -305,7 +305,7 @@ function extractPlaceholders(text: string): string[] {
                 <select appSelect
                   id="email-column-select"
                   data-testid="email-column-select"
-                  class="h-control-9 max-md:min-h-11 w-full max-w-sm rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  class="h-control-9 w-full max-w-sm rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   [value]="recipientEmailColumn()"
                   (change)="recipientEmailColumn.set($any($event.target).value)"
                   required

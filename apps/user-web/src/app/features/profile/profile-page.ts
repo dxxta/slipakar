@@ -89,7 +89,7 @@ import { PageHeader, SelectControl } from '../../ui';
             <input
               id="avatar-url"
               data-testid="avatar-url"
-              class="min-w-0 flex-1 bg-transparent px-3 text-sm text-muted-foreground outline-none"
+              class="h-full min-w-0 flex-1 bg-transparent px-3 text-sm text-muted-foreground outline-none"
               type="text"
               [value]="image()"
               placeholder="No custom avatar"
@@ -100,7 +100,7 @@ import { PageHeader, SelectControl } from '../../ui';
               hlmBtn
               type="button"
               data-action="remove-avatar"
-              class="rounded-none border-0 border-l border-input disabled:cursor-not-allowed disabled:text-muted-foreground"
+              class="h-full shrink-0 rounded-none border-0 border-l border-input px-4 leading-none disabled:cursor-not-allowed disabled:text-muted-foreground"
               [disabled]="avatarUploading() || !image()"
               (click)="removeAvatar()"
             >
@@ -159,7 +159,7 @@ import { PageHeader, SelectControl } from '../../ui';
           <select
             id="theme-mode"
             appSelect
-            class="h-control-9 max-md:min-h-11 w-full rounded-ui-md border border-input bg-background px-3 text-sm"
+            class="h-control-9 w-full rounded-ui-md border border-input bg-background px-3 text-sm"
             [value]="themePreferences.preference().themeMode"
             (change)="changeThemeMode($event)"
           >
@@ -174,7 +174,7 @@ import { PageHeader, SelectControl } from '../../ui';
             @for (accent of accents; track accent) {
               <button
                 type="button"
-                class="grid size-9 place-items-center rounded-full border border-border aria-pressed:ring-2 aria-pressed:ring-ring aria-pressed:ring-offset-2 aria-pressed:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring max-md:size-11"
+                class="grid size-9 place-items-center rounded-full border border-border aria-pressed:ring-2 aria-pressed:ring-ring aria-pressed:ring-offset-2 aria-pressed:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 [attr.aria-label]="accentLabel(accent)"
                 [attr.aria-pressed]="themePreferences.preference().themeAccent === accent"
                 (click)="themePreferences.setAccent(accent)"

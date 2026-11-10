@@ -17,7 +17,7 @@ export type TabItem = { id: string; label: string; disabled?: boolean };
             [attr.aria-controls]="panelId(item.id)"
             [attr.tabindex]="selected() === item.id ? 0 : -1"
             [disabled]="item.disabled ?? false"
-            class="-mb-1 h-control-9 max-md:min-h-11 whitespace-nowrap border-b-2 px-3 pb-3 pt-2 text-sm font-medium text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+            class="-mb-1 h-control-9 whitespace-nowrap border-b-2 px-3 pb-3 pt-2 text-sm font-medium text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
             [class.border-primary]="selected() === item.id"
             [class.text-foreground]="selected() === item.id"
             [class.border-transparent]="selected() !== item.id"

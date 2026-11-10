@@ -79,7 +79,7 @@ describe('ProjectsPage', () => {
     http.expectOne('/projects?page=1&limit=20&sortBy=createdAt&sortDir=desc').flush(pageEnvelope([project]));
     fixture.detectChanges();
 
-    (fixture.nativeElement.querySelector('[data-row-action-trigger]') as HTMLButtonElement).click();
+    (fixture.nativeElement.querySelector('tbody [data-row-action-trigger]') as HTMLButtonElement).click();
     fixture.detectChanges();
     const detailBtn = Array.from(fixture.nativeElement.querySelectorAll('button[role="menuitem"]')).find(
       (btn) => (btn as HTMLElement).textContent?.includes('Detail')
@@ -96,7 +96,7 @@ describe('ProjectsPage', () => {
     http.expectOne('/projects?page=1&limit=20&sortBy=createdAt&sortDir=desc').flush(pageEnvelope([project]));
     fixture.detectChanges();
 
-    const trigger = fixture.nativeElement.querySelector('[data-row-action-trigger]') as HTMLButtonElement;
+    const trigger = fixture.nativeElement.querySelector('tbody [data-row-action-trigger]') as HTMLButtonElement;
     trigger.click();
     fixture.detectChanges();
 
@@ -127,7 +127,7 @@ describe('ProjectsPage', () => {
     http.expectOne('/projects?page=1&limit=20&sortBy=createdAt&sortDir=desc').flush(pageEnvelope([project]));
     fixture.detectChanges();
 
-    const trigger = fixture.nativeElement.querySelector('[data-row-action-trigger]') as HTMLButtonElement;
+    const trigger = fixture.nativeElement.querySelector('tbody [data-row-action-trigger]') as HTMLButtonElement;
     trigger.click();
     fixture.detectChanges();
 
