@@ -85,6 +85,8 @@ import { Ripple } from '../../ui/shared/ripple';
           @if (item.sentAt) { <div><dt class="text-muted-foreground">Sent at</dt><dd class="font-medium">{{ item.sentAt | date:'medium' }}</dd></div> }
           <div><dt class="text-muted-foreground">Updated at</dt><dd class="font-medium">{{ item.updatedAt | date:'medium' }}</dd></div>
         </dl>
+      }
+      @if (detailItem()) {
         <div drawer-footer class="contents"><button hlmBtn variant="outline" type="button" (click)="detailItem.set(null)">Close</button></div>
       }
     </app-drawer>

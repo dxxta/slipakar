@@ -76,7 +76,6 @@ import { Ripple } from '../../ui/shared/ripple';
             <div><dt class="text-muted-foreground">Disabled at</dt><dd class="font-medium tabular-nums">{{ user.disabledAt ? (user.disabledAt | date:'medium') : '—' }}</dd></div>
             <div><dt class="text-muted-foreground">Projects</dt><dd class="font-medium tabular-nums">{{ user.projectCount }}</dd></div>
           </dl>
-          <div drawer-footer class="contents"><button hlmBtn variant="outline" type="button" (click)="closeDrawer()">Close</button></div>
         }
         @else {
           <form id="user-form" class="space-y-4" (submit)="$event.preventDefault(); saveUser()">
@@ -85,6 +84,12 @@ import { Ripple } from '../../ui/shared/ripple';
             <p class="text-xs text-muted-foreground">Only absolute image URLs can be saved here. A blank image keeps the current value unless you edit this field.</p>
             @if (error()) { <p role="alert" class="text-sm text-destructive">{{ error() }}</p> }
           </form>
+        }
+      }
+      @if (selectedUser()) {
+        @if (drawerMode() === 'view') {
+          <div drawer-footer class="contents"><button hlmBtn variant="outline" type="button" (click)="closeDrawer()">Close</button></div>
+        } @else {
           <div drawer-footer class="contents">
             <button hlmBtn variant="outline" type="button" (click)="closeDrawer()">Cancel</button>
             <button hlmBtn type="submit" form="user-form" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save user' }}</button>
