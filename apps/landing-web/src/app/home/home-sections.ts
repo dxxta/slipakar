@@ -3,16 +3,17 @@ import { ChangeDetectionStrategy, Component, computed, inject, input } from '@an
 import { HomeCopy } from '../content/content.types';
 import { LANDING_CONFIG } from '../runtime-config';
 import { HlmToggleGroupImports } from '@slipakar/ui/toggle-group';
+import { Pressed } from '../ui/pressed';
 
 @Component({
   selector: 'landing-language-toggle',
   standalone: true,
-  imports: [...HlmToggleGroupImports],
+  imports: [...HlmToggleGroupImports, Pressed],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div hlmToggleGroup type="single" [value]="language()" [nullable]="false" class="language-toggle" [attr.aria-label]="language() === 'en' ? 'Language' : 'Bahasa'">
-      <button hlmToggleGroupItem class="language-option" [class.language-option-active]="language() === 'id'" value="id" lang="id" type="button" (click)="selectLanguage('id')">ID</button>
-      <button hlmToggleGroupItem class="language-option" [class.language-option-active]="language() === 'en'" value="en" lang="en" type="button" (click)="selectLanguage('en')">EN</button>
+      <button hlmToggleGroupItem appPressed class="language-option" [class.language-option-active]="language() === 'id'" value="id" lang="id" type="button" (click)="selectLanguage('id')">ID</button>
+      <button hlmToggleGroupItem appPressed class="language-option" [class.language-option-active]="language() === 'en'" value="en" lang="en" type="button" (click)="selectLanguage('en')">EN</button>
     </div>
   `,
 })
@@ -37,10 +38,10 @@ export class LandingLanguageToggleComponent {
 @Component({
   selector: 'landing-header',
   standalone: true,
-  imports: [LandingLanguageToggleComponent],
+  imports: [LandingLanguageToggleComponent, Pressed],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <header class="site-header">
+    <header class="site-header" appPressed>
       <a class="wordmark" [href]="homePath()" aria-label="Slipakar home">Slipakar<span class="wordmark-dot">.</span></a>
       <nav class="header-nav" aria-label="Main navigation">
         <a [href]="homePath() + '#how-it-works'">{{ copy().nav.how }}</a>
@@ -48,7 +49,7 @@ export class LandingLanguageToggleComponent {
       </nav>
       <div class="header-actions">
         <landing-language-toggle [language]="language()" [path]="path() ?? copy().metadata.path" />
-        <a class="button button-small button-dark" [href]="config.appUrl">{{ copy().nav.signIn }}</a>
+        <a appPressed class="button button-small button-dark" [href]="config.appUrl">{{ copy().nav.signIn }}</a>
       </div>
     </header>
   `,
@@ -64,6 +65,7 @@ export class LandingHeaderComponent {
 @Component({
   selector: 'landing-hero',
   standalone: true,
+  imports: [Pressed],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="hero section-shell" aria-labelledby="hero-title">
@@ -71,13 +73,13 @@ export class LandingHeaderComponent {
         <h1 id="hero-title">{{ titleParts().lead }} <span class="accent">{{ titleParts().accent }}</span></h1>
         <p class="hero-description">{{ copy().hero.description }}</p>
         <div class="hero-actions">
-          <a class="button button-primary" [href]="config.appUrl">{{ copy().hero.signIn }}<span class="arrow-mark" aria-hidden="true"></span></a>
-          <a class="button button-quiet" [href]="config.docsUrl">{{ copy().hero.selfHost }}</a>
+          <a appPressed class="button button-primary" [href]="config.appUrl">{{ copy().hero.signIn }}<span class="arrow-mark" aria-hidden="true"></span></a>
+          <a appPressed class="button button-quiet" [href]="config.docsUrl">{{ copy().hero.selfHost }}</a>
         </div>
         <p class="hero-note">Open source <span aria-hidden="true">·</span> Self-hostable <span aria-hidden="true">·</span> Your SMTP server</p>
       </div>
       <div class="hero-proof" aria-label="Illustration of a personalized campaign">
-        <div class="mail-window">
+        <div class="mail-window" appPressed>
           <div class="window-top"><span class="window-mark">L</span><span>Campaign preview</span><span class="window-status">Ready to send</span></div>
           <div class="mail-content">
             <p class="mail-eyebrow">PERSONALIZED MESSAGE</p>
@@ -123,13 +125,14 @@ export class LandingAudienceComponent { readonly copy = input.required<HomeCopy>
 @Component({
   selector: 'landing-how',
   standalone: true,
+  imports: [Pressed],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="section-shell section-block" id="how-it-works" aria-labelledby="how-title">
       <div class="section-heading"><p class="section-kicker">A CLEAR WORKFLOW</p><h2 id="how-title">{{ copy().how.title }}</h2></div>
       <ol class="steps-list">
         @for (step of copy().how.steps; track step.title; let i = $index) {
-          <li><span class="step-index" aria-hidden="true">0{{ i + 1 }}</span><h3>{{ step.title }}</h3><p>{{ step.body }}</p></li>
+          <li appPressed><span class="step-index" aria-hidden="true">0{{ i + 1 }}</span><h3>{{ step.title }}</h3><p>{{ step.body }}</p></li>
         }
       </ol>
     </section>
@@ -140,6 +143,7 @@ export class LandingHowComponent { readonly copy = input.required<HomeCopy>(); }
 @Component({
   selector: 'landing-features',
   standalone: true,
+  imports: [Pressed],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="feature-section" id="features" aria-labelledby="features-title">
@@ -147,7 +151,7 @@ export class LandingHowComponent { readonly copy = input.required<HomeCopy>(); }
         <div class="section-heading"><p class="section-kicker">MADE FOR REPEATABLE WORK</p><h2 id="features-title">{{ copy().features.title }}</h2></div>
         <div class="feature-list">
           @for (feature of copy().features.items; track feature.title; let i = $index) {
-            <article class="feature-item"><span class="feature-index" aria-hidden="true">{{ i + 1 < 10 ? '0' : '' }}{{ i + 1 }}</span><div><h3>{{ feature.title }}</h3><p>{{ feature.body }}</p></div></article>
+            <article class="feature-item" appPressed><span class="feature-index" aria-hidden="true">{{ i + 1 < 10 ? '0' : '' }}{{ i + 1 }}</span><div><h3>{{ feature.title }}</h3><p>{{ feature.body }}</p></div></article>
           }
         </div>
       </div>
@@ -159,12 +163,13 @@ export class LandingFeaturesComponent { readonly copy = input.required<HomeCopy>
 @Component({
   selector: 'landing-pdf-showcase',
   standalone: true,
+  imports: [Pressed],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="pdf-showcase section-shell" aria-labelledby="pdf-title">
       <div class="pdf-copy"><p class="section-kicker">A PERSONAL FILE, PER PERSON</p><h2 id="pdf-title">{{ copy().pdf.title }}</h2><p>{{ copy().pdf.body }}</p></div>
       <div class="pdf-stage" aria-label="Illustrative PDF template layout">
-        <div class="paper-sheet">
+        <div class="paper-sheet" appPressed>
           <div class="paper-brand">Slipakar <span>{{ copy().pdf.documentTitle }}</span></div>
           <div class="paper-recipient"><strong>{{ placeholderLabel }}</strong><small>Personalized recipient field</small></div>
           <div class="paper-table-head"><span>DESCRIPTION</span><span>AMOUNT</span></div>
@@ -200,11 +205,12 @@ export class LandingSecurityComponent { readonly copy = input.required<HomeCopy>
 @Component({
   selector: 'landing-self-host',
   standalone: true,
+  imports: [Pressed],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="self-host section-shell" id="self-host" aria-labelledby="self-host-title">
       <div class="self-host-copy"><p class="section-kicker">SELF-HOSTED BY DESIGN</p><h2 id="self-host-title">{{ copy().selfHost.title }}</h2><p>{{ copy().selfHost.body }}</p><a class="text-link" [href]="config.docsUrl">{{ copy().selfHost.guide }} <span class="arrow-mark" aria-hidden="true"></span></a></div>
-      <div class="command-panel"><div class="command-top"><span>{{ copy().selfHost.codeLabel }}</span><span>Docker</span></div><pre><code>docker compose up -d --build</code></pre><p>Configure your own SMTP server and deployment environment.</p></div>
+      <div class="command-panel" appPressed><div class="command-top"><span>{{ copy().selfHost.codeLabel }}</span><span>Docker</span></div><pre><code>docker compose up -d --build</code></pre><p>Configure your own SMTP server and deployment environment.</p></div>
     </section>
   `,
 })
@@ -232,11 +238,12 @@ export class LandingOpenSourceComponent {
 @Component({
   selector: 'landing-faq',
   standalone: true,
+  imports: [Pressed],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="faq-section" aria-labelledby="faq-title">
       <div class="section-shell faq-layout"><div class="section-heading"><p class="section-kicker">GOOD TO KNOW</p><h2 id="faq-title">{{ copy().faq.title }}</h2></div>
-        <div class="faq-list">@for (item of copy().faq.items; track item.question) { <details><summary>{{ item.question }}</summary><p>{{ item.answer }}</p></details> }</div>
+        <div class="faq-list">@for (item of copy().faq.items; track item.question) { <details appPressed><summary>{{ item.question }}</summary><p>{{ item.answer }}</p></details> }</div>
       </div>
     </section>
   `,
@@ -246,10 +253,11 @@ export class LandingFaqComponent { readonly copy = input.required<HomeCopy>(); }
 @Component({
   selector: 'landing-footer',
   standalone: true,
+  imports: [Pressed],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <footer class="site-footer" id="get-started"><div class="section-shell footer-main"><div><p class="section-kicker">SLIPAKAR</p><h2>{{ copy().final.title }}</h2><p>{{ copy().final.body }}</p><a class="button button-primary" [href]="config.appUrl">{{ copy().final.signIn }} <span class="arrow-mark" aria-hidden="true"></span></a></div>
-      <div class="footer-links"><a [href]="termsPath()">{{ copy().final.terms }}</a><a [href]="config.repoUrl" target="_blank" rel="noopener noreferrer">{{ copy().final.repository }}</a></div>
+    <footer class="site-footer" id="get-started"><div class="section-shell footer-main"><div><p class="section-kicker">SLIPAKAR</p><h2>{{ copy().final.title }}</h2><p>{{ copy().final.body }}</p><a appPressed class="button button-primary" [href]="config.appUrl">{{ copy().final.signIn }} <span class="arrow-mark" aria-hidden="true"></span></a></div>
+      <div class="footer-links"><a appPressed [href]="termsPath()">{{ copy().final.terms }}</a><a appPressed [href]="config.repoUrl" target="_blank" rel="noopener noreferrer">{{ copy().final.repository }}</a></div>
     </div><div class="section-shell footer-bottom"><span>© Slipakar</span><span>Open source · Apache-2.0</span></div></footer>
   `,
 })

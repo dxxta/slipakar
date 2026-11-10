@@ -5,11 +5,12 @@ import { contentId } from '../content/content.id';
 import { LandingDictionary } from '../content/content.types';
 import { LandingFooterComponent, LandingHeaderComponent } from '../home/home-sections';
 import { SeoService } from '../seo/seo.service';
+import { Pressed } from '../ui/pressed';
 
 @Component({
   selector: 'app-not-found-page',
   standalone: true,
-  imports: [LandingHeaderComponent, LandingFooterComponent],
+  imports: [LandingHeaderComponent, LandingFooterComponent, Pressed],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <landing-header [copy]="content.home" [language]="content.language" />
@@ -17,7 +18,7 @@ import { SeoService } from '../seo/seo.service';
       <p class="section-kicker">{{ content.notFound.kicker }}</p>
       <h1>{{ content.notFound.title }}</h1>
       <p>{{ content.notFound.body }}</p>
-      <a class="button button-primary" [href]="homePath()">{{ content.notFound.homeLabel }}</a>
+      <a appPressed class="button button-primary" [href]="homePath()">{{ content.notFound.homeLabel }}</a>
     </main>
     <landing-footer [copy]="content.home" [language]="content.language" />
   `,
