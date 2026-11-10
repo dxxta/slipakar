@@ -449,7 +449,9 @@ button.account-menu-expanded-trigger:hover:not(:disabled) {
   box-shadow: 3px 3px 0 var(--shadow-color) !important;
   transform: translateY(-2px) !important;
 }
-button.sidebar-square-button[data-pressed], button.account-menu-collapsed-trigger[data-pressed], button.account-menu-expanded-trigger[data-pressed] {
+button.sidebar-square-button[data-pressed], button.account-menu-collapsed-trigger[data-pressed], button.account-menu-expanded-trigger[data-pressed],
+button.sidebar-square-button[data-pressed]:hover:not(:disabled), button.account-menu-collapsed-trigger[data-pressed]:hover:not(:disabled), button.account-menu-expanded-trigger[data-pressed]:hover:not(:disabled),
+button.sidebar-square-button:active:not(:disabled), button.account-menu-collapsed-trigger:active:not(:disabled), button.account-menu-expanded-trigger:active:not(:disabled) {
   box-shadow: var(--shadow-pressed) !important;
   transform: translate(var(--press-x), var(--press-y)) !important;
 }
