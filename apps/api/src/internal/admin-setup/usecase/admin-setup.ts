@@ -34,6 +34,25 @@ export type IntegrationTester = (
   config: { baseUrl: string; credentials: StoredCredentials },
 ) => Promise<{ ok: true } | { ok: false; error: string }>;
 
+/** Turns a low-level fetch failure into a message an admin can act on, without leaking more than the host. */
+export function describeConnectionFailure(baseUrl: string, err: unknown): string {
+  let host = baseUrl;
+  try { host = new URL(baseUrl).host; } catch { /* keep the raw value */ }
+  const cause = err instanceof Error ? (err as Error & { cause?: { code?: string } }).cause : undefined;
+  const code = cause?.code;
+  if (err instanceof Error && err.name === 'AbortError') {
+    return `Timed out after 5 seconds waiting for ${host}. Check that the service is running and reachable from the API.`;
+  }
+  if (code === 'ECONNREFUSED') {
+    return `Could not connect to ${host}: connection refused. Is the service running? For local development start it with "make dev-monitoring-up".`;
+  }
+  if (code === 'ENOTFOUND' || code === 'EAI_AGAIN') {
+    return `Could not resolve ${host}. Check the base URL and the API's network or DNS settings.`;
+  }
+  const message = err instanceof Error ? err.message : 'Connection failed';
+  return `Could not reach ${host}: ${message}`.slice(0, 500);
+}
+
 export const defaultIntegrationTester: IntegrationTester = async (key, config) => {
   if (key === 'mail') {
     const creds = config.credentials as StoredMailCredentials;
@@ -124,8 +143,7 @@ export const defaultIntegrationTester: IntegrationTester = async (key, config) =
 
     return { ok: false, error: `Unknown integration: ${key}` };
   } catch (err: unknown) {
-    const errorMsg = err instanceof Error ? err.message : 'Connection failed';
-    return { ok: false, error: errorMsg.slice(0, 500) };
+    return { ok: false, error: describeConnectionFailure(config.baseUrl, err) };
   } finally {
     clearTimeout(timeoutId);
   }
