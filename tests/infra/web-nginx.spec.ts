@@ -259,6 +259,8 @@ describe('production web Nginx cache behavior', () => {
     expect(policies.length).toBeGreaterThan(1);
     for (const policy of policies) {
       expect(policy).toContain("img-src 'self' data: https://*.googleusercontent.com https://tile.openstreetmap.org;");
+      expect(policy).toContain("style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;");
+      expect(policy).toContain("font-src 'self' data: https://fonts.gstatic.com;");
       expect(policy).not.toContain('api.dicebear.com');
       expect(policy).toContain("script-src 'self'");
       expect(policy).not.toContain("unsafe-eval");
