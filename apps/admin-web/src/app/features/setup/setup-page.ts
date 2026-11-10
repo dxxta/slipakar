@@ -47,7 +47,7 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
               <div class="min-w-0 flex-1">
                 <div class="flex flex-wrap items-center gap-2.5">
                   <h2 class="text-lg font-semibold">{{ integration.key === 'mail' ? 'Mail' : integration.label }}</h2>
-                  <span class="rounded-full border px-2.5 py-1 text-xs font-medium" [ngClass]="statusClass(integration)">{{ statusLabel(integration) }}</span>
+                  <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium" [ngClass]="statusClass(integration)">@if (testStatus()[integration.key]) { <span aria-hidden="true" class="size-1.5 rounded-full" [ngClass]="testStatus()[integration.key] === 'ok' ? 'bg-emerald-500' : 'bg-destructive'"></span> }{{ statusLabel(integration) }}</span>
                 </div>
                 <p class="mt-1 text-sm text-muted-foreground">{{ description(integration.key) }}</p>
                 @if (integration.source || (integration.baseUrl && integration.key !== 'mail') || integration.credentialHint) {
@@ -185,6 +185,7 @@ export class SetupPage implements OnInit {
   protected readonly error = signal('');
   protected readonly actionError = signal('');
   protected readonly testMessage = signal('');
+  protected readonly testStatus = signal<Partial<Record<IntegrationKey, 'ok' | 'failed'>>>({});
   protected readonly editing = signal<IntegrationItem | null>(null);
   protected readonly clearing = signal<IntegrationKey | null>(null);
   protected readonly form = signal<IntegrationForm>(emptyForm());
@@ -214,8 +215,16 @@ export class SetupPage implements OnInit {
     return key === 'uptime' ? 'Connect Uptime Kuma for service health monitoring.' : key === 'grafana' ? 'Connect Grafana to open monitoring dashboards.' : 'Configure the SMTP server used for platform email.';
   }
 
-  protected statusLabel(item: IntegrationItem): string { return !item.configured ? 'Not configured' : item.lastStatus === 'failed' ? 'Failing' : 'Configured'; }
-  protected statusClass(item: IntegrationItem): string { return !item.configured ? 'border-border bg-muted text-muted-foreground' : item.lastStatus === 'failed' ? 'border-destructive/40 bg-destructive/10 text-destructive' : 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'; }
+  protected statusLabel(item: IntegrationItem): string {
+    const tested = this.testStatus()[item.key];
+    return tested === 'ok' ? 'Connected' : tested === 'failed' ? 'Failed to connect' : !item.configured ? 'Not configured' : 'Configured';
+  }
+  protected statusClass(item: IntegrationItem): string {
+    const tested = this.testStatus()[item.key];
+    return tested === 'ok' ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
+      : tested === 'failed' ? 'border-destructive/40 bg-destructive/10 text-destructive'
+      : 'border-border bg-muted text-muted-foreground';
+  }
   protected drawerTitle(): string { const item = this.editing(); return item ? `Configure ${item.key === 'mail' ? 'Mail' : item.label}` : 'Configure integration'; }
 
   protected openEditor(item: IntegrationItem): void {
@@ -243,6 +252,7 @@ export class SetupPage implements OnInit {
           ? { baseUrl: fields.baseUrl, apiToken: fields.apiToken || undefined }
           : { host: fields.host, port: Number(fields.port), secure: fields.secure, username: fields.username || undefined, password: fields.password || undefined, fromAddress: fields.fromAddress };
       const updated = await this.setup.save(item.key, payload);
+      this.testStatus.update((current) => ({ ...current, [item.key]: undefined }));
       this.editing.set(updated);
       this.form.update((current) => ({ ...current, password: '', apiKey: '', apiToken: '' }));
       this.testMessage.set('Settings saved. Test the connection to complete setup.');
@@ -252,8 +262,8 @@ export class SetupPage implements OnInit {
 
   protected async testConnection(key: IntegrationKey): Promise<void> {
     this.busy.set(true); this.actionError.set(''); this.testMessage.set('Testing connection…');
-    try { const result = await this.setup.test(key); this.editing.update((current) => current?.key === key ? result : current); this.testMessage.set(result.lastStatus === 'ok' ? 'Connection successful.' : result.lastError || 'Connection failed.'); }
-    catch (error: unknown) { this.testMessage.set(''); this.actionError.set(this.errorMessage(error)); }
+    try { const result = await this.setup.test(key); this.testStatus.update((current) => ({ ...current, [key]: result.lastStatus === 'ok' ? 'ok' : 'failed' })); this.editing.update((current) => current?.key === key ? result : current); this.testMessage.set(result.lastStatus === 'ok' ? 'Connection successful.' : result.lastError || 'Connection failed.'); }
+    catch (error: unknown) { this.testStatus.update((current) => ({ ...current, [key]: 'failed' })); this.testMessage.set(''); this.actionError.set(this.errorMessage(error)); }
     finally { this.busy.set(false); }
   }
 
