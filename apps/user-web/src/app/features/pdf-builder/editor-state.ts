@@ -12,6 +12,8 @@ function cloneNode(node: PdfNode): PdfNode {
       return { ...node, style: { ...node.style } };
     case 'divider':
       return { ...node, style: { ...node.style } };
+    case 'sheet':
+      return { ...node, style: { ...node.style } };
     case 'image':
       return { ...node };
     case 'table':
@@ -54,6 +56,8 @@ function createDefaultNode(type: PdfNodeType, id: string): PdfNode {
       };
     case 'image':
       return { id, type, x: 32, y: 270, width: 160, height: 120, attachmentId: 'attachment-id' };
+    case 'sheet':
+      return { id, type, x: 32, y: 32, width: 200, height: 120, style: { color: '#E5E7EB' } };
     case 'divider':
       return { id, type, x: 32, y: 410, width: 420, height: 1, style: { color: '#9CA3AF', thickness: 1 } };
   }
@@ -113,7 +117,7 @@ export class PdfEditorState {
 
   addNode(type: PdfNodeType): PdfNode {
     const node = createDefaultNode(type, this.nextId());
-    this.setNodes([...this.nodes(), node]);
+    this.setNodes(type === 'sheet' ? [node, ...this.nodes()] : [...this.nodes(), node]);
     this.selectedId.set(node.id);
     return cloneNode(node);
   }

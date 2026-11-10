@@ -108,12 +108,20 @@ const dividerNodeSchema = baseNodeSchema.extend({
   }),
 });
 
+const sheetNodeSchema = baseNodeSchema.extend({
+  type: z.literal('sheet'),
+  style: z.object({
+    color: z.string().regex(colorRegex, 'Invalid hex color'),
+  }),
+});
+
 export const pdfNodeSchema = z
   .discriminatedUnion('type', [
     textNodeSchema,
     imageNodeSchema,
     tableNodeSchema,
     dividerNodeSchema,
+    sheetNodeSchema,
   ])
   .superRefine((node, ctx) => {
     // Node must stay inside page (A4: 595 width x 842 height)

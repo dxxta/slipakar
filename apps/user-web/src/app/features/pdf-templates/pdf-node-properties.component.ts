@@ -10,6 +10,7 @@ import {
   type PdfDividerNode,
   type PdfImageNode,
   type PdfNode,
+  type PdfSheetNode,
   PDF_NODE_LIMITS,
   type PdfNodeValidationError,
   type PdfTableNode,
@@ -496,6 +497,35 @@ import type { AttachmentItem } from './pdf-templates.service';
           </div>
         }
 
+        <!-- SHEET NODE -->
+        @if (node.type === 'sheet') {
+          <div class="space-y-4 border-t border-border pt-4" data-testid="sheet-node-properties">
+            <h4 class="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sheet Properties</h4>
+            <div>
+              <label [for]="'sheet-color-' + node.id" class="mb-1 block text-xs font-medium">Fill color</label>
+              <div class="flex min-w-0 items-center gap-2">
+                <input
+                  type="color"
+                  data-testid="sheet-color-picker"
+                  class="size-9 shrink-0 cursor-pointer rounded-ui-md border border-input bg-background p-0.5"
+                  [ngModel]="asSheetNode(node).style.color"
+                  (ngModelChange)="onPatchStyle({ color: $event })"
+                />
+                <input
+                  type="text"
+                  [id]="'sheet-color-' + node.id"
+                  data-testid="sheet-color"
+                  class="h-control-9 min-w-0 flex-1 font-mono uppercase rounded-md border border-input bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  placeholder="#E5E7EB"
+                  maxlength="7"
+                  [ngModel]="asSheetNode(node).style.color"
+                  (ngModelChange)="onPatchStyle({ color: $event })"
+                />
+              </div>
+            </div>
+          </div>
+        }
+
         <!-- DIVIDER NODE -->
         @if (node.type === 'divider') {
           <div class="space-y-4 border-t border-border pt-4" data-testid="divider-node-properties">
@@ -583,6 +613,10 @@ export class PdfNodePropertiesComponent {
 
   asImageNode(node: PdfNode): PdfImageNode {
     return node as PdfImageNode;
+  }
+
+  asSheetNode(node: PdfNode): PdfSheetNode {
+    return node as PdfSheetNode;
   }
 
   asDividerNode(node: PdfNode): PdfDividerNode {

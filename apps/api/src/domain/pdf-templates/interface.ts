@@ -49,7 +49,14 @@ export type PdfDividerNode = PdfNodeBase & {
   };
 };
 
-export type PdfNode = PdfTextNode | PdfImageNode | PdfTableNode | PdfDividerNode;
+export type PdfSheetNode = PdfNodeBase & {
+  type: 'sheet';
+  style: {
+    color: string;
+  };
+};
+
+export type PdfNode = PdfTextNode | PdfImageNode | PdfTableNode | PdfDividerNode | PdfSheetNode;
 
 export type PdfNodeTree = {
   page: {

@@ -49,6 +49,12 @@ export function buildPdfRenderer({
                     align: node.style.align,
                     lineBreak: true,
                   });
+              } else if (node.type === 'sheet') {
+                doc.save()
+                  .fillColor(node.style.color)
+                  .rect(node.x, node.y, node.width, node.height)
+                  .fill()
+                  .restore();
               } else if (node.type === 'divider') {
                 doc.save()
                   .lineWidth(node.style.thickness)

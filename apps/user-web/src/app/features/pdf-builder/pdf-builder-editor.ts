@@ -30,12 +30,12 @@ type PointerSession = {
 const RESIZE_HANDLES: PdfResizeHandle[] = ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'];
 
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { tablerLetterT, tablerPhoto, tablerSeparatorHorizontal, tablerTable } from '@ng-icons/tabler-icons';
+import { tablerLetterT, tablerPhoto, tablerSeparatorHorizontal, tablerSquare, tablerTable } from '@ng-icons/tabler-icons';
 
 @Component({
   selector: 'app-pdf-builder-editor',
   imports: [CommonModule, NgIcon],
-  providers: [provideIcons({ tablerLetterT, tablerTable, tablerPhoto, tablerSeparatorHorizontal })],
+  providers: [provideIcons({ tablerLetterT, tablerTable, tablerPhoto, tablerSeparatorHorizontal, tablerSquare })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
@@ -48,7 +48,7 @@ import { tablerLetterT, tablerPhoto, tablerSeparatorHorizontal, tablerTable } fr
     >
       <aside class="flex flex-wrap items-start gap-x-8 gap-y-4 lg:col-span-2" aria-label="PDF elements">
         <div>
-          <h2 class="text-sm font-semibold">Add element</h2>
+          <h2 class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Add element</h2>
           <div class="mt-2 flex flex-wrap gap-2">
             @for (type of nodeTypes; track type) {
               <button
@@ -166,6 +166,8 @@ import { tablerLetterT, tablerPhoto, tablerSeparatorHorizontal, tablerTable } fr
                     <span aria-hidden="true" class="text-3xl">▧</span>
                     <span>Image · {{ node.attachmentId }}</span>
                   </div>
+                } @else if (node.type === 'sheet') {
+                  <div class="sheet-preview" [style.background-color]="node.style.color"></div>
                 } @else {
                   <div class="divider-preview" [style.border-top-color]="node.style.color" [style.border-top-width.px]="node.style.thickness"></div>
                 }
@@ -206,6 +208,7 @@ import { tablerLetterT, tablerPhoto, tablerSeparatorHorizontal, tablerTable } fr
     .preview-table { width: 100%; height: 100%; border-collapse: collapse; table-layout: fixed; }
     .preview-table td { border: 1px solid; border-color: inherit; padding: 2px; overflow: hidden; overflow-wrap: anywhere; }
     .image-placeholder { width: 100%; height: 100%; display: flex; flex-direction: column; gap: 4px; align-items: center; justify-content: center; border: 1px dashed #94a3b8; background: #f1f5f9; color: #475569; font: 10px ui-monospace, monospace; }
+    .sheet-preview { width: 100%; height: 100%; }
     .divider-preview { width: 100%; border-top-style: solid; }
     .resize-handle { position: absolute; width: 10px; height: 10px; padding: 0; border: 1px solid #2563eb; border-radius: 999px; background: white; z-index: 2; }
     .handle-n { left: calc(50% - 5px); top: -5px; cursor: ns-resize; }
@@ -226,8 +229,8 @@ export class PdfBuilderEditor implements OnChanges, AfterViewInit, OnDestroy {
   readonly editor = new PdfEditorState();
   readonly validState = signal(true);
   readonly announcement = signal('PDF editor ready');
-  readonly nodeTypes: PdfNodeType[] = ['text', 'table', 'image', 'divider'];
-  protected readonly icons: Record<PdfNodeType, string> = { text: 'tablerLetterT', table: 'tablerTable', image: 'tablerPhoto', divider: 'tablerSeparatorHorizontal' };
+  readonly nodeTypes: PdfNodeType[] = ['text', 'table', 'image', 'divider', 'sheet'];
+  protected readonly icons: Record<PdfNodeType, string> = { text: 'tablerLetterT', table: 'tablerTable', image: 'tablerPhoto', divider: 'tablerSeparatorHorizontal', sheet: 'tablerSquare' };
   readonly resizeHandles = RESIZE_HANDLES;
   readonly pageWidth = PDF_PAGE_WIDTH;
   readonly pageHeight = PDF_PAGE_HEIGHT;

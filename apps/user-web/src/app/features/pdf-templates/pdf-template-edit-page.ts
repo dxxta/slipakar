@@ -48,7 +48,7 @@ import {
       <header class="flex flex-wrap items-start gap-3 border-b border-border pb-4">
         <app-back-button [link]="['/projects', projectId(), 'pdf-templates']" label="Back to PDF templates" />
         <div class="min-w-0 flex-1"><h1 class="text-3xl font-semibold tracking-tight">{{ isNew() ? 'New PDF Template' : 'Edit PDF Template' }}</h1><p class="mt-2 text-sm text-muted-foreground">Configure visual nodes, bindings, and layout for this PDF template.</p></div>
-        <div class="ml-auto flex flex-wrap items-center justify-end gap-2">@if (isDirty()) { <span hlmBadge variant="outline" class="text-amber-700 dark:text-amber-300 border-amber-500/30 text-xs">Unsaved changes</span> }<button hlmBtn variant="outline" type="button" (click)="nameDrawerOpen.set(true)">Edit template name</button><button hlmBtn variant="outline" type="button" data-testid="cancel-button" (click)="onCancel()">Cancel</button><button hlmBtn type="button" data-testid="save-template-button" [disabled]="saving()" (click)="save()">{{ saving() ? 'Saving…' : 'Save template' }}</button></div>
+        <div class="ml-auto flex flex-wrap items-center justify-end gap-2">@if (isDirty()) { <span hlmBadge variant="outline" class="text-amber-700 dark:text-amber-300 border-amber-500/30 text-xs">Unsaved changes</span> }<button hlmBtn variant="outline" type="button" data-testid="cancel-button" (click)="onCancel()">Cancel</button><button hlmBtn type="button" data-testid="save-template-button" [disabled]="saving()" (click)="save()">{{ saving() ? 'Saving…' : 'Save template' }}</button></div>
       </header>
 
       <!-- Feedback Alerts: Success or API Error -->
@@ -116,7 +116,13 @@ import {
         </div>
       }
 
-      <p class="text-sm text-muted-foreground">Template name: <strong class="text-foreground">{{ name() || 'Untitled template' }}</strong></p>
+      <section aria-label="Template name" class="flex items-center justify-between gap-3 rounded-ui-lg border border-border bg-card p-card">
+        <div class="min-w-0">
+          <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Template name</p>
+          <p class="mt-1 truncate text-lg font-semibold">{{ name() || 'Untitled template' }}</p>
+        </div>
+        <button hlmBtn variant="outline" type="button" class="shrink-0" (click)="nameDrawerOpen.set(true)">Edit template name</button>
+      </section>
       <app-drawer [open]="nameDrawerOpen()" title="Template details" (closed)="nameDrawerOpen.set(false)">
         <form class="space-y-4" (submit)="$event.preventDefault(); nameDrawerOpen.set(false)">
           <label for="template-name" class="block text-sm font-medium">Template Name</label>

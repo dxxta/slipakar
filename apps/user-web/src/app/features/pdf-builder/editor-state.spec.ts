@@ -2,6 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { PdfEditorState } from './editor-state';
 
 describe('PdfEditorState', () => {
+  it('adds a sheet behind the other elements with a changeable color', () => {
+    const state = new PdfEditorState();
+    state.addNode('text');
+    const sheet = state.addNode('sheet');
+    expect(sheet.type === 'sheet' && sheet.style.color).toBe('#E5E7EB');
+    expect(state.nodes()[0]?.id).toBe(sheet.id);
+    state.updateNode(sheet.id, { style: { color: '#FF0000' } } as never);
+    const updated = state.nodes()[0];
+    expect(updated?.type === 'sheet' && updated.style.color).toBe('#FF0000');
+  });
+
   it('adds each supported node type with usable defaults', () => {
     const state = new PdfEditorState();
 

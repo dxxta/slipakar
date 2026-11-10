@@ -137,6 +137,16 @@ describe('PdfRenderer', () => {
     expect(rawPdf).toMatch(/0\.9725\d*\s+0\.9803\d*\s+0\.9882\d*\s+scn\s+f/);
   });
 
+  it('renders a solid sheet node', async () => {
+    const renderer = buildPdfRenderer({ imageLoader: dummyImageLoader });
+    const tree: PdfNodeTree = {
+      page: { size: 'A4', margin: 0 },
+      nodes: [{ id: 'sheet-1', type: 'sheet', x: 20, y: 20, width: 200, height: 100, style: { color: '#E5E7EB' } }],
+    };
+    const buffer = await renderer.renderPdf({ projectId: 'p-1', tree, row: {} });
+    expect(buffer.subarray(0, 4).toString('utf-8')).toBe('%PDF');
+  });
+
   it('divider and empty node list work', async () => {
     const renderer = buildPdfRenderer({ imageLoader: dummyImageLoader });
     const tree: PdfNodeTree = {

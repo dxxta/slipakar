@@ -46,6 +46,13 @@ describe('pdf-templates DTO validation', () => {
     expect(parsed.success).toBe(true);
   });
 
+  it('accepts a sheet node and rejects an invalid sheet color', () => {
+    const sheet = { id: 'sheet-1', type: 'sheet' as const, x: 0, y: 0, width: 100, height: 50, style: { color: '#E5E7EB' } };
+    expect(createPdfTemplatesDto.safeParse({ name: 'Sheet', nodeTree: { ...validTree, nodes: [sheet] } }).success).toBe(true);
+    const bad = { ...sheet, style: { color: 'gray' } };
+    expect(createPdfTemplatesDto.safeParse({ name: 'Sheet', nodeTree: { ...validTree, nodes: [bad] } }).success).toBe(false);
+  });
+
   it('rejects more than 200 nodes', () => {
     const nodes = Array.from({ length: 201 }, (_, i) => ({
       id: `node-${i}`,

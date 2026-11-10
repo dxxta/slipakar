@@ -82,7 +82,19 @@ export type PdfDividerNode = {
   };
 };
 
-export type PdfNode = PdfTextNode | PdfTableNode | PdfImageNode | PdfDividerNode;
+export type PdfSheetNode = {
+  id: string;
+  type: 'sheet';
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  style: {
+    color: string;
+  };
+};
+
+export type PdfNode = PdfTextNode | PdfTableNode | PdfImageNode | PdfDividerNode | PdfSheetNode;
 export type PdfNodeType = PdfNode['type'];
 export type PdfNodeTree = { page: { size: 'A4'; margin: number }; nodes: PdfNode[] };
 
@@ -248,6 +260,11 @@ function validateNode(value: unknown, index: number, ids: Set<string>, errors: P
         if (typeof style['headerBold'] !== 'boolean') addError(errors, nodeId, 'style.headerBold', 'Must be a boolean');
         validateColor(style['borderColor'], nodeId, 'style.borderColor', errors);
       }
+      break;
+    }
+    case 'sheet': {
+      const style = validateStyleObject(value['style'], nodeId, 'style', errors);
+      if (style) validateColor(style['color'], nodeId, 'style.color', errors);
       break;
     }
     case 'divider': {
