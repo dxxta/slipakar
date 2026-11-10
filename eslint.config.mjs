@@ -1,7 +1,7 @@
 import tseslint from 'typescript-eslint';
 
 export default tseslint.config(
-  { ignores: ['**/node_modules/**', '**/dist/**', '**/.angular/**', 'apps/admin-web/**', 'apps/user-web/**'] },
+  { ignores: ['**/node_modules/**', '**/dist/**', '**/.angular/**', 'apps/admin-web/**', 'apps/user-web/**', 'apps/landing-web/**'] },
   ...tseslint.configs.recommended,
   {
     rules: {
