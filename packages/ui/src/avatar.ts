@@ -1,6 +1,6 @@
 import { Component, computed, input, signal } from '@angular/core';
 
-type AvatarSize = 'sm' | 'lg';
+type AvatarSize = 'sm' | 'lg' | 'xl';
 
 const avatarColors = [
   { lightBackground: '#dbeafe', lightForeground: '#1e3a8a', darkBackground: '#1e3a8a', darkForeground: '#dbeafe' },
@@ -33,7 +33,11 @@ const avatarColors = [
       color: var(--avatar-dark-fg);
     }
     [data-avatar] img { display: block; width: 100%; height: 100%; object-fit: cover; }
+    @media (max-width: 767px) {
+      :host([data-size='xl']) [data-avatar] { width: 96px !important; height: 96px !important; font-size: 30px !important; }
+    }
   `],
+  host: { '[attr.data-size]': 'size()' },
   template: `
     <span
       data-avatar
@@ -72,8 +76,8 @@ export class Avatar {
     for (const character of this.displayName()) hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
     return avatarColors[hash % avatarColors.length];
   });
-  protected readonly avatarSize = computed(() => this.size() === 'lg' ? 96 : 28);
-  protected readonly fontSize = computed(() => this.size() === 'lg' ? 30 : 10);
+  protected readonly avatarSize = computed(() => this.size() === 'xl' ? 128 : this.size() === 'lg' ? 96 : 28);
+  protected readonly fontSize = computed(() => this.size() === 'xl' ? 36 : this.size() === 'lg' ? 30 : 10);
 
   protected onImageError(): void {
     this.failedImageUrl.set(this.imageUrl());
