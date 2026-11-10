@@ -319,6 +319,34 @@ a[data-slot='button']:active:not([aria-disabled='true']) {
   transform: translate(var(--press-x), var(--press-y));
   box-shadow: 0 0 0 var(--shadow-color) !important;
 }
+/* Sort controls are table-header controls, not the app's tactile standalone buttons. */
+:where(th) button, button[data-table-sort] {
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  color: inherit !important;
+  font: inherit !important;
+  box-shadow: none !important;
+  transform: none !important;
+  transition: none !important;
+  padding: 0 !important;
+  text-decoration: none;
+  cursor: pointer;
+}
+:where(th) button:hover, button[data-table-sort]:hover {
+  color: inherit !important;
+  text-decoration: underline !important;
+  text-underline-offset: 0.15em;
+}
+:where(th) button:focus-visible, button[data-table-sort]:focus-visible {
+  outline: 2px solid var(--ink-fixed) !important;
+  outline-offset: 3px;
+  box-shadow: none !important;
+}
+:where(th) button:active, button[data-table-sort]:active {
+  transform: none !important;
+  box-shadow: none !important;
+}
 button[data-slot='button'] { border-radius: var(--radius-pill) !important; }
 button.theme-accent-swatch {
   width: 2.25rem;
