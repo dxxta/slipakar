@@ -76,21 +76,19 @@ import { Ripple } from '../../ui/shared/ripple';
             <div><dt class="text-muted-foreground">Disabled at</dt><dd class="font-medium tabular-nums">{{ user.disabledAt ? (user.disabledAt | date:'medium') : '—' }}</dd></div>
             <div><dt class="text-muted-foreground">Projects</dt><dd class="font-medium tabular-nums">{{ user.projectCount }}</dd></div>
           </dl>
-          <div class="mt-6 flex justify-end">
-            <button hlmBtn variant="outline" type="button" (click)="closeDrawer()">Close</button>
-          </div>
+          <div drawer-footer class="contents"><button hlmBtn variant="outline" type="button" (click)="closeDrawer()">Close</button></div>
         }
         @else {
-          <form class="space-y-4" (submit)="$event.preventDefault(); saveUser()">
+          <form id="user-form" class="space-y-4" (submit)="$event.preventDefault(); saveUser()">
             <div class="grid gap-2"><label for="user-name" class="text-sm font-medium">Name</label><input id="user-name" class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" [value]="editName()" (input)="editName.set(inputValue($event))" maxlength="100" placeholder="User name" /></div>
             <div class="grid gap-2"><label for="user-image" class="text-sm font-medium">Image URL</label><input id="user-image" type="url" class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" [value]="editImage()" (input)="onImageInput($event)" placeholder="https://example.com" /></div>
             <p class="text-xs text-muted-foreground">Only absolute image URLs can be saved here. A blank image keeps the current value unless you edit this field.</p>
             @if (error()) { <p role="alert" class="text-sm text-destructive">{{ error() }}</p> }
-            <div class="flex justify-end gap-2">
-              <button hlmBtn variant="outline" type="button" (click)="closeDrawer()">Cancel</button>
-              <button hlmBtn type="submit" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save user' }}</button>
-            </div>
           </form>
+          <div drawer-footer class="contents">
+            <button hlmBtn variant="outline" type="button" (click)="closeDrawer()">Cancel</button>
+            <button hlmBtn type="submit" form="user-form" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save user' }}</button>
+          </div>
         }
       }
     </app-drawer>
