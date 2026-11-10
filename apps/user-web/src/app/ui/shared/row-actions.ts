@@ -6,7 +6,7 @@ import { Pressed } from './pressed';
 import { Ripple } from './ripple';
 
 export type RowActionIcon = 'eye' | 'pencil' | 'trash' | 'power' | 'refresh' | 'plus' | 'send' | 'close' | 'save' | 'print' | 'back';
-export type RowActionItem = { id: string; label: string; icon: RowActionIcon; destructive?: boolean; disabled?: boolean };
+export type RowActionItem = { id: string; label: string; icon: RowActionIcon; accessibleLabel?: string; destructive?: boolean; disabled?: boolean };
 type MenuPosition = { top: number; left: number };
 
 @Component({
@@ -21,9 +21,9 @@ type MenuPosition = { top: number; left: number };
       <ng-icon name="tablerDots" aria-hidden="true" class="size-5" />
     </button>
     @if (open()) {
-      <div role="menu" [attr.aria-label]="label()" class="fixed z-[80] min-w-40 rounded-ui-md border border-border bg-popover p-1 text-popover-foreground shadow-lg" [style.top.px]="position().top" [style.left.px]="position().left" (keydown)="onMenuKeydown($event)">
+      <div role="menu" [attr.aria-label]="label()" class="fixed z-[80] w-max rounded-ui-md border border-border bg-popover p-1 text-popover-foreground shadow-lg" [style.top.px]="position().top" [style.left.px]="position().left" (keydown)="onMenuKeydown($event)">
         @for (item of items(); track item.id; let index = $index) {
-          <button type="button" role="menuitem" [attr.tabindex]="activeIndex() === index ? 0 : -1" [disabled]="item.disabled ?? false" class="flex h-control-9 min-w-40 w-full items-center gap-2 rounded-ui-sm px-3 text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50" [ngClass]="item.destructive ? 'text-destructive hover:bg-destructive/10' : 'hover:bg-muted'" (focus)="activeIndex.set(index)" (click)="choose(item)">
+          <button type="button" role="menuitem" [attr.tabindex]="activeIndex() === index ? 0 : -1" [disabled]="item.disabled ?? false" [attr.aria-label]="item.accessibleLabel ?? null" [attr.title]="item.accessibleLabel ?? null" class="flex h-10 w-full min-w-0 items-center gap-2.5 whitespace-nowrap rounded-ui-sm px-3 text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50" [ngClass]="item.destructive ? 'text-destructive hover:bg-destructive/10' : 'hover:bg-muted'" (focus)="activeIndex.set(index)" (click)="choose(item)">
             <ng-icon [name]="iconName(item.icon)" aria-hidden="true" class="size-4 shrink-0" />
             <span>{{ item.label }}</span>
           </button>
@@ -106,8 +106,8 @@ export class RowActions {
     const bounds = trigger?.getBoundingClientRect();
     const view = this.document.defaultView;
     if (!bounds || !view) return { top: 8, left: 8 };
-    const menuWidth = 160;
-    const menuHeight = Math.min(this.items().length * 36 + 8, 240);
+    const menuWidth = 176;
+    const menuHeight = Math.min(this.items().length * 40 + 8, 240);
     const left = Math.max(8, Math.min(bounds.right - menuWidth, view.innerWidth - menuWidth - 8));
     const top = bounds.bottom + menuHeight + 8 <= view.innerHeight
       ? bounds.bottom + 4

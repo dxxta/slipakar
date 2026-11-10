@@ -39,6 +39,11 @@ export class Ripple {
   }
 
   protected ensureTooltip(): void {
+    if (this.element.getAttribute('role') === 'menuitem' || this.element.closest('[role="menu"]') !== null) {
+      if (this.element.hasAttribute(AUTO_TITLE_ATTRIBUTE)) this.element.removeAttribute('title');
+      this.element.removeAttribute(AUTO_TITLE_ATTRIBUTE);
+      return;
+    }
     const current = this.element.getAttribute('title');
     if (current !== null && !this.element.hasAttribute(AUTO_TITLE_ATTRIBUTE)) return;
     if (this.isDisabled()) {

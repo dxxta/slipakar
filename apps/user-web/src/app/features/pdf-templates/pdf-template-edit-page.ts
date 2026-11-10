@@ -217,11 +217,11 @@ export class PdfTemplateEditPage implements OnInit {
   private readonly previewFrame = viewChild<ElementRef<HTMLIFrameElement>>('previewFrame');
   readonly attachmentBase = computed(() => `${environment.apiBase}/projects/${this.projectId()}/attachments`);
   protected readonly mobileActions = computed<RowActionItem[]>(() => [
-    { id: 'back', label: 'Back to PDF templates', icon: 'back' },
-    { id: 'preview', label: 'Preview print', icon: 'print', disabled: this.previewLoading() },
-    { id: 'rename', label: 'Edit template name', icon: 'pencil' },
+    { id: 'back', label: 'Back', accessibleLabel: 'Back to PDF templates', icon: 'back' },
+    { id: 'preview', label: 'Preview', accessibleLabel: 'Preview print', icon: 'print', disabled: this.previewLoading() },
+    { id: 'rename', label: 'Rename', accessibleLabel: 'Edit template name', icon: 'pencil' },
     { id: 'cancel', label: 'Cancel', icon: 'close' },
-    { id: 'save', label: 'Save template', icon: 'save', disabled: this.saving() },
+    { id: 'save', label: 'Save', accessibleLabel: 'Save template', icon: 'save', disabled: this.saving() },
   ]);
   protected onMobileAction(action: RowActionItem): void {
     if (action.id === 'back') void this.router.navigate(['/projects', this.projectId(), 'pdf-templates']);

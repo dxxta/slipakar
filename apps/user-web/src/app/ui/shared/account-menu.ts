@@ -26,7 +26,7 @@ import { Ripple } from './ripple';
         }
       </button>
       @if (open()) {
-        <div role="menu" aria-label="Account actions" class="fixed z-[80] min-w-56 rounded-ui-md border border-border bg-popover p-1 text-popover-foreground shadow-lg" [style.left.px]="position().left" [style.bottom.px]="position().bottom">
+        <div role="menu" aria-label="Account actions" class="account-actions-menu fixed z-[80] w-max rounded-ui-md border border-border bg-popover p-1 text-popover-foreground shadow-lg" [style.left.px]="position().left" [style.bottom.px]="position().bottom">
           <app-theme-toggle />
           <button role="menuitem" type="button" class="account-menu-signout flex h-control-9 w-full items-center gap-2 px-3 text-left text-sm font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" (click)="signOutRequested.emit(); open.set(false)">
             <ng-icon name="tablerLogout" aria-hidden="true" class="size-4" />
@@ -54,7 +54,9 @@ export class AccountMenu {
       const view = root.ownerDocument.defaultView;
       if (bounds && view) {
         const menuWidth = 224;
-        const left = this.collapsed() ? bounds.right + 8 : Math.max(8, Math.min(bounds.left, view.innerWidth - menuWidth - 8));
+        const rightAlignedLeft = Math.max(8, Math.min(bounds.right - menuWidth, view.innerWidth - menuWidth - 8));
+        const collapsedLeft = bounds.right + 8 + menuWidth <= view.innerWidth ? bounds.right + 8 : rightAlignedLeft;
+        const left = this.collapsed() ? collapsedLeft : rightAlignedLeft;
         const bottom = this.collapsed() ? Math.max(8, view.innerHeight - bounds.bottom) : view.innerHeight - bounds.top + 8;
         this.position.set({ left, bottom });
       }
