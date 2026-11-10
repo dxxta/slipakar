@@ -60,7 +60,7 @@ import { PageHeader, SelectControl } from '../../ui';
             [size]="'lg'"
           />
           <span
-            class="absolute inset-0 grid place-items-center rounded-full bg-black/55 text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
+            class="absolute inset-0 grid place-items-center rounded-full bg-foreground/55 text-background opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
             aria-hidden="true"
           >
             <ng-icon name="tablerPencil" class="size-7" />
@@ -339,12 +339,13 @@ export class ProfilePage {
   }
 
   accentLabel(accent: ThemeAccent): string {
+    if (accent === 'slate') return 'Lokaslip accent';
     return `${accent.charAt(0).toUpperCase()}${accent.slice(1)} accent`;
   }
 
   accentClass(accent: ThemeAccent): string {
     const classes: Record<ThemeAccent, string> = {
-      slate: 'bg-slate-700',
+      slate: 'bg-[#126d63]',
       blue: 'bg-blue-600',
       green: 'bg-green-700',
       violet: 'bg-violet-700',

@@ -32,11 +32,11 @@ export class PreferencesPage {
     this.themePreferences.setMode((event.currentTarget as HTMLSelectElement).value as ThemeMode);
   }
 
-  protected accentLabel(accent: ThemeAccent): string { return `${accent[0]?.toUpperCase()}${accent.slice(1)} accent`; }
+  protected accentLabel(accent: ThemeAccent): string { return accent === 'slate' ? 'Lokaslip accent' : `${accent[0]?.toUpperCase()}${accent.slice(1)} accent`; }
 
   protected accentClass(accent: ThemeAccent): string {
     const classes: Record<ThemeAccent, string> = {
-      slate: 'bg-slate-700', blue: 'bg-blue-600', green: 'bg-green-700',
+      slate: 'bg-[#126d63]', blue: 'bg-blue-600', green: 'bg-green-700',
       violet: 'bg-violet-700', rose: 'bg-rose-700', amber: 'bg-amber-500',
     };
     return classes[accent];

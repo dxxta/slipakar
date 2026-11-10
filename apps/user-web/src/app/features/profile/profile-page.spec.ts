@@ -129,4 +129,11 @@ describe('ProfilePage', () => {
     expect(themePreferences.setAccent).toHaveBeenCalledWith('blue');
     expect(fixture.nativeElement.querySelector('[data-theme-preview]')).not.toBeNull();
   });
+
+  it('labels the default teal accent Lokaslip and uses its brand swatch', () => {
+    const fixture = createFixture();
+    const button = fixture.nativeElement.querySelector('[aria-label="Lokaslip accent"]') as HTMLButtonElement | null;
+    expect(button).not.toBeNull();
+    expect(button?.querySelector('span')?.className).toContain('bg-[#126d63]');
+  });
 });
