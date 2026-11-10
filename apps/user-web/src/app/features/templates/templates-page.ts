@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { tablerPlus } from '@ng-icons/tabler-icons';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiError } from '../../core/api-error';
 import { HlmAlert, HlmAlertDescription, HlmAlertTitle } from '../../ui/alert/src';
@@ -11,12 +13,13 @@ import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
   selector: 'app-templates-page',
-  imports: [Ripple, CommonModule, SelectControl, HlmButton, HlmAlert, HlmAlertTitle, HlmAlertDescription, DataTableControls, ListBody, PageHeader, RowActions, Drawer, ConfirmModal, Pagination],
+  imports: [Ripple, CommonModule, NgIcon, SelectControl, HlmButton, HlmAlert, HlmAlertTitle, HlmAlertDescription, DataTableControls, ListBody, PageHeader, RowActions, Drawer, ConfirmModal, Pagination],
+  providers: [provideIcons({ tablerPlus })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="app-list-layout">
       <app-page-header title="Email Templates" description="Manage personalized email templates and placeholder bindings." [topLevel]="false">
-        <button page-actions hlmBtn type="button" class="max-md:hidden" data-testid="add-template-button" (click)="openAddForm()">New template</button><app-row-actions page-actions class="md:hidden" [solid]="true" label="Page actions" [items]="pageActions" (actionSelect)="openAddForm()" />
+        <button page-actions hlmBtn type="button" class="max-md:hidden" data-testid="add-template-button" (click)="openAddForm()"><ng-icon name="tablerPlus" aria-hidden="true" class="size-[1.1rem]" />New template</button><app-row-actions page-actions class="md:hidden" [solid]="true" label="Page actions" [items]="pageActions" (actionSelect)="openAddForm()" />
       </app-page-header>
       @if (actionError()) { <div aria-live="polite" role="alert"><div hlmAlert variant="destructive"><h2 hlmAlertTitle>Error</h2><p hlmAlertDescription>{{ actionError() }}</p></div></div> }
       @if (actionSuccess()) { <div aria-live="polite" role="status"><div hlmAlert class="border-emerald-500/25 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200"><h2 hlmAlertTitle>Success</h2><p hlmAlertDescription>{{ actionSuccess() }}</p></div></div> }

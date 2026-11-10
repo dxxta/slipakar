@@ -3,7 +3,7 @@ import { SelectControl } from '../../ui/shared/select-control';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
-import { tablerAlertTriangle } from '@ng-icons/tabler-icons';
+import { tablerAlertTriangle, tablerPlus } from '@ng-icons/tabler-icons';
 import { ApiError } from '../../core/api-error';
 import { HlmButton } from '../../ui/button/src';
 import { DataTableControls } from '../../ui/shared/data-table-controls';
@@ -22,7 +22,7 @@ import { Ripple } from '../../ui/shared/ripple';
   selector: 'app-pdf-templates-list-page',
   imports: [Ripple, 
     SelectControl, CommonModule, HlmButton, HlmBadge, DataTableControls, ListBody, PageHeader, RowActions, ConfirmModal, Drawer, Pagination, NgIcon],
-  providers: [provideIcons({ tablerAlertTriangle })],
+  providers: [provideIcons({ tablerAlertTriangle, tablerPlus })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="app-list-layout">
@@ -36,6 +36,7 @@ import { Ripple } from '../../ui/shared/ripple';
             data-testid="create-template-button"
             (click)="navigateToCreate()"
           >
+            <ng-icon name="tablerPlus" aria-hidden="true" class="size-[1.1rem]" />
             New template
           </button>
           <app-row-actions class="md:hidden" [solid]="true" label="Page actions" [items]="pageActions" (actionSelect)="navigateToCreate()" />

@@ -1,6 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { SelectControl } from '../../ui/shared/select-control';
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { tablerPlus } from '@ng-icons/tabler-icons';
 import { ActivatedRoute, Router } from '@angular/router';
 import { HlmBadge } from '../../ui/badge/src';
 import { HlmButton } from '../../ui/button/src';
@@ -21,7 +23,8 @@ import { Ripple } from '../../ui/shared/ripple';
   selector: 'app-campaigns-list-page',
   imports: [Ripple, 
     RowActions,
-    SelectControl, CommonModule, HlmButton, HlmBadge, DataTableControls, ListBody, PageHeader, Pagination],
+    SelectControl, CommonModule, NgIcon, HlmButton, HlmBadge, DataTableControls, ListBody, PageHeader, Pagination],
+  providers: [provideIcons({ tablerPlus })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="app-list-layout">
@@ -34,6 +37,7 @@ import { Ripple } from '../../ui/shared/ripple';
           data-testid="create-campaign-button"
           (click)="navigateToCreate()"
         >
+          <ng-icon name="tablerPlus" aria-hidden="true" class="size-[1.1rem]" />
           New campaign
         </button>
         <app-row-actions page-actions class="md:hidden" [solid]="true" label="Page actions" [items]="pageActions" (actionSelect)="navigateToCreate()" />

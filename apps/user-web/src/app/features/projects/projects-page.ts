@@ -1,5 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { tablerPlus } from '@ng-icons/tabler-icons';
 import { Router } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { ApiClient, type PageMetadata } from '../../core/api-client';
@@ -35,6 +37,7 @@ type ProjectCounts = { campaigns: number; templates: number; uploads: number };
 @Component({
   imports: [Ripple, 
     CommonModule,
+    NgIcon,
     HlmButton,
     Drawer,
     ConfirmModal,
@@ -46,6 +49,7 @@ type ProjectCounts = { campaigns: number; templates: number; uploads: number };
     SelectControl,
     SortHeader,
   ],
+  providers: [provideIcons({ tablerPlus })],
   selector: 'app-projects-page',
   template: `
     <app-page-header
@@ -55,6 +59,7 @@ type ProjectCounts = { campaigns: number; templates: number; uploads: number };
       description="Manage the workspaces that hold your data and campaigns."
     >
       <button hlmBtn type="button" page-actions class="max-md:hidden" data-action="new-project" (click)="openAddForm()">
+        <ng-icon name="tablerPlus" aria-hidden="true" class="size-[1.1rem]" />
         New project
       </button>
       <app-row-actions page-actions class="md:hidden" [solid]="true" label="Page actions" [items]="pageActions" (actionSelect)="openAddForm()" />
