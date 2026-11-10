@@ -1,6 +1,19 @@
 # Changelog
 
 
+## [3.1.0](///compare/v3.0.0...v3.1.0) (2026-11-10)
+
+### Features
+
+* **api:** seed a demo workspace at startup under a system owner bdb0b5f
+* **setup:** preconfigure Grafana and Uptime Kuma through Docker 335e7c4
+* **ui:** add an extra-large avatar size 26f3430
+* **user-web:** refresh layout, lists, forms and navigation 4518808
+
+### Tests
+
+* **api:** prove the first admin claims the demo project once fce59e8
+
 ## [3.0.0](///compare/v2.0.0...v3.0.0) (2026-11-10)
 
 ### ⚠ BREAKING CHANGES
