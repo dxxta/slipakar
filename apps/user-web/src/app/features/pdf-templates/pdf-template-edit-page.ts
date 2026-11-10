@@ -151,6 +151,9 @@ import {
                   [errors]="validationErrors()"
                   [placeholders]="placeholders()"
                   [attachments]="attachments()"
+                  [uploadingImage]="uploadingImage()"
+                  [uploadError]="uploadError()"
+                  (imageUpload)="onImageUpload($event)"
                   (patch)="onNodePatch($event)"
                   (delete)="onNodeDelete($event)"
                   (duplicate)="onNodeDuplicate($event)"
@@ -180,6 +183,8 @@ export class PdfTemplateEditPage implements OnInit {
   readonly nodes = signal<PdfNode[]>([]);
   readonly placeholders = signal<string[]>([]);
   readonly attachments = signal<AttachmentItem[]>([]);
+  readonly uploadingImage = signal(false);
+  readonly uploadError = signal<string | null>(null);
 
   readonly loading = signal(true);
   readonly saving = signal(false);
@@ -323,6 +328,24 @@ export class PdfTemplateEditPage implements OnInit {
     if (editor) {
       editor.editor.selectedId.set(id);
     }
+  }
+
+  onImageUpload(file: File): void {
+    const pid = this.projectId();
+    if (!pid) return;
+    this.uploadingImage.set(true);
+    this.uploadError.set(null);
+    this.service.uploadAttachment(pid, file).subscribe({
+      next: (attachment) => {
+        this.uploadingImage.set(false);
+        this.attachments.update((items) => [attachment, ...items]);
+        this.onNodePatch({ attachmentId: attachment.id } as Partial<PdfNode>);
+      },
+      error: (error: unknown) => {
+        this.uploadingImage.set(false);
+        this.uploadError.set(error instanceof Error ? error.message : 'Image upload failed');
+      },
+    });
   }
 
   onNodePatch(patch: Partial<PdfNode>): void {

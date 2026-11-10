@@ -152,6 +152,22 @@ describe('PdfNodePropertiesComponent', () => {
     expect(rowsAfterRowAdd[2].length).toBe(2); // node.rows still has 2 cols in input
   });
 
+  it('emits the chosen file when uploading an image for an image node', () => {
+    const fixture = TestBed.createComponent(PdfNodePropertiesComponent);
+    const node: PdfImageNode = { id: 'img-up', type: 'image', x: 0, y: 0, width: 100, height: 50, attachmentId: '' };
+    fixture.componentInstance.node = node as PdfNode;
+    const emitted: File[] = [];
+    fixture.componentInstance.imageUpload.subscribe((file) => emitted.push(file));
+    fixture.detectChanges();
+
+    const input = fixture.nativeElement.querySelector('[data-testid="image-upload-input"]') as HTMLInputElement;
+    expect(input).not.toBeNull();
+    const file = new File(['x'], 'logo.png', { type: 'image/png' });
+    Object.defineProperty(input, 'files', { value: [file], configurable: true });
+    input.dispatchEvent(new Event('change'));
+    expect(emitted).toEqual([file]);
+  });
+
   it('renders and patches image node attachment selection', () => {
     const fixture = TestBed.createComponent(PdfNodePropertiesComponent);
     const node: PdfImageNode = {

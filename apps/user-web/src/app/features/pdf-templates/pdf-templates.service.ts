@@ -1,5 +1,8 @@
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import type { Observable } from 'rxjs';
+import { catchError, map, throwError, type Observable } from 'rxjs';
+import { ApiError } from '../../core/api-error';
+import { environment } from '../../../environments/environment';
 import { ApiClient, type PaginatedResponse } from '../../core/api-client';
 import { listQueryString } from '../../core/list-query';
 import type { PdfNode } from '../pdf-builder/pdf-node.types';
@@ -62,6 +65,7 @@ export interface UploadPreview {
 @Injectable({ providedIn: 'root' })
 export class PdfTemplatesService {
   private readonly api = inject(ApiClient);
+  private readonly http = inject(HttpClient);
 
   listTemplates(projectId: string, page = 1, limit = 20, q = '', sortBy = 'createdAt', sortDir: 'asc' | 'desc' = 'desc'): Observable<PaginatedResponse<PdfTemplateItem>> {
     const query = listQueryString({ page, limit, q, sortBy, sortDir });
@@ -92,6 +96,24 @@ export class PdfTemplatesService {
 
   deleteTemplate(projectId: string, id: string): Observable<null> {
     return this.api.delete<null>(`/projects/${projectId}/pdf-templates/${id}`);
+  }
+
+  uploadAttachment(projectId: string, file: File): Observable<AttachmentItem> {
+    const formData = new FormData();
+    formData.append('file', file, file.name);
+    formData.append('kind', 'extra');
+    return this.http
+      .post<{ data: AttachmentItem }>(`${environment.apiBase}/projects/${projectId}/attachments`, formData, { withCredentials: true })
+      .pipe(
+        map((response) => response.data),
+        catchError((error: unknown) => {
+          if (error instanceof HttpErrorResponse) {
+            const body = error.error as { error?: { code?: string; message?: string } } | null;
+            return throwError(() => new ApiError(error.status, body?.error?.code ?? 'HTTP_ERROR', body?.error?.message ?? error.message));
+          }
+          return throwError(() => new ApiError(0, 'NETWORK_ERROR', 'Upload failed'));
+        }),
+      );
   }
 
   listAttachments(projectId: string): Observable<AttachmentItem[]> {

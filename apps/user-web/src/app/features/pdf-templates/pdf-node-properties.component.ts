@@ -475,9 +475,23 @@ import type { AttachmentItem } from './pdf-templates.service';
                   placeholder="Enter attachment ID..."
                 />
                 <p class="mt-1 text-[11px] text-muted-foreground">
-                  No attachments found for this project. Enter attachment ID manually or upload files in project attachments.
+                  No attachments yet. Upload an image below or enter an attachment ID.
                 </p>
               }
+              <div class="mt-3">
+                <label [for]="'image-upload-' + node.id" class="mb-1 block text-xs font-medium">Upload image</label>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg"
+                  [id]="'image-upload-' + node.id"
+                  data-testid="image-upload-input"
+                  class="block w-full text-xs file:mr-3 file:h-control-9 file:cursor-pointer file:rounded-ui-md file:border-0 file:bg-primary file:px-3 file:text-sm file:font-medium file:text-primary-foreground"
+                  [disabled]="uploadingImage"
+                  (change)="onImageFile($event)"
+                />
+                @if (uploadingImage) { <p class="mt-1 text-[11px] text-muted-foreground" role="status">Uploading…</p> }
+                @if (uploadError) { <p class="mt-1 text-[11px] text-destructive" role="alert">{{ uploadError }}</p> }
+              </div>
             </div>
           </div>
         }
@@ -538,6 +552,16 @@ export class PdfNodePropertiesComponent {
   @Input() placeholders: string[] = [];
   @Input() attachments: AttachmentItem[] = [];
 
+  @Input() uploadingImage = false;
+  @Input() uploadError: string | null = null;
+  protected onImageFile(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    if (file) this.imageUpload.emit(file);
+    input.value = '';
+  }
+
+  @Output() imageUpload = new EventEmitter<File>();
   @Output() patch = new EventEmitter<Partial<PdfNode>>();
   @Output() delete = new EventEmitter<string>();
   @Output() duplicate = new EventEmitter<string>();

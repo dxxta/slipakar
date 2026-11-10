@@ -146,4 +146,16 @@ describe('PdfTemplatesService', () => {
     });
     expect(preview).toBeDefined();
   });
+
+  it('uploads an image attachment as multipart form data', () => {
+    const file = new File(['x'], 'logo.png', { type: 'image/png' });
+    let result: { id: string } | undefined;
+    service.uploadAttachment('proj-1', file).subscribe((value) => (result = value));
+    const request = http.expectOne((req) => req.url.endsWith('/projects/proj-1/attachments'));
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body instanceof FormData).toBe(true);
+    expect((request.request.body as FormData).get('kind')).toBe('extra');
+    request.flush({ data: { id: 'att-1', projectId: 'proj-1', fileName: 'logo.png', sizeBytes: '1', kind: 'extra', createdAt: '2026-11-10T00:00:00.000Z' } });
+    expect(result?.id).toBe('att-1');
+  });
 });

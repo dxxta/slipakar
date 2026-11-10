@@ -29,9 +29,13 @@ type PointerSession = {
 
 const RESIZE_HANDLES: PdfResizeHandle[] = ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'];
 
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { tablerLetterT, tablerPhoto, tablerSeparatorHorizontal, tablerTable } from '@ng-icons/tabler-icons';
+
 @Component({
   selector: 'app-pdf-builder-editor',
-  imports: [CommonModule],
+  imports: [CommonModule, NgIcon],
+  providers: [provideIcons({ tablerLetterT, tablerTable, tablerPhoto, tablerSeparatorHorizontal })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div
@@ -49,12 +53,12 @@ const RESIZE_HANDLES: PdfResizeHandle[] = ['n', 'ne', 'e', 'se', 's', 'sw', 'w',
             @for (type of nodeTypes; track type) {
               <button
                 type="button"
-                class="h-control-9 min-w-24 rounded-ui-md border border-border px-3 text-left text-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                class="inline-flex items-center gap-1.5 rounded bg-muted px-2 py-1 text-xs hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 [attr.data-testid]="'add-' + type + '-node'"
                 [attr.aria-label]="'Add ' + type + ' element'"
                 (click)="addNode(type)"
               >
-                <span class="capitalize">{{ type }}</span>
+                <ng-icon [name]="icons[type]" aria-hidden="true" class="size-3.5" /><span class="capitalize">{{ type }}</span>
               </button>
             }
           </div>
@@ -223,6 +227,7 @@ export class PdfBuilderEditor implements OnChanges, AfterViewInit, OnDestroy {
   readonly validState = signal(true);
   readonly announcement = signal('PDF editor ready');
   readonly nodeTypes: PdfNodeType[] = ['text', 'table', 'image', 'divider'];
+  protected readonly icons: Record<PdfNodeType, string> = { text: 'tablerLetterT', table: 'tablerTable', image: 'tablerPhoto', divider: 'tablerSeparatorHorizontal' };
   readonly resizeHandles = RESIZE_HANDLES;
   readonly pageWidth = PDF_PAGE_WIDTH;
   readonly pageHeight = PDF_PAGE_HEIGHT;
