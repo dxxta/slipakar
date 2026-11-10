@@ -6,15 +6,15 @@ import { PageBadge } from './page-badge';
   standalone: true,
   imports: [PageBadge],
   template: `
-    <header class="flex flex-wrap items-start justify-between gap-4">
-      <div class="min-w-0">
+    <header class="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-4 gap-y-2">
+      <div class="col-start-1 row-start-1 min-w-0 [overflow-wrap:anywhere]">
         <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <h1 class="text-3xl font-semibold tracking-tight text-balance">{{ title() }}</h1>
+          <h1 class="min-w-0 text-3xl font-semibold tracking-tight text-balance [overflow-wrap:anywhere]">{{ title() }}</h1>
           @if (badge() && topLevel()) { <app-page-badge [label]="badge()" [topLevel]="true" /> }
         </div>
-        @if (description()) { <p class="mt-2 text-sm text-muted-foreground text-pretty">{{ description() }}</p> }
+        @if (description()) { <p class="mt-2 min-w-0 text-sm text-muted-foreground text-pretty [overflow-wrap:anywhere]">{{ description() }}</p> }
       </div>
-      <div class="ml-auto flex shrink-0 items-center gap-2"><ng-content select="[page-actions]" /></div>
+      <div class="col-start-2 row-span-2 row-start-1 flex shrink-0 items-start justify-end gap-2 justify-self-end"><ng-content select="[page-actions]" /></div>
     </header>
   `,
 })
