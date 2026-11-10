@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { ProjectDetailLayout } from './project-detail-layout';
 
 describe('ProjectDetailLayout', () => {
-  it('renders project sections with app-tabs and navigates on tab select', async () => {
+  it('renders project sections with segmented tabs and navigates on tab select', async () => {
     TestBed.configureTestingModule({
       imports: [ProjectDetailLayout],
       providers: [provideRouter([{ path: 'projects/:projectId/overview', component: ProjectDetailLayout }])],
@@ -15,12 +15,12 @@ describe('ProjectDetailLayout', () => {
     const fixture = TestBed.createComponent(ProjectDetailLayout);
     fixture.detectChanges();
 
-    const tabs = fixture.nativeElement.querySelector('app-tabs');
+    const tabs = fixture.nativeElement.querySelector('app-segmented-tabs');
     expect(tabs).not.toBeNull();
     expect(fixture.nativeElement.textContent).toContain('← All projects');
     expect(fixture.nativeElement.querySelector('app-page-badge')).toBeNull();
 
-    const overviewTab = fixture.nativeElement.querySelector('#tab-overview') as HTMLButtonElement;
+    const overviewTab = fixture.nativeElement.querySelector('#segmented-tab-overview') as HTMLButtonElement;
     expect(overviewTab).not.toBeNull();
     expect(overviewTab.getAttribute('aria-selected')).toBe('true');
   });
@@ -35,7 +35,7 @@ describe('ProjectDetailLayout', () => {
     await router.navigateByUrl('/projects/p-1/templates/tpl-1');
     const fixture = TestBed.createComponent(ProjectDetailLayout);
     fixture.detectChanges();
-    expect((fixture.nativeElement.querySelector('#tab-templates') as HTMLButtonElement).getAttribute('aria-selected')).toBe('true');
+    expect((fixture.nativeElement.querySelector('#segmented-tab-templates') as HTMLButtonElement).getAttribute('aria-selected')).toBe('true');
   });
 
 });

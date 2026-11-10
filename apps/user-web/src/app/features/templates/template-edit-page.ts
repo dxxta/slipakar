@@ -23,11 +23,11 @@ function unsafeSyntaxMessage(text: string): string | null {
   template: `
     <div class="space-y-6">
       <header class="flex items-start gap-3">
-        <app-back-button [link]="['/projects', projectId, 'templates']" label="Back to email templates" />
         <div class="min-w-0 flex-1">
           <h1 class="text-3xl font-semibold tracking-tight">{{ editingId() ? 'Edit email template' : 'New email template' }}</h1>
           <p class="mt-2 text-sm text-muted-foreground">Write a subject and HTML message with simple recipient placeholders.</p>
         </div>
+        <app-back-button class="ml-auto shrink-0" [link]="['/projects', projectId, 'templates']" label="Back to email templates" />
       </header>
 
       @if (error()) { <div role="alert"><div hlmAlert variant="destructive"><h2 hlmAlertTitle>Could not save template</h2><p hlmAlertDescription>{{ error() }}</p></div></div> }

@@ -64,9 +64,8 @@ import {
       </div>
 
       <header class="flex flex-wrap items-start gap-3">
-        <app-back-button [link]="['/projects', projectId(), 'campaigns']" label="Back to campaigns" />
         <div class="min-w-0 flex-1"><div class="flex items-center gap-3"><h1 class="text-3xl font-semibold tracking-tight">{{ 'Campaign #' + campaignId().slice(0, 8) }}</h1>@if (campaign(); as camp) { <span hlmBadge [variant]="badgeVariant(camp.status)" data-testid="campaign-status-badge">{{ statusLabel(camp.status) }}</span> }</div><p class="mt-2 text-sm text-muted-foreground">View real-time delivery status and recipient list.</p></div>
-        <div class="ml-auto flex shrink-0 items-center gap-2">@if (campaign()?.status === 'draft') { <button hlmBtn type="button" data-testid="send-campaign-button" (click)="openSendConfirm()">Send campaign</button> }</div>
+        <div class="ml-auto flex shrink-0 items-center gap-2"><app-back-button [link]="['/projects', projectId(), 'campaigns']" label="Back to campaigns" />@if (campaign()?.status === 'draft') { <button hlmBtn type="button" data-testid="send-campaign-button" (click)="openSendConfirm()">Send campaign</button> }</div>
       </header>
 
       @if (actionError()) {

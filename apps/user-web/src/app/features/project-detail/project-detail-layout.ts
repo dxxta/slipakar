@@ -2,29 +2,29 @@ import { Component, computed, inject } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { filter, map } from 'rxjs';
-import { Tabs, type TabItem } from '../../ui';
+import { SegmentedTabs } from '../../ui/shared/segmented-tabs';
+import type { TabItem } from '../../ui/shared/tabs';
 
 @Component({
-  imports: [RouterLink, RouterOutlet, Tabs],
+  imports: [RouterLink, RouterOutlet, SegmentedTabs],
   selector: 'app-project-detail-layout',
   template: `
     <section>
-      <div>
+      <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <a
           routerLink="/projects"
-          class="-ml-2 inline-flex h-control-9 max-md:min-h-11 items-center rounded-ui-sm px-2 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          class="-ml-2 inline-flex h-control-9 max-md:min-h-11 shrink-0 items-center rounded-ui-sm px-2 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           ← All projects
         </a>
-      </div>
-
-      <div class="mt-6">
-        <app-tabs
-          ariaLabel="Project sections"
-          [items]="projectTabs"
-          [selected]="activeTab()"
-          (selectedChange)="onTabSelect($event)"
-        />
+        <div class="min-w-0 max-w-full overflow-x-auto">
+          <app-segmented-tabs
+            ariaLabel="Project sections"
+            [items]="projectTabs"
+            [selected]="activeTab()"
+            (selectedChange)="onTabSelect($event)"
+          />
+        </div>
       </div>
 
       <div class="pt-7">

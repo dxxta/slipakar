@@ -49,9 +49,8 @@ import {
   template: `
     <div class="app-list-layout">
       <header class="flex flex-wrap items-start gap-3 border-b border-border pb-4">
-        <app-back-button [link]="['/projects', projectId(), 'pdf-templates']" label="Back to PDF templates" />
         <div class="min-w-0 flex-1"><h1 class="text-3xl font-semibold tracking-tight">{{ isNew() ? 'New PDF Template' : 'Edit PDF Template' }}</h1><p class="mt-2 text-sm text-muted-foreground">Configure visual nodes, bindings, and layout for this PDF template.</p></div>
-        <div class="ml-auto flex flex-wrap items-center justify-end gap-2">@if (isDirty()) { <span hlmBadge variant="outline" class="text-amber-700 dark:text-amber-300 border-amber-500/30 text-xs">Unsaved changes</span> }<button hlmBtn variant="outline" type="button" data-testid="cancel-button" (click)="onCancel()">Cancel</button><button hlmBtn type="button" data-testid="save-template-button" [disabled]="saving()" (click)="save()">{{ saving() ? 'Saving…' : 'Save template' }}</button></div>
+        <div class="ml-auto flex flex-wrap items-center justify-end gap-2"><app-back-button [link]="['/projects', projectId(), 'pdf-templates']" label="Back to PDF templates" />@if (isDirty()) { <span hlmBadge variant="outline" class="text-amber-700 dark:text-amber-300 border-amber-500/30 text-xs">Unsaved changes</span> }<button hlmBtn variant="outline" type="button" data-testid="cancel-button" (click)="onCancel()">Cancel</button><button hlmBtn type="button" data-testid="save-template-button" [disabled]="saving()" (click)="save()">{{ saving() ? 'Saving…' : 'Save template' }}</button></div>
       </header>
 
       <!-- Feedback Alerts: Success or API Error -->
