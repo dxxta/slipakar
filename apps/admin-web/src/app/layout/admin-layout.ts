@@ -21,6 +21,7 @@ import { filter } from 'rxjs';
 import { SessionService } from '../core/session.service';
 import { AccountMenu, ConfirmModal, Drawer, PageLayout } from '../ui';
 import { Ripple } from '../ui/shared/ripple';
+import { Pressed } from '../ui/shared/pressed';
 import { environment } from '../../environments/environment';
 import { ThemePreferencesService } from '../core/theme-preferences.service';
 import { AdminSetupService } from '../features/setup/admin-setup.service';
@@ -30,23 +31,23 @@ type NavItem = { label: string; icon: string; link?: string; href?: string; exte
 const navLink = 'flex h-control-9 items-center gap-3 rounded-md text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
 
 @Component({
-  imports: [Ripple, RouterLink, RouterLinkActive, RouterOutlet, AccountMenu, ConfirmModal, Drawer, PageLayout, NgIcon],
+  imports: [Ripple, Pressed, RouterLink, RouterLinkActive, RouterOutlet, AccountMenu, ConfirmModal, Drawer, PageLayout, NgIcon],
   providers: [provideIcons({ tablerActivity, tablerBook, tablerExternalLink, tablerFlag, tablerHistory, tablerLayoutSidebarLeftCollapse, tablerLayoutSidebarLeftExpand, tablerMenu2, tablerPlugConnected, tablerSettings, tablerSpeakerphone, tablerUsers })],
   selector: 'app-admin-layout',
   template: `
     <div class="min-h-dvh min-w-0 bg-background text-foreground md:grid transition-[grid-template-columns] duration-200 motion-reduce:transition-none" [style.grid-template-columns]="sidebarCollapsed() ? '4.5rem minmax(0,1fr)' : '15rem minmax(0,1fr)'">
       <header class="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-border bg-card px-3 py-2 md:hidden">
-        <button type="button" class="grid size-9 shrink-0 place-items-center rounded-ui-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Open navigation" [attr.aria-expanded]="navigationOpen()" (click)="navigationOpen.set(true)"><ng-icon name="tablerMenu2" aria-hidden="true" class="size-5" /></button>
-        <a routerLink="/flags" class="text-sm font-semibold">Slipakar</a>
+        <button appPressed type="button" class="sidebar-square-button grid size-11 shrink-0 place-items-center rounded-ui-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Open navigation" [attr.aria-expanded]="navigationOpen()" (click)="navigationOpen.set(true)"><ng-icon name="tablerMenu2" aria-hidden="true" class="size-5" /></button>
+        <a routerLink="/flags" class="brand-link text-sm font-semibold">Slipakar</a>
         <span class="h-5 w-px bg-border" aria-hidden="true"></span>
         <span class="min-w-0 truncate text-sm font-medium" aria-live="polite">{{ mobileTitle() }}</span>
       </header>
       <aside class="sticky top-0 hidden h-dvh min-h-0 flex-col overflow-hidden border-r border-border bg-card px-3 py-4 md:flex" [class.px-5]="!sidebarCollapsed()">
         <div class="mb-6 flex min-h-10 items-center justify-between gap-2" [class.flex-col]="sidebarCollapsed()">
           <a routerLink="/flags" class="flex min-w-0 items-center gap-3 rounded-md text-lg font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Slipakar admin home" title="Slipakar">
-            <span class="grid size-9 shrink-0 place-items-center rounded-lg bg-primary text-primary-foreground" aria-hidden="true">L</span>@if (!sidebarCollapsed()) { <span class="wordmark">Slipakar<span class="wordmark-dot">.</span></span> }
+            @if (!sidebarCollapsed()) { <span class="wordmark">Slipakar<span class="wordmark-dot">.</span></span> }
           </a>
-          <button type="button" class="grid size-9 shrink-0 place-items-center rounded-ui-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" [attr.aria-label]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'" [attr.title]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'" [attr.aria-expanded]="!sidebarCollapsed()" (click)="toggleSidebar()">
+          <button appPressed type="button" class="sidebar-square-button grid size-11 shrink-0 place-items-center rounded-ui-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" [attr.aria-label]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'" [attr.title]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'" [attr.aria-expanded]="!sidebarCollapsed()" (click)="toggleSidebar()">
             <ng-icon [name]="sidebarCollapsed() ? 'tablerLayoutSidebarLeftExpand' : 'tablerLayoutSidebarLeftCollapse'" aria-hidden="true" class="size-5" />
           </button>
         </div>

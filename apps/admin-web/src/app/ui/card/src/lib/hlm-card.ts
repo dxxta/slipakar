@@ -1,10 +1,12 @@
 import { Directive, input } from '@angular/core';
 import { classes } from '@slipakar/ui/utils';
+import { Pressed } from '../../../shared/pressed';
 import { HlmCardConfig, injectHlmCardConfig } from './hlm-card.token';
 
 @Directive({
   selector: '[hlmCard],hlm-card',
   exportAs: 'hlmCard',
+  hostDirectives: [Pressed],
   host: {
     'data-slot': 'card',
     '[attr.data-size]': 'size()',
