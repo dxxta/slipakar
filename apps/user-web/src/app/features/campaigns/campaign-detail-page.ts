@@ -149,10 +149,10 @@ import { Ripple } from '../../ui/shared/ripple';
                         <td data-label="Row" class="px-6 py-3 font-mono text-xs text-muted-foreground tabular-nums">
                           #{{ rec.rowIndex + 1 }}
                         </td>
-                        <td data-label="Recipient Email" class="px-6 py-3 font-medium max-w-[16rem] truncate" [title]="rec.email">
+                        <td data-main data-label="Recipient Email" class="px-6 py-3 font-medium max-w-[16rem] truncate" [title]="rec.email">
                           {{ rec.email }}
                         </td>
-                        <td data-label="Status" class="px-6 py-3">
+                        <td data-aside data-label="Status" class="px-6 py-3">
                           <span
                             hlmBadge
                             class="capitalize"

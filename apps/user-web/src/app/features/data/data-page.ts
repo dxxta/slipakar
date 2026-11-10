@@ -166,7 +166,7 @@ function extractPlaceholders(text: string): string[] {
                     <td data-label="Select" class="align-middle px-4 py-3">
                       <input type="checkbox" [checked]="selectedUploadId() === file.id" [attr.aria-label]="'Select ' + file.fileName" class="size-4 accent-primary" (click)="$event.stopPropagation()" (change)="onUploadCheckboxChange(file.id, $event)" />
                     </td>
-                    <td data-label="File Name" class="align-middle px-4 py-3"><div class="flex min-h-9 items-center gap-2 font-medium"><span class="truncate">{{ file.fileName }}</span>@if (selectedUploadId() === file.id) { <span hlmBadge variant="outline" class="shrink-0 text-[10px]">Active</span> }</div></td>
+                    <td data-main data-label="File Name" class="align-middle px-4 py-3"><div class="flex min-h-9 items-center gap-2 font-medium"><span class="truncate">{{ file.fileName }}</span>@if (selectedUploadId() === file.id) { <span hlmBadge variant="outline" class="shrink-0 text-[10px]">Active</span> }</div></td>
                     <td data-label="Rows" class="align-middle px-4 py-3 text-muted-foreground tabular-nums">{{ file.rowCount.toLocaleString() }}</td>
                     <td data-label="Columns" class="align-middle px-4 py-3 text-muted-foreground text-xs font-mono tabular-nums">{{ file.columns.length }} cols</td>
                     <td data-label="Uploaded" class="align-middle px-4 py-3 text-muted-foreground text-xs tabular-nums">{{ file.createdAt | date: 'short' }}</td>
@@ -388,7 +388,7 @@ function extractPlaceholders(text: string): string[] {
                               }
                             </select>
                           </td>
-                          <td data-label="Status" class="px-4 py-2.5 text-right">
+                          <td data-aside data-label="Status" class="px-4 py-2.5 text-right">
                             @if (currentMapping()[p]) {
                               <span hlmBadge variant="outline" class="text-[10px] text-emerald-700 dark:text-emerald-300 border-emerald-500/25 bg-emerald-500/10">Mapped</span>
                             } @else {

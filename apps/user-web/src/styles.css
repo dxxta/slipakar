@@ -88,36 +88,53 @@ table:not(.preview-table) thead { background-color: var(--primary) !important; c
 table:not(.preview-table) thead th,
 table:not(.preview-table) thead th button { color: inherit !important; }
 
-/* Mobile tables become stacked cards: one card per row, each cell labelled by its column. */
+/*
+ * Mobile tables become one card per row.
+ * Main column: a cell marked data-main, otherwise the first cell. It is shown as a small label above a large value.
+ * Aside: a cell marked data-aside (usually the status) sits at the top-right. Every other cell is a label/value line.
+ * The Actions cell becomes a full-width button at the bottom.
+ */
 @media (max-width: 767px) {
-  table[data-responsive] { display: block; min-width: 0 !important; width: 100%; }
+  div:has(> table[data-responsive]) { border: 0 !important; background: transparent !important; overflow: visible !important; border-radius: 0 !important; }
+  table[data-responsive] { display: block; min-width: 0 !important; width: 100%; background: transparent; }
   table[data-responsive] thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
-  table[data-responsive] tbody { display: block; }
-  table[data-responsive] tbody tr { display: block; padding: 0.75rem 1rem; }
-  table[data-responsive] tbody tr + tr { border-top: 1px solid var(--border); }
+  table[data-responsive] tbody { display: grid; gap: 0.875rem; }
+  table[data-responsive] tbody tr {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start;
+    padding: 0.875rem 1rem; border: 1px solid var(--border); border-radius: 0.875rem;
+    background-color: var(--card); box-shadow: 0 1px 3px rgb(0 0 0 / 0.08);
+  }
   table[data-responsive] tbody td,
   table[data-responsive] tbody th[scope='row'] {
-    display: grid; grid-template-columns: 7.5rem 1.25rem minmax(0, 1fr); align-items: center;
-    padding: 0.375rem 0 !important; text-align: left; border: 0; min-width: 0; word-break: break-word;
+    grid-column: 1 / -1; display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.5rem 0 !important; border: 0; border-top: 1px solid var(--border); min-width: 0; text-align: right; word-break: break-word;
   }
-  /* Left column: the column header as an accent pill. */
   table[data-responsive] tbody td[data-label]::before,
   table[data-responsive] tbody th[data-label]::before {
-    content: attr(data-label); grid-column: 1; grid-row: 1; align-self: stretch; display: flex; align-items: center;
-    padding: 0.375rem 0.625rem; border-radius: 0.375rem;
-    background-color: var(--primary); color: var(--primary-foreground);
-    font-size: 0.75rem; font-weight: 600; line-height: 1.2;
+    content: attr(data-label); flex-shrink: 0; text-align: left; font-size: 0.8125rem; color: var(--foreground);
   }
-  /* Thin dashed line linking the header pill to its value. */
-  table[data-responsive] tbody td[data-label]::after,
-  table[data-responsive] tbody th[data-label]::after {
-    content: ''; grid-column: 2; grid-row: 1; align-self: center; height: 0; margin-inline: 0.25rem;
-    border-top: 1px dashed var(--primary); opacity: 0.7;
+  /* Main column */
+  table[data-responsive] tbody tr:not(:has([data-main])) > :first-child,
+  table[data-responsive] tbody [data-main] {
+    grid-column: 1; grid-row: 1; display: block; border-top: 0; padding: 0 0 0.75rem !important; text-align: left;
+    font-size: 1.125rem; font-weight: 600; color: var(--foreground);
   }
-  /* Right column: the value. */
-  table[data-responsive] tbody td[data-label] > *,
-  table[data-responsive] tbody th[data-label] > * { grid-column: 3; }
-  table[data-responsive] tbody td[data-label] { justify-items: start; }
+  table[data-responsive] tbody tr:not(:has([data-main])) > :first-child::before,
+  table[data-responsive] tbody [data-main]::before {
+    display: block; margin-bottom: 0.125rem; font-size: 0.75rem; font-weight: 500; color: var(--muted-foreground);
+  }
+  /* Aside (status) */
+  table[data-responsive] tbody [data-aside] {
+    grid-column: 2; grid-row: 1; display: block; border-top: 0; padding: 0 0 0.75rem 0.75rem !important; justify-self: end;
+  }
+  table[data-responsive] tbody [data-aside]::before { content: none; }
+  /* Actions */
+  table[data-responsive] tbody td[data-label='Actions'] { justify-content: stretch; padding: 0.75rem 0 0 !important; }
+  table[data-responsive] tbody td[data-label='Actions']::before { content: none; }
+  table[data-responsive] tbody td[data-label='Actions'] app-row-actions { width: 100%; }
+  table[data-responsive] tbody td[data-label='Actions'] [data-row-action-trigger] {
+    width: 100%; border: 1px solid var(--border); background-color: transparent;
+  }
 }
 
 @keyframes loading-bar-run { from { transform: scaleX(0.08); } to { transform: scaleX(0.92); } }

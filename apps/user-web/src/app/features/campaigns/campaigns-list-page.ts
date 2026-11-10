@@ -69,7 +69,7 @@ import { Ripple } from '../../ui/shared/ripple';
                       Template: {{ campaign.emailTemplateId.slice(0, 8) }} · Upload: {{ campaign.uploadId.slice(0, 8) }}
                     </p>
                   </td>
-                  <td data-label="Status" class="px-6 py-4">
+                  <td data-aside data-label="Status" class="px-6 py-4">
                     <span
                       hlmBadge
                       [variant]="badgeVariant(campaign.status)"
