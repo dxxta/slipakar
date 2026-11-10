@@ -10,13 +10,14 @@ import { Ripple } from './ripple';
   imports: [Ripple, Avatar, ThemeToggle, NgIcon],
   providers: [provideIcons({ tablerChevronDown, tablerLogout })],
   template: `
-    <div class="relative min-w-0 w-full">
+    <div class="relative min-w-0" [class.w-full]="!collapsed()" [class.w-11]="collapsed()" [class.mx-auto]="collapsed()" [class.account-menu-collapsed]="collapsed()">
       <button
         type="button"
         aria-haspopup="menu"
         [attr.aria-expanded]="open()"
         aria-label="Account menu"
-        class="flex h-control-9 w-full min-w-0 items-center gap-2 rounded-ui-md px-2 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        class="account-menu-trigger flex h-control-9 w-full min-w-0 items-center gap-2 rounded-ui-md px-2 text-left hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        [class.account-menu-collapsed-trigger]="collapsed()"
         (click)="toggle()"
       >
         <app-avatar size="sm" [name]="name() || email()" [imageUrl]="imageUrl()" />
