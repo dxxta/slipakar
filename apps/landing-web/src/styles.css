@@ -5,24 +5,28 @@
   color-scheme: light;
   --ink: #151513;
   --on-ink: #F7EFE7;
-  --text: #151513;
-  --paper: #F7EFE7;
-  --surface: #FFFBF6;
-  --landing-muted: #5E5A53;
-  --line: #E2D8CC;
+  --text: light-dark(#151513, #F7EFE7);
+  --paper: light-dark(#F7EFE7, #121210);
+  --surface: light-dark(#FFFBF6, #1D1D1A);
+  --landing-muted: light-dark(#5E5A53, #A8A196);
+  --line: light-dark(#E2D8CC, #2E2D29);
   --lime: #D4F03C;
-  --warm: #A87D55;
+  --warm: light-dark(#A87D55, #D9B38F);
+  --header-border: light-dark(var(--ink), var(--warm));
+  --button-dark-background: light-dark(var(--ink), var(--lime));
+  --button-dark-foreground: light-dark(var(--on-ink), var(--ink));
+  --button-dark-hover-background: light-dark(var(--warm), var(--lime));
   --background: var(--paper);
-  --foreground: var(--ink);
+  --foreground: var(--text);
   --card: var(--surface);
-  --card-foreground: var(--ink);
+  --card-foreground: var(--text);
   --popover: var(--surface);
-  --popover-foreground: var(--ink);
+  --popover-foreground: var(--text);
   --primary: var(--lime);
   --primary-foreground: var(--ink);
   --secondary: var(--warm);
   --secondary-foreground: var(--ink);
-  --muted: var(--paper);
+  --muted: var(--surface);
   --muted-foreground: var(--landing-muted);
   --accent: var(--lime);
   --accent-foreground: var(--ink);
@@ -39,38 +43,23 @@
   font-size: 16px;
   line-height: 1.55;
   background: var(--paper);
-  color: var(--ink);
+  color: var(--text);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+}
+
 @media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --paper: #121210;
-    --text: #F7EFE7;
-    --surface: #1D1D1A;
-    --landing-muted: #A8A196;
-    --line: #2E2D29;
-    --warm: #D9B38F;
-    --background: var(--paper);
-    --foreground: var(--text);
-    --card: var(--surface);
-    --card-foreground: var(--text);
-    --popover: var(--surface);
-    --popover-foreground: var(--text);
-    --secondary: var(--warm);
-    --secondary-foreground: var(--ink);
-    --muted: var(--surface);
-    --muted-foreground: var(--landing-muted);
-    --border: var(--line);
-    --input: var(--line);
-    --ring: var(--warm);
-  }
-  .site-header { border-color: var(--warm); }
-  .button-dark, .button-dark:hover { background: var(--lime); color: var(--ink); }
+  :root:not([data-theme]) { color-scheme: dark; }
 }
 
 * { box-sizing: border-box; }
@@ -85,7 +74,7 @@ h1, h2, h3, p { margin-top: 0; }
 h1, h2, h3 { text-wrap: balance; }
 
 .section-shell { width: min(100% - 3rem, 1160px); margin-inline: auto; }
-.site-header { position: sticky; z-index: 5; top: 0.75rem; min-height: 74px; width: min(100% - 3rem, 1280px); margin: 0.75rem auto 0; padding: 0.65rem 1.1rem; display: flex; align-items: center; justify-content: space-between; gap: 2rem; border: 2px solid var(--ink); border-radius: 999px; background: var(--surface); box-shadow: var(--shadow-ink); }
+.site-header { position: sticky; z-index: 5; top: 0.75rem; min-height: 74px; width: min(100% - 3rem, 1280px); margin: 0.75rem auto 0; padding: 0.65rem 1.1rem; display: flex; align-items: center; justify-content: space-between; gap: 2rem; border: 2px solid var(--header-border); border-radius: 999px; background: var(--surface); box-shadow: var(--shadow-ink); }
 .wordmark { display: inline-flex; align-items: baseline; color: var(--text); text-decoration: none; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.04em; white-space: nowrap; }
 .wordmark-dot { color: var(--warm); }
 .header-nav, .header-actions { display: flex; align-items: center; gap: clamp(1rem, 2.4vw, 2.25rem); }
@@ -101,8 +90,8 @@ h1, h2, h3 { text-wrap: balance; }
 .button-small { min-height: 40px; padding: 0.5rem 1rem; font-size: 0.9rem; }
 .button-primary { background: var(--lime); color: var(--ink); }
 .button-primary:hover { background: var(--lime); }
-.button-dark { background: var(--ink); color: var(--on-ink); }
-.button-dark:hover { background: var(--warm); color: var(--ink); }
+.button-dark { background: var(--button-dark-background); color: var(--button-dark-foreground); }
+.button-dark:hover { background: var(--button-dark-hover-background); color: var(--ink); }
 .button-quiet { background: var(--surface); color: var(--text); }
 .button-quiet:hover { background: var(--warm); }
 .arrow-mark { display: inline-block; width: 0.62rem; height: 0.62rem; border-top: 1.5px solid currentColor; border-right: 1.5px solid currentColor; transform: rotate(45deg); }
@@ -228,6 +217,12 @@ h1 { max-width: 13ch; margin-bottom: 1.45rem; font-size: clamp(2.85rem, 5.5vw, 5
 .not-found { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; }
 .not-found > p:not(.section-kicker) { max-width: 48ch; margin-bottom: 1.6rem; color: var(--landing-muted); }
 
+.theme-toggle { position: fixed; z-index: 20; right: calc(1rem + env(safe-area-inset-right, 0px)); bottom: calc(1rem + env(safe-area-inset-bottom, 0px)); width: 3.25rem; height: 3.25rem; display: grid; place-items: center; padding: 0; border: 2px solid var(--ink); border-radius: 50%; background: var(--lime); color: var(--ink); box-shadow: 4px 4px 0 var(--ink); cursor: pointer; transition: transform 140ms ease-out, box-shadow 140ms ease-out; }
+.theme-toggle svg { width: 1.35rem; height: 1.35rem; }
+.theme-toggle:hover:not([data-pressed]) { transform: translateY(-2px); box-shadow: 4px 6px 0 var(--ink); }
+.theme-toggle:focus-visible { border-radius: 50%; }
+.theme-toggle[data-pressed] { transform: translate(var(--press-x), var(--press-y)); box-shadow: 0 0 0 var(--ink) !important; }
+
 /* Offset shadows share one tactile press state across the playful surface. */
 [appPressed] { --press-x: 4px; --press-y: 4px; transition: transform 140ms ease-out, box-shadow 140ms ease-out; }
 [appPressed][data-pressed] { transform: translate(var(--press-x), var(--press-y)); box-shadow: 0 0 0 var(--ink) !important; }
@@ -239,6 +234,7 @@ h1 { max-width: 13ch; margin-bottom: 1.45rem; font-size: clamp(2.85rem, 5.5vw, 5
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; }
   .button[appPressed]:hover, .steps-list li[appPressed]:hover, .feature-item[appPressed]:hover, .feature-item:nth-child(even)[appPressed]:hover { transform: none; }
+  .theme-toggle:hover:not([data-pressed]) { transform: none; }
 }
 
 @media (max-width: 900px) {
