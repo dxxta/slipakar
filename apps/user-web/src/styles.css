@@ -401,13 +401,18 @@ button.account-menu-collapsed-trigger {
   overflow: hidden;
   place-items: center;
   border: 2px solid var(--ink-fixed) !important;
-  border-radius: 50% !important;
-  box-shadow: 2px 2px 0 var(--shadow-color) !important;
+  border-radius: var(--ui-radius-md) !important;
+  background: var(--card) !important;
+  box-shadow: var(--shadow-hard) !important;
   transition: transform 140ms ease-out, box-shadow 140ms ease-out;
 }
 button.account-menu-collapsed-trigger:hover:not(:disabled) {
-  box-shadow: 3px 3px 0 var(--shadow-color) !important;
+  background: var(--muted) !important;
+  box-shadow: var(--shadow-hover) !important;
   transform: translateY(-2px) !important;
+}
+button.account-menu-collapsed-trigger app-avatar, button.account-menu-collapsed-trigger app-avatar [data-avatar] {
+  border-radius: calc(var(--ui-radius-md) - 4px) !important;
 }
 button.account-menu-expanded-trigger {
   box-sizing: border-box;
