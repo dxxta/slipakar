@@ -87,7 +87,7 @@ import { Ripple } from '../../ui/shared/ripple';
         </div>
         <div class="grid gap-2">
           <label for="avatar-url" class="text-sm font-medium">Avatar URL</label>
-          <div class="avatar-url-group flex h-control-9 min-w-0 overflow-hidden rounded-ui-md border border-input bg-background">
+          <div class="avatar-url-group flex h-control-9 min-w-0 overflow-hidden rounded-ui-md border-2 border-border bg-background">
             <input
               id="avatar-url"
               data-testid="avatar-url"
