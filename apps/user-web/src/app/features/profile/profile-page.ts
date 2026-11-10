@@ -87,11 +87,11 @@ import { Ripple } from '../../ui/shared/ripple';
         </div>
         <div class="grid gap-2">
           <label for="avatar-url" class="text-sm font-medium">Avatar URL</label>
-          <div class="avatar-url-group flex h-control-9 min-w-0 overflow-hidden rounded-ui-md border-2 border-border bg-background">
+          <div class="input-group avatar-url-group">
             <input
               id="avatar-url"
               data-testid="avatar-url"
-              class="h-full min-w-0 flex-1 bg-transparent px-3 text-sm text-muted-foreground outline-none"
+              class="input-group-input"
               type="text"
               [value]="image()"
               placeholder="No custom avatar"
@@ -99,11 +99,9 @@ import { Ripple } from '../../ui/shared/ripple';
               aria-readonly="true"
             />
             <button
-              hlmBtn
-              variant="ghost"
               type="button"
               data-action="remove-avatar"
-              class="avatar-url-remove h-full shrink-0 rounded-none border-0 border-l border-input px-4 leading-none text-destructive hover:bg-destructive/10 disabled:cursor-not-allowed disabled:text-muted-foreground"
+              class="input-group-addon avatar-url-remove"
               [disabled]="avatarUploading() || !image()"
               (click)="removeAvatar()"
             >

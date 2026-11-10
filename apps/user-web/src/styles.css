@@ -302,19 +302,19 @@ table:not(.preview-table) thead th button { color: inherit !important; }
 }
 
 /* Standalone actions share the landing page's tactile control treatment. */
-button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.account-menu-signout):not(.sidebar-square-button):not(.account-menu-collapsed-trigger):not(.account-menu-expanded-trigger):not([appSortHeader]),
+button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.input-group-addon):not(.account-menu-signout):not(.sidebar-square-button):not(.account-menu-collapsed-trigger):not(.account-menu-expanded-trigger):not([appSortHeader]),
 a[data-slot='button'] {
   border: var(--border-width-strong) solid var(--ink-fixed) !important;
   border-radius: var(--radius-pill) !important;
   box-shadow: var(--shadow-hard) !important;
   transition: transform 140ms ease-out, box-shadow 140ms ease-out;
 }
-button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.account-menu-signout):not(.sidebar-square-button):not(.account-menu-collapsed-trigger):not(.account-menu-expanded-trigger):not([appSortHeader]):hover:not(:disabled),
+button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.input-group-addon):not(.account-menu-signout):not(.sidebar-square-button):not(.account-menu-collapsed-trigger):not(.account-menu-expanded-trigger):not([appSortHeader]):hover:not(:disabled),
 a[data-slot='button']:hover:not([aria-disabled='true']) {
   transform: translateY(-2px);
   box-shadow: var(--shadow-hover) !important;
 }
-button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.account-menu-signout):not(.sidebar-square-button):not(.account-menu-collapsed-trigger):not(.account-menu-expanded-trigger):not([appSortHeader]):active:not(:disabled),
+button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.input-group-addon):not(.account-menu-signout):not(.sidebar-square-button):not(.account-menu-collapsed-trigger):not(.account-menu-expanded-trigger):not([appSortHeader]):active:not(:disabled),
 a[data-slot='button']:active:not([aria-disabled='true']) {
   transform: translate(var(--press-x), var(--press-y));
   box-shadow: 0 0 0 var(--shadow-color) !important;
@@ -448,18 +448,6 @@ button.theme-accent-swatch {
   box-shadow: none !important;
 }
 button.theme-accent-swatch[aria-pressed='true'] { outline: 3px solid var(--ring); outline-offset: 2px; }
-.avatar-url-group > button[data-slot='button']:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle) {
-  border: 0 !important;
-  border-left: 1px solid var(--border) !important;
-  border-radius: 0 !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  transform: none !important;
-  outline: none !important;
-  --tw-ring-shadow: 0 0 #0000 !important;
-}
-.avatar-url-group > button[data-slot='button']:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):hover:not(:disabled) { transform: none !important; box-shadow: none !important; }
-.avatar-url-group:focus-within { box-shadow: 0 0 0 2px var(--ring); }
 button:disabled { cursor: not-allowed; opacity: 0.55; }
 button.account-menu-signout {
   height: var(--ui-control-9) !important;
@@ -588,6 +576,58 @@ select.app-select, textarea {
   background-color: var(--card);
   color: var(--foreground);
 }
+.input-group {
+  display: flex;
+  height: var(--ui-control-9);
+  min-width: 0;
+  overflow: hidden;
+  border: 2px solid var(--border) !important;
+  border-radius: 0.75rem !important;
+  background: var(--background);
+}
+.input-group > input.input-group-input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  flex: 1 1 auto;
+  padding-inline: 0.75rem;
+  border: 0 !important;
+  border-radius: 0 !important;
+  outline: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+.input-group > input.input-group-input:focus-visible {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+}
+.input-group > .input-group-addon {
+  box-sizing: border-box;
+  height: 100%;
+  flex: 0 0 auto;
+  padding-inline: 1rem;
+  border: 0 !important;
+  border-left: 2px solid var(--border) !important;
+  border-radius: 0 !important;
+  background: var(--muted) !important;
+  color: var(--foreground) !important;
+  box-shadow: none !important;
+  transform: none !important;
+  outline: 0 !important;
+  transition: background-color 120ms ease-out;
+}
+.input-group > .input-group-addon:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--muted) 78%, var(--foreground) 22%) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+.input-group > .input-group-addon:focus-visible {
+  outline: 2px solid var(--ink-fixed) !important;
+  outline-offset: -4px;
+}
+.input-group:focus-within { box-shadow: 0 0 0 2px var(--ring); }
 :where(input, select, textarea):focus-visible {
   border-color: var(--ring) !important;
   outline: 3px solid color-mix(in srgb, var(--ring) 42%, transparent) !important;
@@ -732,9 +772,9 @@ a:not([hlmBtn]):not(.btn):not([role='tab']):not([role='menuitem']):not([data-slo
   --press-y: 0px;
 }
 :root[data-style='unstyled'] :is(
-  button:not(.theme-accent-swatch):not([data-testid='profile-avatar']),
+  button:not(.theme-accent-swatch):not([data-testid='profile-avatar']):not(.input-group-addon),
   a[data-slot='button'], [role='tablist'], [role='tab'], [data-page-badge], [data-slot='badge'],
-  input:not([type='checkbox']):not([type='radio']):not([type='file']), select, textarea,
+  input:not([type='checkbox']):not([type='radio']):not([type='file']):not(.input-group-input), select, textarea,
   [data-slot='card'], section[appPressed].shadow-sm,
   [aria-label='Project summary'] > article, section[aria-labelledby='activity-heading'],
   [data-testid='feature-disabled-card'], section[aria-labelledby='email-heading'],
