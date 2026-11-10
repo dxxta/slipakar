@@ -109,7 +109,7 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
           <p class="mb-4 text-sm text-muted-foreground">
             {{ editingId() ? 'Update connection details. Leave password empty to keep existing password.' : 'Enter your SMTP server configuration.' }}
           </p>
-          <form class="space-y-4" (submit)="$event.preventDefault(); submitForm()">
+          <form id="smtp-form" class="space-y-4" (submit)="$event.preventDefault(); submitForm()">
             <div class="grid gap-4 sm:grid-cols-2">
               <div>
                 <label for="smtp-host" class="mb-1 block text-sm font-medium">Host</label>
@@ -198,22 +198,23 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
               <label for="smtp-secure" class="text-sm font-medium">Use SSL/TLS (Secure)</label>
             </div>
 
-            <div class="flex items-center justify-end gap-2 pt-4">
+          </form>
+        </div>
+      </div>
+            <div drawer-footer class="contents">
               <button hlmBtn variant="outline" type="button" (click)="closeForm()">
                 Cancel
               </button>
               <button
                 hlmBtn
                 type="submit"
+                form="smtp-form"
                 data-testid="smtp-save-button"
                 [disabled]="isSaving() || !formHost().trim() || !formUsername().trim() || !!portValidationError() || (!editingId() && !formPassword().trim())"
               >
                 {{ isSaving() ? 'Saving…' : (editingId() ? 'Save changes' : 'Create connection') }}
               </button>
             </div>
-          </form>
-        </div>
-      </div>
     </app-drawer>
     }
 
@@ -272,15 +273,15 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
     >
       <!-- Connections List -->
       <div list-content class="overflow-x-auto rounded-ui-lg border border-border" aria-label="SMTP connections">
-        <table aria-label="SMTP connections list" class="w-full min-w-[44rem] border-collapse text-left text-sm">
+        <table data-responsive aria-label="SMTP connections list" class="w-full min-w-[44rem] border-collapse text-left text-sm">
           <thead class="bg-muted/50 text-xs text-muted-foreground"><tr><th scope="col" class="px-4 py-3 font-medium">Host:port</th><th scope="col" class="px-4 py-3 font-medium">Username</th><th scope="col" class="px-4 py-3 font-medium">From</th><th scope="col" class="px-4 py-3 text-right font-medium">Actions</th></tr></thead>
           <tbody class="divide-y divide-border">
             @for (conn of connections(); track conn.id) {
               <tr [attr.data-testid]="'smtp-row-' + conn.id" [attr.data-row]="'smtp-card-' + conn.id" class="hover:bg-muted/30">
-                <th scope="row" class="px-4 py-3 font-medium tabular-nums">{{ conn.host }}:{{ conn.port }} @if (conn.secure) { <span hlmBadge variant="outline" class="ml-2 text-xs">SSL/TLS</span> }</th>
-                <td class="px-4 py-3 font-mono text-xs">{{ conn.username }}</td>
-                <td class="px-4 py-3 font-mono text-xs">{{ conn.fromAddress || '—' }}</td>
-                <td class="px-4 py-2 text-right"><div class="flex items-center justify-end gap-2"><div class="text-right">@if (isTestingId() === conn.id) { <p aria-live="polite" role="status" class="text-xs text-muted-foreground">Testing SMTP connection…</p> } @else if (testResults()[conn.id]?.ok) { <p aria-live="polite" role="status" class="text-xs text-green-700 dark:text-green-300">SMTP test connection successful!</p> } @else if (testResults()[conn.id]) { <p aria-live="polite" role="alert" class="text-xs text-destructive">SMTP test failed: {{ testResults()[conn.id]?.error }}</p> }</div><app-row-actions [label]="'Actions for ' + conn.host" [items]="rowActions" [attr.data-testid]="'smtp-actions-' + conn.id" (actionSelect)="handleAction($event, conn)" /></div></td>
+                <th data-label="Host:port" scope="row" class="px-4 py-3 font-medium tabular-nums">{{ conn.host }}:{{ conn.port }} @if (conn.secure) { <span hlmBadge variant="outline" class="ml-2 text-xs">SSL/TLS</span> }</th>
+                <td data-label="Username" class="px-4 py-3 font-mono text-xs">{{ conn.username }}</td>
+                <td data-label="From" class="px-4 py-3 font-mono text-xs">{{ conn.fromAddress || '—' }}</td>
+                <td data-label="Actions" class="px-4 py-2 text-right"><div class="flex items-center justify-end gap-2"><div class="text-right">@if (isTestingId() === conn.id) { <p aria-live="polite" role="status" class="text-xs text-muted-foreground">Testing SMTP connection…</p> } @else if (testResults()[conn.id]?.ok) { <p aria-live="polite" role="status" class="text-xs text-green-700 dark:text-green-300">SMTP test connection successful!</p> } @else if (testResults()[conn.id]) { <p aria-live="polite" role="alert" class="text-xs text-destructive">SMTP test failed: {{ testResults()[conn.id]?.error }}</p> }</div><app-row-actions [label]="'Actions for ' + conn.host" [items]="rowActions" [attr.data-testid]="'smtp-actions-' + conn.id" (actionSelect)="handleAction($event, conn)" /></div></td>
               </tr>
             }
           </tbody>

@@ -139,7 +139,7 @@ function extractPlaceholders(text: string): string[] {
         <app-data-table-controls [query]="uploadQuery()" searchPlaceholder="Search uploaded files..." (queryChange)="setUploadQuery($event)" />
         <app-list-body [state]="loadingUploads() ? 'loading' : loadUploadsError() ? 'error' : 'ready'" [itemCount]="filteredUploads().length" [query]="uploadQuery()" errorTitle="Failed to load uploaded files" [errorMessage]="loadUploadsError() ?? ''" emptyTitle="No uploaded data files yet" emptyMessage="Upload a CSV, XLSX, or JSON file above to begin." emptyResultLabel="No uploads match" (retry)="loadUploads()" (clearQuery)="setUploadQuery('')">
           <div list-content class="overflow-x-auto rounded-lg border border-border">
-            <table class="min-w-[40rem] w-full text-left text-sm" aria-label="Uploaded data files">
+            <table data-responsive class="min-w-[40rem] w-full text-left text-sm" aria-label="Uploaded data files">
               <thead class="border-b border-border bg-muted/50 text-xs font-medium text-muted-foreground">
                 <tr>
                   <th scope="col" class="px-4 py-3">Select</th>
@@ -162,14 +162,14 @@ function extractPlaceholders(text: string): string[] {
                     (keydown.enter)="selectUpload(file.id)"
                     (keydown.space)="$event.preventDefault(); selectUpload(file.id)"
                   >
-                    <td class="align-middle px-4 py-3">
+                    <td data-label="Select" class="align-middle px-4 py-3">
                       <input type="checkbox" [checked]="selectedUploadId() === file.id" [attr.aria-label]="'Select ' + file.fileName" class="size-4 accent-primary" (click)="$event.stopPropagation()" (change)="onUploadCheckboxChange(file.id, $event)" />
                     </td>
-                    <td class="align-middle px-4 py-3"><div class="flex min-h-9 items-center gap-2 font-medium"><span class="truncate">{{ file.fileName }}</span>@if (selectedUploadId() === file.id) { <span hlmBadge variant="outline" class="shrink-0 text-[10px]">Active</span> }</div></td>
-                    <td class="align-middle px-4 py-3 text-muted-foreground tabular-nums">{{ file.rowCount.toLocaleString() }}</td>
-                    <td class="align-middle px-4 py-3 text-muted-foreground text-xs font-mono tabular-nums">{{ file.columns.length }} cols</td>
-                    <td class="align-middle px-4 py-3 text-muted-foreground text-xs tabular-nums">{{ file.createdAt | date: 'short' }}</td>
-                    <td class="align-middle px-4 py-2 text-right" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+                    <td data-label="File Name" class="align-middle px-4 py-3"><div class="flex min-h-9 items-center gap-2 font-medium"><span class="truncate">{{ file.fileName }}</span>@if (selectedUploadId() === file.id) { <span hlmBadge variant="outline" class="shrink-0 text-[10px]">Active</span> }</div></td>
+                    <td data-label="Rows" class="align-middle px-4 py-3 text-muted-foreground tabular-nums">{{ file.rowCount.toLocaleString() }}</td>
+                    <td data-label="Columns" class="align-middle px-4 py-3 text-muted-foreground text-xs font-mono tabular-nums">{{ file.columns.length }} cols</td>
+                    <td data-label="Uploaded" class="align-middle px-4 py-3 text-muted-foreground text-xs tabular-nums">{{ file.createdAt | date: 'short' }}</td>
+                    <td data-label="Actions" class="align-middle px-4 py-2 text-right" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
                       <app-row-actions [attr.data-testid]="'upload-actions-' + file.id" [label]="'Actions for ' + file.fileName" [items]="uploadActions" (actionSelect)="handleUploadAction($event, file)" />
                     </td>
                   </tr>
@@ -359,7 +359,7 @@ function extractPlaceholders(text: string): string[] {
                 </div>
 
                 <div class="overflow-x-auto rounded-lg border border-border">
-                  <table class="min-w-[32rem] w-full text-left text-sm" aria-label="Field mappings table">
+                  <table data-responsive class="min-w-[32rem] w-full text-left text-sm" aria-label="Field mappings table">
                     <thead class="border-b border-border bg-muted/50 text-xs font-medium text-muted-foreground">
                       <tr>
                         <th scope="col" class="px-4 py-2.5">Placeholder</th>
@@ -370,10 +370,10 @@ function extractPlaceholders(text: string): string[] {
                     <tbody class="divide-y divide-border">
                       @for (p of templatePlaceholders(); track p) {
                         <tr class="hover:bg-muted/30">
-                          <td class="px-4 py-2.5 font-mono text-xs font-medium">
+                          <td data-label="Placeholder" class="px-4 py-2.5 font-mono text-xs font-medium">
                             {{ '{{' + p + '}}' }}
                           </td>
-                          <td class="px-4 py-2.5">
+                          <td data-label="Mapped Data Column" class="px-4 py-2.5">
                             <select appSelect
                               [attr.aria-label]="'Map placeholder ' + p"
                               [attr.data-testid]="'mapping-select-' + p"
@@ -387,7 +387,7 @@ function extractPlaceholders(text: string): string[] {
                               }
                             </select>
                           </td>
-                          <td class="px-4 py-2.5 text-right">
+                          <td data-label="Status" class="px-4 py-2.5 text-right">
                             @if (currentMapping()[p]) {
                               <span hlmBadge variant="outline" class="text-[10px] text-emerald-700 dark:text-emerald-300 border-emerald-500/25 bg-emerald-500/10">Mapped</span>
                             } @else {

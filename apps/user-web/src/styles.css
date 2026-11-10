@@ -82,3 +82,27 @@
   app-data-table-controls div[table-filters] label { min-width: 0 !important; width: 100%; }
   app-data-table-controls div[table-filters] select { width: 100%; }
 }
+
+/* Table headers use the accent color. */
+table:not(.preview-table) thead { background-color: var(--primary) !important; color: var(--primary-foreground) !important; }
+table:not(.preview-table) thead th,
+table:not(.preview-table) thead th button { color: inherit !important; }
+
+/* Mobile tables become stacked cards: one card per row, each cell labelled by its column. */
+@media (max-width: 767px) {
+  table[data-responsive] { display: block; min-width: 0 !important; width: 100%; }
+  table[data-responsive] thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  table[data-responsive] tbody { display: block; }
+  table[data-responsive] tbody tr { display: block; padding: 0.75rem 1rem; }
+  table[data-responsive] tbody tr + tr { border-top: 1px solid var(--border); }
+  table[data-responsive] tbody td,
+  table[data-responsive] tbody th[scope='row'] {
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    padding: 0.375rem 0 !important; text-align: right; border: 0; min-width: 0; word-break: break-word;
+  }
+  table[data-responsive] tbody td[data-label]::before,
+  table[data-responsive] tbody th[data-label]::before {
+    content: attr(data-label); flex-shrink: 0; text-align: left;
+    font-size: 0.75rem; font-weight: 500; color: var(--muted-foreground);
+  }
+}

@@ -22,13 +22,13 @@ import { type EmailTemplate, TemplatesService } from './templates.service';
       <app-data-table-controls [query]="listQuery()" searchPlaceholder="Search templates..." (queryChange)="searchTemplates($event)"><div table-filters><label class="grid min-w-40 gap-1 text-xs font-medium text-muted-foreground">Sort templates<select appSelect aria-label="Sort templates" class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm" [value]="sortBy()" (change)="sortTemplates($event)"><option value="createdAt">Created</option><option value="updatedAt">Updated</option><option value="name">Name</option><option value="subject">Subject</option></select></label></div></app-data-table-controls>
       <app-list-body [state]="listState()" [itemCount]="templates().length" [query]="listQuery()" errorTitle="Failed to load email templates" [errorMessage]="loadError() ?? ''" emptyTitle="No templates yet" emptyMessage="Create an email template to start sending personalized emails." emptyResultLabel="No templates match" (retry)="loadTemplates()" (clearQuery)="searchTemplates('')">
         <div list-content class="overflow-x-auto rounded-ui-lg border border-border" aria-label="Email templates">
-          <table aria-label="Email templates list" class="w-full min-w-[42rem] border-collapse text-left text-sm">
+          <table data-responsive aria-label="Email templates list" class="w-full min-w-[42rem] border-collapse text-left text-sm">
             <thead class="bg-muted/50 text-xs text-muted-foreground"><tr><th scope="col" class="px-4 py-3 font-medium">Template name</th><th scope="col" class="px-4 py-3 font-medium">Subject</th><th scope="col" class="px-4 py-3 font-medium">Last updated</th><th scope="col" class="px-4 py-3 text-right font-medium">Actions</th></tr></thead>
             <tbody class="divide-y divide-border">
               @for (template of templates(); track template.id) {
                 <tr [attr.data-testid]="'template-row-' + template.id" class="hover:bg-muted/30">
-                  <th scope="row" class="px-4 py-3 font-medium text-foreground">{{ template.name }}</th><td class="max-w-md truncate px-4 py-3 text-muted-foreground">{{ template.subject }}</td><td class="px-4 py-3 text-muted-foreground tabular-nums">{{ (template.updatedAt || template.createdAt) | date: 'mediumDate' }}</td>
-                  <td class="px-4 py-2 text-right"><app-row-actions [attr.data-testid]="'template-actions-' + template.id" [label]="'Actions for ' + template.name" [items]="templateActions" (actionSelect)="handleTemplateAction($event, template)" /></td>
+                  <th data-label="Template name" scope="row" class="px-4 py-3 font-medium text-foreground">{{ template.name }}</th><td data-label="Subject" class="max-w-md truncate px-4 py-3 text-muted-foreground">{{ template.subject }}</td><td data-label="Last updated" class="px-4 py-3 text-muted-foreground tabular-nums">{{ (template.updatedAt || template.createdAt) | date: 'mediumDate' }}</td>
+                  <td data-label="Actions" class="px-4 py-2 text-right"><app-row-actions [attr.data-testid]="'template-actions-' + template.id" [label]="'Actions for ' + template.name" [items]="templateActions" (actionSelect)="handleTemplateAction($event, template)" /></td>
                 </tr>
               }
             </tbody>

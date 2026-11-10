@@ -64,7 +64,7 @@ import { Pagination } from '../../ui/shared/pagination';
         </app-data-table-controls>
         <app-list-body [state]="loading() ? 'loading' : error() ? 'error' : 'ready'" [itemCount]="templates().length" [query]="query()" errorTitle="Could not load PDF templates" [errorMessage]="error() ?? ''" emptyTitle="No PDF templates yet" emptyMessage="Create a custom layout with text, tables, images, and recipient placeholders." emptyResultLabel="No PDF templates match" (retry)="loadTemplates()" (clearQuery)="search('')">
           <div list-content class="overflow-x-auto rounded-lg border border-border bg-card">
-            <table class="min-w-[38rem] w-full text-left text-sm" aria-label="PDF Templates list">
+            <table data-responsive class="min-w-[38rem] w-full text-left text-sm" aria-label="PDF Templates list">
               <thead class="border-b border-border bg-muted/40 text-xs text-muted-foreground uppercase">
                 <tr>
                   <th scope="col" class="px-6 py-3">Template Name</th>
@@ -76,10 +76,10 @@ import { Pagination } from '../../ui/shared/pagination';
               <tbody class="divide-y divide-border">
                 @for (template of templates(); track template.id) {
                   <tr class="hover:bg-muted/50 transition-colors" [attr.data-testid]="'template-row-' + template.id">
-                    <td class="px-6 py-4 font-medium">{{ template.name }}</td>
-                    <td class="px-6 py-4 text-muted-foreground tabular-nums">{{ nodeCount(template) }} {{ nodeCount(template) === 1 ? 'node' : 'nodes' }}</td>
-                    <td class="px-6 py-4 text-muted-foreground tabular-nums"><time [attr.datetime]="template.updatedAt" [attr.title]="template.updatedAt">{{ formatDate(template.updatedAt) }}</time></td>
-                    <td class="px-6 py-4 text-right">
+                    <td data-label="Template Name" class="px-6 py-4 font-medium">{{ template.name }}</td>
+                    <td data-label="Node Count" class="px-6 py-4 text-muted-foreground tabular-nums">{{ nodeCount(template) }} {{ nodeCount(template) === 1 ? 'node' : 'nodes' }}</td>
+                    <td data-label="Last Updated" class="px-6 py-4 text-muted-foreground tabular-nums"><time [attr.datetime]="template.updatedAt" [attr.title]="template.updatedAt">{{ formatDate(template.updatedAt) }}</time></td>
+                    <td data-label="Actions" class="px-6 py-4 text-right">
                       <app-row-actions [attr.data-testid]="'pdf-template-actions-' + template.id" [label]="'Actions for ' + template.name" [items]="templateActions" (actionSelect)="handleTemplateAction($event, template)" />
                     </td>
                   </tr>

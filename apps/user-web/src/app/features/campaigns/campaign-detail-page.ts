@@ -132,7 +132,7 @@ import {
           </div></app-data-table-controls>
             <app-list-body [state]="loadingRecipients() ? 'loading' : recipientsError() ? 'error' : 'ready'" [itemCount]="recipients().length" [query]="recipientQuery()" errorTitle="Could not load recipients" [errorMessage]="recipientsError() ?? ''" emptyTitle="No recipients yet" emptyMessage="This campaign has no recipients to display." emptyResultLabel="No recipients match" (retry)="loadRecipients()" (clearQuery)="searchRecipients('')">
               <div list-content class="overflow-x-auto rounded-ui-lg border border-border">
-                <table class="w-full text-left text-sm" aria-label="Recipients delivery table">
+                <table data-responsive class="w-full text-left text-sm" aria-label="Recipients delivery table">
                   <thead class="border-b border-border bg-muted/40 text-xs text-muted-foreground uppercase tracking-wide">
                     <tr>
                       <th scope="col" class="px-6 py-3">Row</th>
@@ -145,13 +145,13 @@ import {
                   <tbody class="divide-y divide-border">
                     @for (rec of recipients(); track rec.id) {
                       <tr class="hover:bg-muted/50 transition-colors" [attr.data-testid]="'recipient-row-' + rec.id">
-                        <td class="px-6 py-3 font-mono text-xs text-muted-foreground tabular-nums">
+                        <td data-label="Row" class="px-6 py-3 font-mono text-xs text-muted-foreground tabular-nums">
                           #{{ rec.rowIndex + 1 }}
                         </td>
-                        <td class="px-6 py-3 font-medium max-w-[16rem] truncate" [title]="rec.email">
+                        <td data-label="Recipient Email" class="px-6 py-3 font-medium max-w-[16rem] truncate" [title]="rec.email">
                           {{ rec.email }}
                         </td>
-                        <td class="px-6 py-3">
+                        <td data-label="Status" class="px-6 py-3">
                           <span
                             hlmBadge
                             class="capitalize"
@@ -161,7 +161,7 @@ import {
                             {{ rec.status }}
                           </span>
                         </td>
-                        <td class="px-6 py-3 text-xs text-muted-foreground max-w-xs truncate">
+                        <td data-label="Details / Error" class="px-6 py-3 text-xs text-muted-foreground max-w-xs truncate">
                           @if (rec.errorMessage) {
                             <span class="text-destructive font-mono" [title]="rec.errorMessage" [attr.data-testid]="'recipient-error-' + rec.id">
                               {{ rec.errorMessage }}
@@ -170,7 +170,7 @@ import {
                             <span>—</span>
                           }
                         </td>
-                        <td class="px-6 py-3 text-right">
+                        <td data-label="Actions" class="px-6 py-3 text-right">
                           @if (rec.status === 'failed') {
                             <app-row-actions [attr.data-testid]="'recipient-actions-' + rec.id" [label]="'Actions for ' + rec.email" [items]="recipientActions(rec.id)" (actionSelect)="retryRecipient(rec.id)" />
                           }

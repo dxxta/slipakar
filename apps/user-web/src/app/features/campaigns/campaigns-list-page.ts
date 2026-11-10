@@ -43,7 +43,7 @@ import {
 
       <app-list-body [state]="loading() ? 'loading' : error() ? 'error' : 'ready'" [itemCount]="campaigns().length" [query]="query()" errorTitle="Could not load campaigns" [errorMessage]="error() ?? ''" emptyTitle="No campaigns yet" emptyMessage="Create your first campaign by selecting a template, data upload, and SMTP connection." emptyResultLabel="No campaigns match" (retry)="loadCampaigns()" (clearQuery)="search('')">
         <div list-content class="overflow-x-auto rounded-lg border border-border bg-card">
-          <table class="min-w-[44rem] w-full text-left text-sm" aria-label="Campaigns list">
+          <table data-responsive class="min-w-[44rem] w-full text-left text-sm" aria-label="Campaigns list">
             <thead class="border-b border-border bg-muted/40 text-xs text-muted-foreground uppercase">
               <tr>
                 <th scope="col" class="px-6 py-3">Campaign</th>
@@ -56,7 +56,7 @@ import {
             <tbody class="divide-y divide-border">
               @for (campaign of campaigns(); track campaign.id) {
                 <tr class="hover:bg-muted/50 transition-colors" [attr.data-testid]="'campaign-row-' + campaign.id">
-                  <td class="px-6 py-4 font-medium">
+                  <td data-label="Campaign" class="px-6 py-4 font-medium">
                     <a
                       [href]="'/projects/' + projectId() + '/campaigns/' + campaign.id"
                       class="text-primary hover:underline tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -68,7 +68,7 @@ import {
                       Template: {{ campaign.emailTemplateId.slice(0, 8) }} · Upload: {{ campaign.uploadId.slice(0, 8) }}
                     </p>
                   </td>
-                  <td class="px-6 py-4">
+                  <td data-label="Status" class="px-6 py-4">
                     <span
                       hlmBadge
                       [variant]="badgeVariant(campaign.status)"
@@ -77,7 +77,7 @@ import {
                       {{ statusLabel(campaign.status) }}
                     </span>
                   </td>
-                  <td class="px-6 py-4 text-xs tabular-nums">
+                  <td data-label="Progress" class="px-6 py-4 text-xs tabular-nums">
                     @if (campaignCounts()[campaign.id]; as counts) {
                       <span [attr.data-testid]="'counts-' + campaign.id">
                         <span class="text-green-700 dark:text-green-300 font-medium">{{ counts.sent }} sent</span>
@@ -90,10 +90,10 @@ import {
                       <span class="text-muted-foreground">—</span>
                     }
                   </td>
-                  <td class="px-6 py-4 text-xs text-muted-foreground tabular-nums">
+                  <td data-label="Created" class="px-6 py-4 text-xs text-muted-foreground tabular-nums">
                     {{ campaign.createdAt | date: 'mediumDate' }}
                   </td>
-                  <td class="px-6 py-4 text-right"><app-row-actions [attr.data-testid]="'campaign-actions-' + campaign.id" [label]="'Actions for campaign ' + campaign.id.slice(0, 8)" [items]="campaignActions" (actionSelect)="navigateToDetail(null, campaign.id)" /></td>
+                  <td data-label="Actions" class="px-6 py-4 text-right"><app-row-actions [attr.data-testid]="'campaign-actions-' + campaign.id" [label]="'Actions for campaign ' + campaign.id.slice(0, 8)" [items]="campaignActions" (actionSelect)="navigateToDetail(null, campaign.id)" /></td>
                 </tr>
               }
             </tbody>

@@ -98,7 +98,7 @@ type ProjectCounts = { campaigns: number; templates: number; uploads: number };
     >
       <div list-content class="space-y-4">
         <div class="overflow-x-auto rounded-ui-lg border border-border bg-card">
-          <table class="w-full text-left text-sm" aria-label="Your projects">
+          <table data-responsive class="w-full text-left text-sm" aria-label="Your projects">
             <thead class="border-b border-border bg-muted/40 text-xs uppercase text-muted-foreground">
               <tr>
                 <th scope="col" class="px-4 py-3" [attr.aria-sort]="ariaSort('name')">
@@ -118,7 +118,7 @@ type ProjectCounts = { campaigns: number; templates: number; uploads: number };
             <tbody class="divide-y divide-border">
               @for (project of projects(); track project.id) {
                 <tr class="hover:bg-muted/40">
-                  <td class="px-4 py-4">
+                  <td data-label="Project" class="px-4 py-4">
                     <a
                       [href]="'/projects/' + project.id"
                       (click)="openProject($event, project.id)"
@@ -128,9 +128,9 @@ type ProjectCounts = { campaigns: number; templates: number; uploads: number };
                     </a>
                     <p class="mt-1 text-xs text-muted-foreground">{{ project.rateLimitPerMinute }} requests/min</p>
                   </td>
-                  <td class="px-4 py-4 text-muted-foreground">{{ project.maxRows.toLocaleString() }}</td>
-                  <td class="px-4 py-4 text-muted-foreground">{{ project.updatedAt ? (project.updatedAt | date: 'mediumDate') : '—' }}</td>
-                  <td class="px-4 py-4 text-right">
+                  <td data-label="Rows" class="px-4 py-4 text-muted-foreground">{{ project.maxRows.toLocaleString() }}</td>
+                  <td data-label="Updated" class="px-4 py-4 text-muted-foreground">{{ project.updatedAt ? (project.updatedAt | date: 'mediumDate') : '—' }}</td>
+                  <td data-label="Actions" class="px-4 py-4 text-right">
                     <div class="flex justify-end">
                       <app-row-actions
                         [label]="'Actions for ' + project.name"
@@ -155,7 +155,7 @@ type ProjectCounts = { campaigns: number; templates: number; uploads: number };
 
     <!-- Create / Edit Drawer -->
     <app-drawer [open]="formOpen()" [title]="editingProject() ? 'Rename project' : 'Create project'" (closed)="closeForm()">
-      <form class="space-y-5" (submit)="$event.preventDefault(); saveProject()">
+      <form id="project-form" class="space-y-5" (submit)="$event.preventDefault(); saveProject()">
         <div class="grid gap-2">
           <label for="project-name" class="text-sm font-medium">Project name</label>
           <input
@@ -169,18 +169,19 @@ type ProjectCounts = { campaigns: number; templates: number; uploads: number };
             autofocus
           />
         </div>
-        <div class="flex justify-end gap-2">
+      </form>
+        <div drawer-footer class="contents">
           <button hlmBtn variant="outline" type="button" (click)="closeForm()">Cancel</button>
           <button
             hlmBtn
             type="submit"
+            form="project-form"
             data-action="save-project"
             [disabled]="saving() || !formName().trim()"
           >
             {{ saving() ? 'Saving…' : (editingProject() ? 'Save name' : 'Create project') }}
           </button>
         </div>
-      </form>
     </app-drawer>
 
     <!-- Read-only Detail Drawer -->

@@ -28,6 +28,7 @@ import { tablerX } from '@ng-icons/tabler-icons';
             <button type="button" class="grid size-9 shrink-0 place-items-center rounded-ui-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Close panel" (click)="closed.emit()"><ng-icon name="tablerX" class="size-5" aria-hidden="true" /></button>
           </header>
           <div class="min-h-0 flex-1 overflow-y-auto p-card"><ng-content /></div>
+          <footer class="flex shrink-0 items-center justify-end gap-2 border-t border-border bg-background px-card py-3 empty:hidden"><ng-content select="[drawer-footer]" /></footer>
         </section>
       </div>
     }

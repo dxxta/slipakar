@@ -16,7 +16,7 @@ import { AccountMenu, ConfirmModal, Drawer, PageLayout } from '../ui';
   selector: 'app-user-layout',
   template: `
     <div class="min-h-dvh min-w-0 bg-background text-foreground md:grid transition-[grid-template-columns] duration-200 motion-reduce:transition-none" [style.grid-template-columns]="sidebarCollapsed() ? '4.5rem minmax(0,1fr)' : '15rem minmax(0,1fr)'">
-      <header class="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-border bg-background px-3 py-2 md:hidden">
+      <header class="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-border bg-card px-3 py-2 md:hidden">
         <button type="button" class="grid size-9 shrink-0 place-items-center rounded-ui-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Open navigation" [attr.aria-expanded]="navigationOpen()" (click)="navigationOpen.set(true)"><ng-icon name="tablerMenu2" aria-hidden="true" class="size-5" /></button>
         <a routerLink="/projects" class="text-sm font-semibold">Slipakar</a>
         <span class="h-5 w-px bg-border" aria-hidden="true"></span>

@@ -108,7 +108,7 @@ interface FieldMappingSummary {
           <p hlmCardDescription>Select the template, dataset, and delivery configuration.</p>
         </div>
         <div hlmCardContent>
-          <form class="space-y-6" (submit)="$event.preventDefault(); submitForm()">
+          <form id="campaign-form" class="space-y-6" (submit)="$event.preventDefault(); submitForm()">
             <!-- 1. Email Template -->
             <div>
               <label for="template-select" class="mb-1 block text-sm font-medium">Email Template *</label>
@@ -218,22 +218,22 @@ interface FieldMappingSummary {
               </select>
             </div>
 
-            <!-- Submit -->
-            <div class="flex items-center justify-end gap-3 pt-4 border-t border-border">
+          </form>
+        </div>
+      </div>
+    </div>
+                        <div drawer-footer class="contents">
               <button hlmBtn variant="outline" type="button" (click)="navigateBack()">Cancel</button>
               <button
                 hlmBtn
                 type="submit"
+                form="campaign-form"
                 data-testid="submit-create-campaign"
                 [disabled]="isSubmitting() || !isFormValid()"
               >
                 {{ isSubmitting() ? 'Creating…' : 'Create Campaign' }}
               </button>
             </div>
-          </form>
-        </div>
-      </div>
-    </div>
     </app-drawer>
   `,
 })

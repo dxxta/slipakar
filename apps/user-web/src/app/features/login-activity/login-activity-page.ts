@@ -77,7 +77,7 @@ import { LoginActivityService, type LoginActivityItem, type LoginActivitySort } 
     >
       <div list-content class="space-y-4">
         <div class="overflow-x-auto rounded-ui-lg border border-border bg-card">
-          <table class="min-w-[58rem] w-full text-left text-sm" aria-label="Login activity">
+          <table data-responsive class="min-w-[58rem] w-full text-left text-sm" aria-label="Login activity">
             <thead class="border-b border-border bg-muted/40 text-xs uppercase text-muted-foreground">
               <tr>
                 <th class="px-4 py-3">Date</th>
@@ -91,15 +91,15 @@ import { LoginActivityService, type LoginActivityItem, type LoginActivitySort } 
             <tbody class="divide-y divide-border">
               @for (event of events(); track event.id) {
                 <tr class="align-top hover:bg-muted/30">
-                  <td class="whitespace-nowrap px-4 py-4 tabular-nums">{{ event.createdAt | date: 'medium' }}</td>
-                  <td class="px-4 py-4">
+                  <td data-label="Date" class="whitespace-nowrap px-4 py-4 tabular-nums">{{ event.createdAt | date: 'medium' }}</td>
+                  <td data-label="Device / browser" class="px-4 py-4">
                     <p class="font-medium">{{ event.deviceType || 'Unknown device' }}</p>
                     <p class="mt-1 text-xs text-muted-foreground">
                       {{ event.browser || 'Unknown browser' }} · {{ event.os || 'Unknown OS' }}
                     </p>
                   </td>
-                  <td class="px-4 py-4 font-mono text-xs tabular-nums">{{ event.ip || 'Unavailable' }}</td>
-                  <td class="px-4 py-4">
+                  <td data-label="IP address" class="px-4 py-4 font-mono text-xs tabular-nums">{{ event.ip || 'Unavailable' }}</td>
+                  <td data-label="Proxy flag" class="px-4 py-4">
                     @if (event.proxy && !isPrivateIp(event.ip)) {
                       <span hlmBadge variant="outline" aria-label="Possible proxy (best effort)" title="best effort">
                         Possible proxy
@@ -108,8 +108,8 @@ import { LoginActivityService, type LoginActivityItem, type LoginActivitySort } 
                       <span class="text-muted-foreground">No proxy signal</span>
                     }
                   </td>
-                  <td class="px-4 py-4">{{ locationLabel(event) }}</td>
-                  <td class="px-4 py-4">
+                  <td data-label="Location" class="px-4 py-4">{{ locationLabel(event) }}</td>
+                  <td data-label="Map" class="px-4 py-4">
                     @if (hasCoordinates(event)) {
                       <button
                         hlmBtn
