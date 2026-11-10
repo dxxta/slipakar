@@ -292,24 +292,33 @@ table:not(.preview-table) thead th button { color: inherit !important; }
 }
 
 /* Standalone actions share the landing page's tactile control treatment. */
-button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle),
+button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch),
 a[data-slot='button'] {
   border: 3px solid var(--ink-fixed) !important;
   border-radius: 999px !important;
   box-shadow: 4px 4px 0 var(--shadow-color) !important;
   transition: transform 140ms ease-out, box-shadow 140ms ease-out;
 }
-button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):hover:not(:disabled),
+button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):hover:not(:disabled),
 a[data-slot='button']:hover:not([aria-disabled='true']) {
   transform: translateY(-2px);
   box-shadow: 4px 6px 0 var(--shadow-color) !important;
 }
-button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):active:not(:disabled),
+button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):active:not(:disabled),
 a[data-slot='button']:active:not([aria-disabled='true']) {
   transform: translate(var(--press-x), var(--press-y));
   box-shadow: 0 0 0 var(--shadow-color) !important;
 }
 button[data-slot='button'] { border-radius: 999px !important; }
+button.theme-accent-swatch {
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 2px solid var(--border) !important;
+  border-radius: 50% !important;
+  background: transparent;
+  box-shadow: none !important;
+}
+button.theme-accent-swatch[aria-pressed='true'] { outline: 3px solid var(--ring); outline-offset: 2px; }
 .avatar-url-group > button[data-slot='button']:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle) {
   border: 0 !important;
   border-left: 2px solid var(--border) !important;
@@ -500,10 +509,10 @@ button.bg-destructive { color: var(--destructive-foreground) !important; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):hover:not(:disabled),
+  button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):hover:not(:disabled),
   button[data-row-action-trigger]:hover:not(:disabled),
   a[data-slot='button']:hover:not([aria-disabled='true']) { transform: none; }
-  button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle),
+  button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch),
   button[data-row-action-trigger], a[data-slot='button'] { transition-duration: 0.01ms !important; }
 }
 

@@ -176,12 +176,12 @@ import { Ripple } from '../../ui/shared/ripple';
             @for (accent of accents; track accent) {
               <button
                 type="button"
-                class="grid size-9 place-items-center rounded-full border border-border aria-pressed:ring-2 aria-pressed:ring-ring aria-pressed:ring-offset-2 aria-pressed:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                class="theme-accent-swatch grid size-9 place-items-center rounded-full border border-border aria-pressed:ring-2 aria-pressed:ring-ring aria-pressed:ring-offset-2 aria-pressed:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 [attr.aria-label]="accentLabel(accent)"
                 [attr.aria-pressed]="themePreferences.preference().themeAccent === accent"
                 (click)="themePreferences.setAccent(accent)"
               >
-                <span class="size-6 rounded-full" [class]="accentClass(accent)" aria-hidden="true"></span>
+                <span class="size-6 rounded-full" [style.backgroundColor]="accentColor(accent)" aria-hidden="true"></span>
               </button>
             }
           </div>
@@ -347,16 +347,16 @@ export class ProfilePage {
     return `${accent.charAt(0).toUpperCase()}${accent.slice(1)} accent`;
   }
 
-  accentClass(accent: ThemeAccent): string {
-    const classes: Record<ThemeAccent, string> = {
-      slate: 'bg-[#D4F03C]',
-      blue: 'bg-[#2563EB]',
-      green: 'bg-[#166534]',
-      violet: 'bg-[#6D28D9]',
-      rose: 'bg-[#BE123C]',
-      amber: 'bg-[#D97706]',
+  accentColor(accent: ThemeAccent): string {
+    const colors: Record<ThemeAccent, string> = {
+      slate: '#D4F03C',
+      blue: '#2563EB',
+      green: '#166534',
+      violet: '#6D28D9',
+      rose: '#BE123C',
+      amber: '#D97706',
     };
-    return classes[accent];
+    return colors[accent];
   }
 
   protected inputValue(event: Event): string {
