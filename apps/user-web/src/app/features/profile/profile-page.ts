@@ -168,9 +168,9 @@ import { PageHeader, SelectControl } from '../../ui';
             <option value="dark">Dark</option>
           </select>
         </div>
-        <fieldset class="grid gap-2">
-          <legend class="text-sm font-medium">Accent color</legend>
-          <div class="flex flex-wrap gap-2">
+        <fieldset class="m-0 min-w-0 border-0 p-0">
+          <legend class="mb-2 p-0 text-sm font-medium">Accent color</legend>
+          <div class="flex flex-wrap gap-3 p-1">
             @for (accent of accents; track accent) {
               <button
                 type="button"
