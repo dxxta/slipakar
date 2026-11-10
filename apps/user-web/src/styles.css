@@ -100,15 +100,15 @@
 
 /* Non-default accent swatches change the primary control color while preserving neutral surfaces. */
 :root[data-accent='blue'] { --primary: #2563EB; --primary-foreground: #FFFFFF; --ring: #2563EB; --sidebar-primary: var(--primary); }
-:root.dark[data-accent='blue'] { --primary: #60A5FA; --primary-foreground: #151513; --ring: #60A5FA; }
+:root.dark[data-accent='blue'] { --primary: #2563EB; --primary-foreground: #FFFFFF; --ring: #2563EB; --sidebar-primary: var(--primary); }
 :root[data-accent='green'] { --primary: #166534; --primary-foreground: #FFFFFF; --ring: #166534; --sidebar-primary: var(--primary); }
-:root.dark[data-accent='green'] { --primary: #4ADE80; --primary-foreground: #151513; --ring: #4ADE80; }
+:root.dark[data-accent='green'] { --primary: #166534; --primary-foreground: #FFFFFF; --ring: #166534; --sidebar-primary: var(--primary); }
 :root[data-accent='violet'] { --primary: #6D28D9; --primary-foreground: #FFFFFF; --ring: #6D28D9; --sidebar-primary: var(--primary); }
-:root.dark[data-accent='violet'] { --primary: #A78BFA; --primary-foreground: #151513; --ring: #A78BFA; }
+:root.dark[data-accent='violet'] { --primary: #6D28D9; --primary-foreground: #FFFFFF; --ring: #6D28D9; --sidebar-primary: var(--primary); }
 :root[data-accent='rose'] { --primary: #BE123C; --primary-foreground: #FFFFFF; --ring: #BE123C; --sidebar-primary: var(--primary); }
-:root.dark[data-accent='rose'] { --primary: #FB7185; --primary-foreground: #151513; --ring: #FB7185; }
+:root.dark[data-accent='rose'] { --primary: #BE123C; --primary-foreground: #FFFFFF; --ring: #BE123C; --sidebar-primary: var(--primary); }
 :root[data-accent='amber'] { --primary: #D97706; --primary-foreground: #151513; --ring: #D97706; --sidebar-primary: var(--primary); }
-:root.dark[data-accent='amber'] { --primary: #FBBF24; --primary-foreground: #151513; --ring: #FBBF24; }
+:root.dark[data-accent='amber'] { --primary: #D97706; --primary-foreground: #151513; --ring: #D97706; --sidebar-primary: var(--primary); }
 
 :root[data-accent='blue'], :root[data-accent='green'], :root[data-accent='violet'], :root[data-accent='rose'], :root[data-accent='amber'] {
   --background: #F7EFE7;

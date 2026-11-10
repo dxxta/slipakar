@@ -348,12 +348,12 @@ export class ProfilePage {
 
   accentClass(accent: ThemeAccent): string {
     const classes: Record<ThemeAccent, string> = {
-      slate: 'bg-[#126d63]',
-      blue: 'bg-blue-600',
-      green: 'bg-green-700',
-      violet: 'bg-violet-700',
-      rose: 'bg-rose-700',
-      amber: 'bg-amber-700',
+      slate: 'bg-[#D4F03C]',
+      blue: 'bg-[#2563EB]',
+      green: 'bg-[#166534]',
+      violet: 'bg-[#6D28D9]',
+      rose: 'bg-[#BE123C]',
+      amber: 'bg-[#D97706]',
     };
     return classes[accent];
   }
