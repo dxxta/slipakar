@@ -258,3 +258,18 @@ table:not(.preview-table) thead th button { color: inherit !important; }
   table[data-responsive] tbody td[data-label] { justify-items: start; }
 }
 
+
+/* Shared tactile press state for controls and explicitly marked surfaces. */
+[appPressed], [data-slot='button'] {
+  --press-x: 3px;
+  --press-y: 3px;
+  transition: transform 140ms ease-out, box-shadow 140ms ease-out;
+}
+[appPressed][data-pressed], [data-slot='button'][data-pressed],
+[appPressed][data-pressed]:hover, [data-slot='button'][data-pressed]:hover {
+  transform: translate(var(--press-x), var(--press-y));
+  box-shadow: var(--shadow-pressed) !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  [appPressed], [data-slot='button'] { transition-duration: 0.01ms !important; }
+}
