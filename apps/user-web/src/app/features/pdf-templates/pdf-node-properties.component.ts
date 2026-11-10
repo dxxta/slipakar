@@ -18,10 +18,11 @@ import {
 } from '../pdf-builder/pdf-node.types';
 import type { AttachmentItem } from './pdf-templates.service';
 import { Ripple } from '../../ui/shared/ripple';
+import { Pressed } from '../../ui/shared/pressed';
 
 @Component({
   selector: 'app-pdf-node-properties',
-  imports: [Ripple, 
+  imports: [Ripple, Pressed,
     SelectControl,CommonModule, FormsModule, HlmButton, HlmBadge, NgIcon],
   providers: [provideIcons({ tablerCopy, tablerTrash })],
   template: `
@@ -44,6 +45,7 @@ import { Ripple } from '../../ui/shared/ripple';
           </div>
           <div class="flex shrink-0 items-center gap-2">
             <button
+              appPressed
               type="button"
               class="grid size-9 place-items-center rounded-ui-md bg-primary text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               data-testid="duplicate-node-button"
@@ -54,6 +56,7 @@ import { Ripple } from '../../ui/shared/ripple';
               <ng-icon name="tablerCopy" aria-hidden="true" class="size-5" />
             </button>
             <button
+              appPressed
               type="button"
               class="grid size-9 place-items-center rounded-ui-md bg-destructive text-white hover:bg-destructive/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               data-testid="delete-node-button"

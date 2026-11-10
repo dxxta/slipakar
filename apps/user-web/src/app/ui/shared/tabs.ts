@@ -1,10 +1,11 @@
 import { Component, ElementRef, inject, input, output } from '@angular/core';
+import { Pressed } from './pressed';
 import { Ripple } from './ripple';
 
 export type TabItem = { id: string; label: string; disabled?: boolean };
 
 @Component({
-  imports: [Ripple],
+  imports: [Ripple, Pressed],
   selector: 'app-tabs',
   standalone: true,
   template: `
@@ -12,6 +13,7 @@ export type TabItem = { id: string; label: string; disabled?: boolean };
       <div role="tablist" [attr.aria-label]="ariaLabel()" class="flex min-w-max items-stretch gap-1 border-b border-border pb-1">
         @for (item of items(); track item.id; let index = $index) {
           <button
+            appPressed
             type="button"
             role="tab"
             [id]="tabId(item.id)"

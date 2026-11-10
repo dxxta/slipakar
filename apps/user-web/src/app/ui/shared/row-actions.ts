@@ -2,6 +2,7 @@ import { CommonModule, DOCUMENT } from '@angular/common';
 import { Component, ElementRef, HostListener, inject, input, output, signal } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { tablerArrowLeft, tablerDeviceFloppy, tablerDots, tablerEye, tablerPencil, tablerPlus, tablerPower, tablerPrinter, tablerRefresh, tablerSend, tablerTrash, tablerX } from '@ng-icons/tabler-icons';
+import { Pressed } from './pressed';
 import { Ripple } from './ripple';
 
 export type RowActionIcon = 'eye' | 'pencil' | 'trash' | 'power' | 'refresh' | 'plus' | 'send' | 'close' | 'save' | 'print' | 'back';
@@ -12,10 +13,10 @@ type MenuPosition = { top: number; left: number };
   selector: 'app-row-actions',
   standalone: true,
   host: { class: 'flex justify-end' },
-  imports: [Ripple, CommonModule, NgIcon],
+  imports: [Ripple, Pressed, CommonModule, NgIcon],
   providers: [provideIcons({ tablerArrowLeft, tablerDeviceFloppy, tablerDots, tablerEye, tablerPencil, tablerPlus, tablerPower, tablerPrinter, tablerRefresh, tablerSend, tablerTrash, tablerX })],
   template: `
-    <button #trigger data-row-action-trigger type="button" class="grid size-9 shrink-0 place-items-center rounded-ui-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    <button appPressed #trigger data-row-action-trigger type="button" class="grid size-9 shrink-0 place-items-center rounded-ui-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       [class]="solid() ? 'bg-secondary text-secondary-foreground hover:bg-secondary/80' : 'text-muted-foreground hover:bg-muted hover:text-foreground'" [attr.aria-label]="label()" aria-haspopup="menu" [attr.aria-expanded]="open()" (click)="toggle()">
       <ng-icon name="tablerDots" aria-hidden="true" class="size-5" />
     </button>

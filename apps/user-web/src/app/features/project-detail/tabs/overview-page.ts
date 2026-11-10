@@ -4,6 +4,7 @@ import { ActivatedRoute } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { ApiClient, type PageMetadata } from '../../../core/api-client';
 import { PageHeader, PageState } from '../../../ui';
+import { Pressed } from '../../../ui/shared/pressed';
 
 type ActivityItem = {
   id: string;
@@ -17,7 +18,7 @@ type Campaign = { status: string; createdAt: string };
 
 @Component({
   selector: 'app-project-overview-page',
-  imports: [CommonModule, PageHeader, PageState],
+  imports: [CommonModule, PageHeader, PageState, Pressed],
   template: `
     <div class="app-list-layout">
     <app-page-header
@@ -35,29 +36,29 @@ type Campaign = { status: string; createdAt: string };
     >
       <div class="grid gap-4">
         <section class="flex snap-x snap-mandatory gap-4 overflow-x-auto overscroll-x-contain pb-2 md:grid md:snap-none md:overflow-visible md:pb-0 [&>*]:w-[72%] [&>*]:shrink-0 [&>*]:snap-start md:[&>*]:w-auto md:grid-cols-2 xl:grid-cols-5" aria-label="Project summary">
-          <article class="min-h-24 rounded-ui-lg border border-border bg-card p-card">
+          <article appPressed class="min-h-24 rounded-ui-lg border border-border bg-card p-card">
             <p class="text-sm text-muted-foreground">Campaigns</p>
             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ counts().campaigns }}</p>
           </article>
-          <article class="min-h-24 rounded-ui-lg border border-border bg-card p-card">
+          <article appPressed class="min-h-24 rounded-ui-lg border border-border bg-card p-card">
             <p class="text-sm text-muted-foreground">Email templates</p>
             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ counts().templates }}</p>
           </article>
-          <article class="min-h-24 rounded-ui-lg border border-border bg-card p-card">
+          <article appPressed class="min-h-24 rounded-ui-lg border border-border bg-card p-card">
             <p class="text-sm text-muted-foreground">Data files</p>
             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ counts().uploads }}</p>
           </article>
-          <article class="min-h-24 rounded-ui-lg border border-border bg-card p-card">
+          <article appPressed class="min-h-24 rounded-ui-lg border border-border bg-card p-card">
             <p class="text-sm text-muted-foreground">Unread notifications</p>
             <p class="mt-2 text-2xl font-semibold tabular-nums">{{ counts().unread }}</p>
           </article>
-          <article class="min-h-24 rounded-ui-lg border border-border bg-card p-card">
+          <article appPressed class="min-h-24 rounded-ui-lg border border-border bg-card p-card">
             <p class="text-sm text-muted-foreground">Last send status</p>
             <p class="mt-2 text-lg font-semibold">{{ lastStatus() }}</p>
           </article>
         </section>
 
-        <section class="rounded-ui-lg border border-border bg-card p-card" aria-labelledby="activity-heading">
+        <section appPressed class="rounded-ui-lg border border-border bg-card p-card" aria-labelledby="activity-heading">
           <h2 id="activity-heading" class="text-lg font-semibold">Recent changes</h2>
           @if (activity().length) {
             <ol class="mt-4 divide-y divide-border">
