@@ -18,8 +18,8 @@ export const ACCENT_PRESET_COLORS: Record<ThemeAccent, string> = {
 
 export function defaultThemeColors(accent: ThemeAccent = 'slate'): ThemeColors {
   return {
-    light: { accent: ACCENT_PRESET_COLORS[accent], secondary: '#A87D55', third: '#151513' },
-    dark: { accent: ACCENT_PRESET_COLORS[accent], secondary: '#D9B38F', third: '#F7EFE7' },
+    light: { accent: ACCENT_PRESET_COLORS[accent], secondary: '#A87D55', third: '#000000' },
+    dark: { accent: ACCENT_PRESET_COLORS[accent], secondary: '#D9B38F', third: '#000000' },
   };
 }
 
@@ -29,7 +29,7 @@ export function isHexColor(value: string): boolean {
 
 export function contrastRatio(first: string, second: string): number {
   const luminance = (hex: string): number => {
-    const normalized = isHexColor(hex) ? hex.slice(1) : '151513';
+    const normalized = isHexColor(hex) ? hex.slice(1) : '000000';
     const channels = [0, 2, 4].map((offset) => Number.parseInt(normalized.slice(offset, offset + 2), 16) / 255);
     const linear = channels.map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);
     return 0.2126 * (linear[0] ?? 0) + 0.7152 * (linear[1] ?? 0) + 0.0722 * (linear[2] ?? 0);
@@ -41,7 +41,7 @@ export function contrastRatio(first: string, second: string): number {
   return (brightest + 0.05) / (darkest + 0.05);
 }
 
-export function readableForeground(color: string, ink = '#151513'): string {
+export function readableForeground(color: string, ink = '#000000'): string {
   return contrastRatio(color, ink) >= contrastRatio(color, '#FFFFFF') ? ink : '#FFFFFF';
 }
 
@@ -64,6 +64,6 @@ export function applyThemePreference(
   root.style.setProperty('--primary-foreground', readableForeground(colors.accent, colors.third));
   root.style.setProperty('--secondary-foreground', readableForeground(colors.secondary, colors.third));
   root.style.setProperty('--accent-foreground', readableForeground(colors.secondary, colors.third));
-  root.style.setProperty('--ring', colors.third);
-  root.style.setProperty('--sidebar-ring', colors.third);
+  root.style.setProperty('--ring', colors.accent);
+  root.style.setProperty('--sidebar-ring', colors.accent);
 }

@@ -1,8 +1,8 @@
 (() => {
   const root = document.documentElement;
   const defaultColors = {
-    light: { accent: '#D4F03C', secondary: '#A87D55', third: '#151513' },
-    dark: { accent: '#D4F03C', secondary: '#D9B38F', third: '#F7EFE7' },
+    light: { accent: '#D4F03C', secondary: '#A87D55', third: '#000000' },
+    dark: { accent: '#D4F03C', secondary: '#D9B38F', third: '#000000' },
   };
   const presets = {
     slate: '#D4F03C',
@@ -15,7 +15,7 @@
   const validColor = (value) => typeof value === 'string' && /^#[\da-f]{6}$/i.test(value);
   const isBaseColors = (value) => value && validColor(value.accent) && validColor(value.secondary) && validColor(value.third);
   const luminance = (value) => {
-    const hex = validColor(value) ? value.slice(1) : '151513';
+    const hex = validColor(value) ? value.slice(1) : '000000';
     const channels = [0, 2, 4].map((offset) => Number.parseInt(hex.slice(offset, offset + 2), 16) / 255);
     const linear = channels.map((channel) => channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4);
     return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
@@ -25,7 +25,7 @@
     const secondLight = luminance(second);
     return (Math.max(firstLight, secondLight) + 0.05) / (Math.min(firstLight, secondLight) + 0.05);
   };
-  const foreground = (color, ink = '#151513') => contrast(color, ink) >= contrast(color, '#FFFFFF') ? ink : '#FFFFFF';
+  const foreground = (color, ink = '#000000') => contrast(color, ink) >= contrast(color, '#FFFFFF') ? ink : '#FFFFFF';
 
   try {
     // Deprecated: read-only fallback for the pre-Slipakar storage key. Remove in a future major release.
@@ -38,9 +38,14 @@
     const appearanceStyle = stored?.appearanceStyle === 'unstyled' ? 'unstyled' : 'styled';
     const dark = mode === 'dark' || (mode === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
     const storedColors = stored?.themeColors;
+    const migrateThird = (value, legacy) => value.toUpperCase() === legacy ? '#000000' : value;
     const colors = {
-      light: isBaseColors(storedColors?.light) ? storedColors.light : { ...defaultColors.light, accent: presets[accent] },
-      dark: isBaseColors(storedColors?.dark) ? storedColors.dark : { ...defaultColors.dark, accent: presets[accent] },
+      light: isBaseColors(storedColors?.light)
+        ? { ...storedColors.light, third: migrateThird(storedColors.light.third, '#151513') }
+        : { ...defaultColors.light, accent: presets[accent] },
+      dark: isBaseColors(storedColors?.dark)
+        ? { ...storedColors.dark, third: migrateThird(storedColors.dark.third, '#F7EFE7') }
+        : { ...defaultColors.dark, accent: presets[accent] },
     };
     const active = dark ? colors.dark : colors.light;
     root.classList.toggle('dark', dark);
@@ -52,6 +57,8 @@
     root.style.setProperty('--third-custom', active.third);
     root.style.setProperty('--primary-foreground', foreground(active.accent, active.third));
     root.style.setProperty('--secondary-foreground', foreground(active.secondary, active.third));
+    root.style.setProperty('--ring', active.accent);
+    root.style.setProperty('--sidebar-ring', active.accent);
     root.style.setProperty('--accent-foreground', foreground(active.secondary, active.third));
   } catch {
     root.dataset.themeMode = 'system';
@@ -65,6 +72,8 @@
     root.style.setProperty('--third-custom', active.third);
     root.style.setProperty('--primary-foreground', foreground(active.accent, active.third));
     root.style.setProperty('--secondary-foreground', foreground(active.secondary, active.third));
+    root.style.setProperty('--ring', active.accent);
+    root.style.setProperty('--sidebar-ring', active.accent);
     root.style.setProperty('--accent-foreground', foreground(active.secondary, active.third));
   }
 })();

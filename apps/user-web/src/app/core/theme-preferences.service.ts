@@ -132,7 +132,7 @@ export class ThemePreferencesService {
       const candidate = parsed as ThemePreference & { themeColors?: unknown; appearanceStyle?: unknown };
       this.appearanceStyle.set(candidate.appearanceStyle === 'unstyled' ? 'unstyled' : 'styled');
       if (this.isThemeColors(candidate.themeColors)) {
-        this.themeColors.set(candidate.themeColors);
+        this.themeColors.set(this.migrateLegacyThirdDefaults(candidate.themeColors));
         this.hasStoredColors = true;
       } else {
         this.themeColors.set(defaultThemeColors(candidate.themeAccent));
@@ -168,6 +168,13 @@ export class ThemePreferencesService {
     if (this.document.documentElement !== null) {
       applyThemePreference(this.document.documentElement, preference, prefersDark, this.themeColors(), this.appearanceStyle());
     }
+  }
+
+  private migrateLegacyThirdDefaults(colors: ThemeColors): ThemeColors {
+    return {
+      light: { ...colors.light, third: colors.light.third.toUpperCase() === '#151513' ? '#000000' : colors.light.third },
+      dark: { ...colors.dark, third: colors.dark.third.toUpperCase() === '#F7EFE7' ? '#000000' : colors.dark.third },
+    };
   }
 
   private isThemeColors(value: unknown): value is ThemeColors {
