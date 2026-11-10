@@ -118,7 +118,7 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
           </p>
           <ng-container *ngTemplateOutlet="helpSteps; context: { $implicit: item.key }" />
         </div>
-        <form class="grid gap-4" (ngSubmit)="saveSettings()">
+        <form id="integration-form" class="grid gap-4" (ngSubmit)="saveSettings()">
           @if (item.key === 'uptime' || item.key === 'grafana') {
             <label class="grid gap-1.5 text-sm font-medium" for="integration-url">Base URL<input id="integration-url" name="baseUrl" type="url" required [(ngModel)]="form().baseUrl" placeholder="https://example.com" class="h-control-9 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
           }
@@ -141,9 +141,11 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
             <label class="grid gap-1.5 text-sm font-medium" for="mail-password">Password (write only)<input id="mail-password" name="password" type="password" autocomplete="new-password" [(ngModel)]="form().password" placeholder="Enter password" class="h-control-9 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /><span class="text-xs font-normal text-muted-foreground">{{ item.hasCredentials ? 'Saved. Enter a value only to replace it.' : 'Leave empty if this server does not require authentication.' }}</span></label>
           }
           @if (actionError()) { <p role="alert" class="text-sm text-destructive">{{ actionError() }}</p> }
-          <div class="flex flex-wrap justify-end gap-2 border-t border-border pt-4"><button hlmBtn variant="outline" type="button" (click)="editing.set(null)">Cancel</button><button hlmBtn type="submit" [disabled]="busy()">{{ busy() ? 'Saving…' : 'Save settings' }}</button></div>
         </form>
         @if (item.configured) { <div class="mt-4 border-t border-border pt-4"><button hlmBtn variant="outline" type="button" [disabled]="busy()" (click)="testConnection(item.key)">Test connection</button>@if (testMessage()) { <p role="status" class="mt-2 text-sm">{{ testMessage() }}</p> }</div> }
+      }
+      @if (editing()) {
+        <div drawer-footer class="contents"><button hlmBtn variant="outline" type="button" (click)="editing.set(null)">Cancel</button><button hlmBtn type="submit" form="integration-form" [disabled]="busy()">{{ busy() ? 'Saving…' : 'Save settings' }}</button></div>
       }
     </app-drawer>
     <ng-template #helpSteps let-key>
