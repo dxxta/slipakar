@@ -11,7 +11,7 @@ import { AccountMenu, ConfirmModal, Drawer, PageLayout } from '../ui';
   imports: [RouterLink, RouterLinkActive, RouterOutlet, AccountMenu, ConfirmModal, Drawer, PageLayout],
   selector: 'app-user-layout',
   template: `
-    <div class="min-h-screen min-w-0 bg-background text-foreground md:grid md:grid-cols-[15rem_1fr]">
+    <div class="min-h-dvh min-w-0 bg-background text-foreground md:grid md:grid-cols-[15rem_1fr]">
       <header class="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-border bg-background px-3 py-2 md:hidden">
         <button type="button" class="grid size-11 shrink-0 place-items-center rounded-ui-md border border-border text-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Open navigation" [attr.aria-expanded]="navigationOpen()" (click)="navigationOpen.set(true)">☰</button>
         <a routerLink="/projects" class="text-sm font-semibold">Lokaslip</a>
@@ -23,16 +23,16 @@ import { AccountMenu, ConfirmModal, Drawer, PageLayout } from '../ui';
           <span class="grid size-9 place-items-center rounded-lg bg-primary text-primary-foreground" aria-hidden="true">L</span><span>Lokaslip</span>
         </a>
         <nav aria-label="Main navigation" class="grid gap-1">
-          <a routerLink="/projects" routerLinkActive="bg-muted text-foreground" class="rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Projects</a>
-          <a routerLink="/notifications" routerLinkActive="bg-muted text-foreground" class="flex items-center justify-between rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+          <a routerLink="/projects" routerLinkActive="bg-muted text-foreground" class="flex min-h-10 items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Projects</a>
+          <a routerLink="/notifications" routerLinkActive="bg-muted text-foreground" class="flex min-h-10 items-center justify-between rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
             <span>Notifications</span>
             @if (unreadNotifications.count() > 0) {
-              <span class="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground" aria-hidden="true">{{ unreadNotifications.count() > 99 ? '99+' : unreadNotifications.count() }}</span>
+              <span class="rounded-full bg-primary px-2 py-0.5 text-xs text-primary-foreground tabular-nums" aria-hidden="true">{{ unreadNotifications.count() > 99 ? '99+' : unreadNotifications.count() }}</span>
               <span class="sr-only">{{ unreadNotifications.count() }} unread</span>
             }
           </a>
-          <a routerLink="/profile" routerLinkActive="bg-muted text-foreground" class="rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Profile</a>
-          <a routerLink="/login-activity" routerLinkActive="bg-muted text-foreground" class="rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Login activity</a>
+          <a routerLink="/profile" routerLinkActive="bg-muted text-foreground" class="flex min-h-10 items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Profile</a>
+          <a routerLink="/login-activity" routerLinkActive="bg-muted text-foreground" class="flex min-h-10 items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Login activity</a>
         </nav>
         <div class="mt-auto border-t border-border pt-4">
           <app-account-menu [email]="session.user()?.email ?? null" [name]="session.user()?.name ?? null" [imageUrl]="session.user()?.image ?? null" (signOutRequested)="signOutConfirming.set(true)" />

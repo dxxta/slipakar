@@ -36,19 +36,19 @@ type Campaign = { status: string; createdAt: string };
         <section class="grid auto-rows-fr gap-4 sm:grid-cols-2 xl:grid-cols-5" aria-label="Project summary">
           <article class="h-full min-h-32 rounded-ui-lg border border-border bg-card p-card">
             <p class="text-sm text-muted-foreground">Campaigns</p>
-            <p class="mt-2 text-2xl font-semibold">{{ counts().campaigns }}</p>
+            <p class="mt-2 text-2xl font-semibold tabular-nums">{{ counts().campaigns }}</p>
           </article>
           <article class="h-full min-h-32 rounded-ui-lg border border-border bg-card p-card">
             <p class="text-sm text-muted-foreground">Email templates</p>
-            <p class="mt-2 text-2xl font-semibold">{{ counts().templates }}</p>
+            <p class="mt-2 text-2xl font-semibold tabular-nums">{{ counts().templates }}</p>
           </article>
           <article class="h-full min-h-32 rounded-ui-lg border border-border bg-card p-card">
             <p class="text-sm text-muted-foreground">Data files</p>
-            <p class="mt-2 text-2xl font-semibold">{{ counts().uploads }}</p>
+            <p class="mt-2 text-2xl font-semibold tabular-nums">{{ counts().uploads }}</p>
           </article>
           <article class="h-full min-h-32 rounded-ui-lg border border-border bg-card p-card">
             <p class="text-sm text-muted-foreground">Unread notifications</p>
-            <p class="mt-2 text-2xl font-semibold">{{ counts().unread }}</p>
+            <p class="mt-2 text-2xl font-semibold tabular-nums">{{ counts().unread }}</p>
           </article>
           <article class="h-full min-h-32 rounded-ui-lg border border-border bg-card p-card">
             <p class="text-sm text-muted-foreground">Last send status</p>
@@ -63,7 +63,7 @@ type Campaign = { status: string; createdAt: string };
               @for (item of activity(); track item.id) {
                 <li class="py-3">
                   <p class="text-sm font-medium">{{ item.action }} {{ item.entity }}</p>
-                  <p class="mt-1 text-xs text-muted-foreground">
+                  <p class="mt-1 text-xs text-muted-foreground tabular-nums">
                     {{ item.fieldName ? item.fieldName + ': ' + item.fieldValue : 'Project activity' }} · {{ item.createdAt | date: 'medium' }}
                   </p>
                 </li>

@@ -55,12 +55,12 @@ import {
                   <td class="px-6 py-4 font-medium">
                     <a
                       [href]="'/projects/' + projectId() + '/campaigns/' + campaign.id"
-                      class="text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      class="text-primary hover:underline tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       (click)="navigateToDetail($event, campaign.id)"
                     >
                       Campaign #{{ campaign.id.slice(0, 8) }}
                     </a>
-                    <p class="text-xs text-muted-foreground mt-0.5">
+                    <p class="text-xs text-muted-foreground mt-0.5 tabular-nums">
                       Template: {{ campaign.emailTemplateId.slice(0, 8) }} · Upload: {{ campaign.uploadId.slice(0, 8) }}
                     </p>
                   </td>
@@ -73,7 +73,7 @@ import {
                       {{ statusLabel(campaign.status) }}
                     </span>
                   </td>
-                  <td class="px-6 py-4 text-xs">
+                  <td class="px-6 py-4 text-xs tabular-nums">
                     @if (campaignCounts()[campaign.id]; as counts) {
                       <span [attr.data-testid]="'counts-' + campaign.id">
                         <span class="text-green-700 dark:text-green-300 font-medium">{{ counts.sent }} sent</span>
@@ -86,7 +86,7 @@ import {
                       <span class="text-muted-foreground">—</span>
                     }
                   </td>
-                  <td class="px-6 py-4 text-xs text-muted-foreground">
+                  <td class="px-6 py-4 text-xs text-muted-foreground tabular-nums">
                     {{ campaign.createdAt | date: 'mediumDate' }}
                   </td>
                   <td class="px-6 py-4 text-right">

@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { SelectControl } from '../../ui/shared/select-control';
 import { ChangeDetectionStrategy, Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { tablerCloudUpload } from '@ng-icons/tabler-icons';
 import { PLACEHOLDER_REGEX } from '@lokaslip/shared';
 import { ApiError } from '../../core/api-error';
 import { HlmAlert, HlmAlertDescription, HlmAlertTitle } from '../../ui/alert/src';
@@ -49,7 +51,9 @@ function extractPlaceholders(text: string): string[] {
     HlmAlert,
     HlmAlertTitle,
     HlmAlertDescription,
+    NgIcon,
   ],
+  providers: [provideIcons({ tablerCloudUpload })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="app-list-layout">
@@ -83,21 +87,25 @@ function extractPlaceholders(text: string): string[] {
         <!-- Drag & Drop / File Picker Area -->
         <div
           data-testid="file-dropzone"
-          class="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border p-8 text-center transition-colors hover:border-primary/50"
+          tabindex="0"
+          role="button"
+          aria-label="Upload recipient data file. Drop a file here or press Enter to browse"
+          class="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border p-8 text-center transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           [class.border-primary]="isDragging()"
           [class.bg-primary/5]="isDragging()"
           (dragover)="onDragOver($event)"
           (dragleave)="onDragLeave($event)"
           (drop)="onFileDrop($event)"
+          (keydown.enter)="fileInput.click()"
+          (keydown.space)="$event.preventDefault(); fileInput.click()"
         >
-          <svg class="h-10 w-10 text-muted-foreground mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-          </svg>
+          <ng-icon name="tablerCloudUpload" class="h-10 w-10 text-muted-foreground mb-3" aria-hidden="true" />
           <p class="text-sm font-medium">Drag and drop your data file here, or click to browse</p>
           <p class="mt-1 text-xs text-muted-foreground">Supported formats: CSV, XLSX, JSON (Max 50MB)</p>
           <input
             #fileInput
             data-testid="file-input"
+            aria-label="Upload recipient data file"
             type="file"
             accept=".csv, .xlsx, .json, text/csv, application/json, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
             class="hidden"
@@ -110,7 +118,7 @@ function extractPlaceholders(text: string): string[] {
             type="button"
             class="mt-4"
             [disabled]="isUploading()"
-            (click)="fileInput.click()"
+            (click)="$event.stopPropagation(); fileInput.click()"
           >
             {{ isUploading() ? 'Uploading…' : 'Choose file' }}
           </button>
@@ -141,15 +149,24 @@ function extractPlaceholders(text: string): string[] {
               </thead>
               <tbody class="divide-y divide-border">
                 @for (file of filteredUploads(); track file.id) {
-                  <tr [attr.data-testid]="'upload-row-' + file.id" class="transition-colors hover:bg-muted/30 cursor-pointer" [class.bg-primary/5]="selectedUploadId() === file.id" (click)="selectUpload(file.id)">
+                  <tr
+                    [attr.data-testid]="'upload-row-' + file.id"
+                    tabindex="0"
+                    [attr.aria-selected]="selectedUploadId() === file.id"
+                    class="transition-colors hover:bg-muted/30 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+                    [class.bg-primary/5]="selectedUploadId() === file.id"
+                    (click)="selectUpload(file.id)"
+                    (keydown.enter)="selectUpload(file.id)"
+                    (keydown.space)="$event.preventDefault(); selectUpload(file.id)"
+                  >
                     <td class="px-4 py-3 font-medium flex items-center gap-2">
                       <span class="truncate">{{ file.fileName }}</span>
                       @if (selectedUploadId() === file.id) { <span hlmBadge variant="outline" class="text-[10px]">Active</span> }
                     </td>
-                    <td class="px-4 py-3 text-muted-foreground">{{ file.rowCount.toLocaleString() }}</td>
-                    <td class="px-4 py-3 text-muted-foreground text-xs font-mono">{{ file.columns.length }} cols</td>
-                    <td class="px-4 py-3 text-muted-foreground text-xs">{{ file.createdAt | date: 'short' }}</td>
-                    <td class="px-4 py-3 text-right" (click)="$event.stopPropagation()">
+                    <td class="px-4 py-3 text-muted-foreground tabular-nums">{{ file.rowCount.toLocaleString() }}</td>
+                    <td class="px-4 py-3 text-muted-foreground text-xs font-mono tabular-nums">{{ file.columns.length }} cols</td>
+                    <td class="px-4 py-3 text-muted-foreground text-xs tabular-nums">{{ file.createdAt | date: 'short' }}</td>
+                    <td class="px-4 py-3 text-right" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
                       @if (confirmingDeleteId() === file.id) {
                         <app-confirm-modal [open]="true" [title]="'Delete ' + file.fileName + '?'" message="This uploaded file will be permanently removed." confirmLabel="Delete upload" [confirmTestId]="'confirm-delete-upload-' + file.id" (cancelled)="confirmingDeleteId.set(null)" (confirmed)="deleteUpload(file.id)" />
                       } @else {
@@ -360,6 +377,7 @@ function extractPlaceholders(text: string): string[] {
                           </td>
                           <td class="px-4 py-2.5">
                             <select appSelect
+                              [attr.aria-label]="'Map placeholder ' + p"
                               [attr.data-testid]="'mapping-select-' + p"
                               class="h-8 w-full max-w-xs rounded-md border border-input bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
                               [value]="currentMapping()[p] ?? ''"

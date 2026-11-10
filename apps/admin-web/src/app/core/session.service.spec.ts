@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { SessionService } from './session.service';
+import { adminAuthCallbackUrl, SessionService } from './session.service';
 
 describe('SessionService', () => {
   let service: SessionService;
@@ -34,5 +34,12 @@ describe('SessionService', () => {
     http.expectOne('/api/auth/sign-out').flush({ success: true });
     await signedOut;
     expect(service.user()).toBeNull();
+  });
+});
+
+describe('adminAuthCallbackUrl', () => {
+  it('uses the app base path in production and root in development', () => {
+    expect(adminAuthCallbackUrl('https://lokaslip.example', '/console/')).toBe('https://lokaslip.example/console/');
+    expect(adminAuthCallbackUrl('http://localhost:4301', '/')).toBe('http://localhost:4301/');
   });
 });

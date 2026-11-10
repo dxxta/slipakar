@@ -12,7 +12,7 @@ import { AdminSetupService } from '../features/setup/admin-setup.service';
   imports: [RouterLink, RouterLinkActive, RouterOutlet, AccountMenu, ConfirmModal, Drawer, PageLayout],
   selector: 'app-admin-layout',
   template: `
-    <div class="min-h-screen min-w-0 bg-background text-foreground md:grid md:grid-cols-[15rem_1fr]">
+    <div class="min-h-dvh min-w-0 bg-background text-foreground md:grid md:grid-cols-[15rem_1fr]">
       <header class="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-border bg-background px-3 py-2 md:hidden">
         <button type="button" class="grid size-11 shrink-0 place-items-center rounded-ui-md border border-border text-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Open navigation" [attr.aria-expanded]="navigationOpen()" (click)="navigationOpen.set(true)">☰</button>
         <a routerLink="/flags" class="text-sm font-semibold">Lokaslip</a>
@@ -25,15 +25,15 @@ import { AdminSetupService } from '../features/setup/admin-setup.service';
           <span>Lokaslip</span>
         </a>
         <nav aria-label="Main navigation" class="grid gap-1">
-          <a routerLink="/flags" routerLinkActive="bg-muted text-foreground" class="rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Feature flags</a>
-          <a routerLink="/monitoring" routerLinkActive="bg-muted text-foreground" class="rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Monitoring</a>
-          <a routerLink="/users" routerLinkActive="bg-muted text-foreground" class="rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Users</a>
-          <a routerLink="/preferences" routerLinkActive="bg-muted text-foreground" class="rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Preferences</a>
-          <a routerLink="/broadcasts" routerLinkActive="bg-muted text-foreground" class="rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Broadcasts</a>
-          <a routerLink="/login-activity" routerLinkActive="bg-muted text-foreground" class="rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Login activity</a>
-          @if (setup.view()?.complete) { <a routerLink="/setup" routerLinkActive="bg-muted text-foreground" class="rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Integrations / Setup</a> }
-          <a href="/docs" class="rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">API docs</a>
-          <a [href]="userAppUrl" target="_blank" rel="noopener noreferrer" class="rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Open user app</a>
+          <a routerLink="/flags" routerLinkActive="bg-muted text-foreground" class="flex min-h-10 items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Feature flags</a>
+          <a routerLink="/monitoring" routerLinkActive="bg-muted text-foreground" class="flex min-h-10 items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Monitoring</a>
+          <a routerLink="/users" routerLinkActive="bg-muted text-foreground" class="flex min-h-10 items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Users</a>
+          <a routerLink="/preferences" routerLinkActive="bg-muted text-foreground" class="flex min-h-10 items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Preferences</a>
+          <a routerLink="/broadcasts" routerLinkActive="bg-muted text-foreground" class="flex min-h-10 items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Broadcasts</a>
+          <a routerLink="/login-activity" routerLinkActive="bg-muted text-foreground" class="flex min-h-10 items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Login activity</a>
+          @if (setup.view()?.complete) { <a routerLink="/setup" routerLinkActive="bg-muted text-foreground" class="flex min-h-10 items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Integrations / Setup</a> }
+          <a href="/docs" class="flex min-h-10 items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">API docs</a>
+          <a [href]="userAppUrl" target="_blank" rel="noopener noreferrer" class="flex min-h-10 items-center rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Open user app</a>
         </nav>
         <div class="mt-auto border-t border-border pt-4">
           <app-account-menu [email]="session.user()?.email ?? null" [name]="session.user()?.name ?? null" [imageUrl]="session.user()?.image ?? null" (signOutRequested)="signOutConfirming.set(true)" />

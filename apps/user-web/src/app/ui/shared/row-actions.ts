@@ -1,5 +1,7 @@
 import { CommonModule, DOCUMENT } from '@angular/common';
 import { Component, ElementRef, HostListener, inject, input, output, signal } from '@angular/core';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { tablerDots, tablerEye, tablerPencil, tablerPower, tablerTrash } from '@ng-icons/tabler-icons';
 
 export type RowActionIcon = 'eye' | 'pencil' | 'trash' | 'power';
 export type RowActionItem = { id: string; label: string; icon: RowActionIcon; destructive?: boolean; disabled?: boolean };
@@ -8,16 +10,17 @@ type MenuPosition = { top: number; left: number };
 @Component({
   selector: 'app-row-actions',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NgIcon],
+  providers: [provideIcons({ tablerDots, tablerEye, tablerPencil, tablerTrash, tablerPower })],
   template: `
     <button #trigger data-row-action-trigger type="button" class="grid size-11 shrink-0 place-items-center rounded-ui-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" [attr.aria-label]="label()" aria-haspopup="menu" [attr.aria-expanded]="open()" (click)="toggle()">
-      <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor" class="size-5"><circle cx="5" cy="12" r="1.7"/><circle cx="12" cy="12" r="1.7"/><circle cx="19" cy="12" r="1.7"/></svg>
+      <ng-icon name="tablerDots" aria-hidden="true" class="size-5" />
     </button>
     @if (open()) {
       <div role="menu" [attr.aria-label]="label()" class="fixed z-[80] min-w-48 rounded-ui-md border border-border bg-popover p-1 text-popover-foreground shadow-lg" [style.top.px]="position().top" [style.left.px]="position().left" (keydown)="onMenuKeydown($event)">
         @for (item of items(); track item.id; let index = $index) {
           <button type="button" role="menuitem" [attr.tabindex]="activeIndex() === index ? 0 : -1" [disabled]="item.disabled ?? false" class="flex min-h-11 w-full items-center gap-2 rounded-ui-sm px-3 text-left text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50" [ngClass]="item.destructive ? 'text-destructive hover:bg-destructive/10' : 'hover:bg-muted'" (focus)="activeIndex.set(index)" (click)="choose(item)">
-          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" class="size-4 shrink-0"><path stroke-linecap="round" stroke-linejoin="round" [attr.d]="iconPath(item.icon)" /></svg>
+            <ng-icon [name]="iconName(item.icon)" aria-hidden="true" class="size-4 shrink-0" />
             <span>{{ item.label }}</span>
           </button>
         }
@@ -50,14 +53,14 @@ export class RowActions {
     this.close(true);
   }
 
-  protected iconPath(icon: RowActionIcon): string {
-    const paths: Record<RowActionIcon, string> = {
-      eye: 'M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Zm10 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z',
-      pencil: 'm15.2 5.8 3 3M4 20l4.2-.8L19 7.4a2.1 2.1 0 0 0-3-3L5.2 15.2 4 20Z',
-      trash: 'M4 7h16m-10 4v5m4-5v5M6 7l1 13h10l1-13M9 7V4h6v3',
-      power: 'M12 2v10m6.4-6.4a9 9 0 1 1-12.8 0',
+  protected iconName(icon: RowActionIcon): string {
+    const names: Record<RowActionIcon, string> = {
+      eye: 'tablerEye',
+      pencil: 'tablerPencil',
+      trash: 'tablerTrash',
+      power: 'tablerPower',
     };
-    return paths[icon];
+    return names[icon];
   }
 
   @HostListener('document:pointerdown', ['$event'])

@@ -39,9 +39,9 @@ import { type AdminUser, type AdminUserSort, UsersService } from './users.servic
           <tbody class="divide-y divide-border">
             @for (user of users(); track user.id) {
               <tr class="hover:bg-muted/40">
-                <td class="px-4 py-4"><p class="font-medium">{{ user.name || 'Unnamed user' }}</p><p class="text-xs text-muted-foreground">{{ user.email }}</p></td>
+                <td class="max-w-xs px-4 py-4"><p class="truncate font-medium">{{ user.name || 'Unnamed user' }}</p><p class="truncate text-xs text-muted-foreground">{{ user.email }}</p></td>
                 <td class="px-4 py-4">{{ user.role }}</td>
-                <td class="px-4 py-4">{{ user.projectCount }}</td>
+                <td class="px-4 py-4 tabular-nums">{{ user.projectCount }}</td>
                 <td class="px-4 py-4">@if (user.disabledAt) { <span hlmBadge variant="destructive">Disabled</span> } @else { <span hlmBadge variant="secondary">Active</span> }</td>
                 <td class="px-4 py-4 text-right">
                   <div class="flex justify-end">
@@ -71,9 +71,9 @@ import { type AdminUser, type AdminUserSort, UsersService } from './users.servic
             <div><dt class="text-muted-foreground">Image</dt><dd class="break-all font-medium">{{ user.image || '—' }}</dd></div>
             <div><dt class="text-muted-foreground">Role</dt><dd class="font-medium">{{ user.role }}</dd></div>
             <div><dt class="text-muted-foreground">Email verified</dt><dd class="font-medium">{{ user.emailVerified ? 'Yes' : 'No' }}</dd></div>
-            <div><dt class="text-muted-foreground">Created</dt><dd class="font-medium">{{ user.createdAt | date:'medium' }}</dd></div>
-            <div><dt class="text-muted-foreground">Disabled at</dt><dd class="font-medium">{{ user.disabledAt ? (user.disabledAt | date:'medium') : '—' }}</dd></div>
-            <div><dt class="text-muted-foreground">Projects</dt><dd class="font-medium">{{ user.projectCount }}</dd></div>
+            <div><dt class="text-muted-foreground">Created</dt><dd class="font-medium tabular-nums">{{ user.createdAt | date:'medium' }}</dd></div>
+            <div><dt class="text-muted-foreground">Disabled at</dt><dd class="font-medium tabular-nums">{{ user.disabledAt ? (user.disabledAt | date:'medium') : '—' }}</dd></div>
+            <div><dt class="text-muted-foreground">Projects</dt><dd class="font-medium tabular-nums">{{ user.projectCount }}</dd></div>
           </dl>
           <div class="mt-6 flex justify-end">
             <button hlmBtn variant="outline" type="button" (click)="closeDrawer()">Close</button>
@@ -81,8 +81,8 @@ import { type AdminUser, type AdminUserSort, UsersService } from './users.servic
         }
         @else {
           <form class="space-y-4" (submit)="$event.preventDefault(); saveUser()">
-            <div class="grid gap-2"><label for="user-name" class="text-sm font-medium">Name</label><input id="user-name" class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm" [value]="editName()" (input)="editName.set(inputValue($event))" maxlength="100" placeholder="User name" /></div>
-            <div class="grid gap-2"><label for="user-image" class="text-sm font-medium">Image URL</label><input id="user-image" type="url" class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm" [value]="editImage()" (input)="onImageInput($event)" placeholder="https://example.com" /></div>
+            <div class="grid gap-2"><label for="user-name" class="text-sm font-medium">Name</label><input id="user-name" class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" [value]="editName()" (input)="editName.set(inputValue($event))" maxlength="100" placeholder="User name" /></div>
+            <div class="grid gap-2"><label for="user-image" class="text-sm font-medium">Image URL</label><input id="user-image" type="url" class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" [value]="editImage()" (input)="onImageInput($event)" placeholder="https://example.com" /></div>
             <p class="text-xs text-muted-foreground">Only absolute image URLs can be saved here. A blank image keeps the current value unless you edit this field.</p>
             @if (error()) { <p role="alert" class="text-sm text-destructive">{{ error() }}</p> }
             <div class="flex justify-end gap-2">

@@ -62,13 +62,7 @@ interface FieldMappingSummary {
   template: `
     <app-drawer [open]="true" title="Create campaign" (closed)="navigateBack()">
     <div class="space-y-6">
-      <header class="flex items-center justify-between">
-        <div>
-          <h2 class="text-2xl font-semibold tracking-tight">Create Campaign</h2>
-          <p class="text-sm text-muted-foreground">Configure recipients, templates, and SMTP connection for your campaign.</p>
-        </div>
-        <button hlmBtn variant="outline" type="button" (click)="navigateBack()">Cancel</button>
-      </header>
+      <p class="text-sm text-muted-foreground">Configure recipients, templates, and SMTP connection for your campaign.</p>
 
       @if (actionError()) {
         <div aria-live="polite" role="alert" data-testid="campaign-create-error">
@@ -94,7 +88,11 @@ interface FieldMappingSummary {
             <ul class="mt-2 list-disc list-inside text-xs space-y-1 text-amber-800 dark:text-amber-200">
               @for (item of missingPrerequisites(); track item.tab) {
                 <li>
-                  <a [href]="'/projects/' + projectId() + '/' + item.tab" class="font-semibold underline hover:text-amber-950">
+                  <a
+                    [href]="'/projects/' + projectId() + '/' + item.tab"
+                    class="font-semibold underline hover:text-amber-950"
+                    (click)="navigateToSection($event, item.tab)"
+                  >
                     {{ item.label }}
                   </a>
                 </li>
@@ -153,7 +151,11 @@ interface FieldMappingSummary {
             } @else if (selectedTemplateId() && selectedUploadId() && !hasMapping()) {
               <div data-testid="no-mapping-warning" class="rounded-md border border-amber-500/25 bg-amber-500/10 p-3 text-xs text-amber-900 dark:text-amber-200">
                 <span>No field mapping found for this template and upload combination. </span>
-                <a [href]="'/projects/' + projectId() + '/data'" class="font-semibold underline hover:text-amber-950">
+                <a
+                  [href]="'/projects/' + projectId() + '/data'"
+                  class="font-semibold underline hover:text-amber-950"
+                  (click)="navigateToSection($event, 'data')"
+                >
                   Configure mapping in Data tab &rarr;
                 </a>
               </div>
@@ -409,6 +411,11 @@ export class CampaignCreatePage implements OnInit {
         }
       },
     });
+  }
+
+  navigateToSection(event: Event, section: string): void {
+    event.preventDefault();
+    this.router.navigate(['/projects', this.projectId(), section]);
   }
 
   navigateBack(): void {

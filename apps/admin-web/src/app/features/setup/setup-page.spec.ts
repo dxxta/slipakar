@@ -50,4 +50,76 @@ describe('SetupPage', () => {
     expect(fixture.nativeElement.querySelector('[role="dialog"]')).not.toBeNull();
     expect(fixture.nativeElement.querySelector('#mail-password')).not.toBeNull();
   });
+
+  it('toggles how-to-configure disclosure on integration cards and shows compact help in the configure drawer', async () => {
+    await TestBed.configureTestingModule({
+      imports: [SetupPage],
+      providers: [
+        provideRouter([]),
+        {
+          provide: AdminSetupService,
+          useValue: {
+            view: () => incomplete,
+            load: vi.fn().mockResolvedValue(incomplete),
+            save: vi.fn().mockResolvedValue(incomplete.integrations[0]),
+            test: vi.fn(),
+            clear: vi.fn(),
+          },
+        },
+      ],
+    }).compileComponents();
+    fixture = TestBed.createComponent(SetupPage);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const uptimeToggle = fixture.nativeElement.querySelector('[data-testid="help-toggle-uptime"]') as HTMLButtonElement;
+    const grafanaToggle = fixture.nativeElement.querySelector('[data-testid="help-toggle-grafana"]') as HTMLButtonElement;
+    const mailToggle = fixture.nativeElement.querySelector('[data-testid="help-toggle-mail"]') as HTMLButtonElement;
+    const rowsContainer = fixture.nativeElement.querySelector('[data-testid="setup-integration-rows"]') as HTMLElement;
+
+    expect(rowsContainer).not.toBeNull();
+    expect(rowsContainer.classList.contains('grid-cols-1')).toBe(true);
+    expect(rowsContainer.classList.contains('md:grid-cols-3')).toBe(false);
+    expect(uptimeToggle).not.toBeNull();
+    expect(grafanaToggle).not.toBeNull();
+    expect(mailToggle).not.toBeNull();
+    expect(uptimeToggle.getAttribute('aria-expanded')).toBe('false');
+    expect(fixture.nativeElement.querySelector('[data-testid="card-help-uptime"]')).toBeNull();
+
+    // Expand Uptime Kuma help
+    uptimeToggle.click();
+    fixture.detectChanges();
+    expect(uptimeToggle.getAttribute('aria-expanded')).toBe('true');
+    const uptimeHelp = fixture.nativeElement.querySelector('[data-testid="card-help-uptime"]') as HTMLElement;
+    expect(uptimeHelp).not.toBeNull();
+    expect(uptimeHelp.textContent).toContain('http://uptime-kuma:3001');
+    expect(uptimeHelp.textContent).toContain('Settings > API Keys');
+
+    // Collapse Uptime Kuma help
+    uptimeToggle.click();
+    fixture.detectChanges();
+    expect(uptimeToggle.getAttribute('aria-expanded')).toBe('false');
+    expect(fixture.nativeElement.querySelector('[data-testid="card-help-uptime"]')).toBeNull();
+
+    // Expand Grafana and Mail help on cards
+    grafanaToggle.click();
+    mailToggle.click();
+    fixture.detectChanges();
+    expect(grafanaToggle.getAttribute('aria-expanded')).toBe('true');
+    expect(mailToggle.getAttribute('aria-expanded')).toBe('true');
+    expect(fixture.nativeElement.querySelector('[data-testid="card-help-grafana"]')?.textContent).toContain('GRAFANA_ADMIN_PASSWORD');
+    expect(fixture.nativeElement.querySelector('[data-testid="card-help-mail"]')?.textContent).toContain('AUTH_SMTP_*');
+
+    // Open Uptime Kuma configure drawer and verify help is rendered above the form
+    const uptimeCard = [...fixture.nativeElement.querySelectorAll('article')].find((card: HTMLElement) => card.textContent?.includes('Uptime Kuma')) as HTMLElement;
+    (uptimeCard.querySelector('button') as HTMLButtonElement).click();
+    fixture.detectChanges();
+
+    const drawerHelp = fixture.nativeElement.querySelector('[data-testid="drawer-help-uptime"]') as HTMLElement;
+    expect(drawerHelp).not.toBeNull();
+    expect(drawerHelp.textContent).toContain('How to configure');
+    expect(drawerHelp.textContent).toContain('http://uptime-kuma:3001');
+    expect(drawerHelp.nextElementSibling?.tagName).toBe('FORM');
+  });
 });

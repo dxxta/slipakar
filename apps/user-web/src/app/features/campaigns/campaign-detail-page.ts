@@ -110,19 +110,19 @@ import {
         <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" data-testid="summary-cards">
           <div hlmCard class="p-4">
             <p class="text-xs font-medium text-muted-foreground">Total Recipients</p>
-            <p class="mt-2 text-2xl font-bold" data-testid="count-total">{{ camp.counts.total }}</p>
+            <p class="mt-2 text-2xl font-bold tabular-nums" data-testid="count-total">{{ camp.counts.total }}</p>
           </div>
           <div hlmCard class="p-4">
             <p class="text-xs font-medium text-muted-foreground">Sent Successfully</p>
-            <p class="mt-2 text-2xl font-bold text-green-700 dark:text-green-300" data-testid="count-sent">{{ camp.counts.sent }}</p>
+            <p class="mt-2 text-2xl font-bold tabular-nums text-green-700 dark:text-green-300" data-testid="count-sent">{{ camp.counts.sent }}</p>
           </div>
           <div hlmCard class="p-4">
             <p class="text-xs font-medium text-muted-foreground">Failed Deliveries</p>
-            <p class="mt-2 text-2xl font-bold text-destructive" data-testid="count-failed">{{ camp.counts.failed }}</p>
+            <p class="mt-2 text-2xl font-bold tabular-nums text-destructive" data-testid="count-failed">{{ camp.counts.failed }}</p>
           </div>
           <div hlmCard class="p-4">
             <p class="text-xs font-medium text-muted-foreground">Pending in Queue</p>
-            <p class="mt-2 text-2xl font-bold text-amber-700 dark:text-amber-300" data-testid="count-pending">{{ camp.counts.pending }}</p>
+            <p class="mt-2 text-2xl font-bold tabular-nums text-amber-700 dark:text-amber-300" data-testid="count-pending">{{ camp.counts.pending }}</p>
           </div>
         </div>
 
@@ -136,7 +136,7 @@ import {
 
           </div>
 
-          <app-data-table-controls [query]="recipientQuery()" (queryChange)="searchRecipients($event)"><div table-filters class="flex flex-wrap items-end gap-3">
+          <app-data-table-controls [query]="recipientQuery()" searchPlaceholder="Search recipients..." (queryChange)="searchRecipients($event)"><div table-filters class="flex flex-wrap items-end gap-3">
             <label class="grid min-w-40 gap-1 text-xs font-medium text-muted-foreground">Status<select appSelect id="status-filter" data-testid="recipient-status-filter" class="h-control-9 rounded-ui-md border border-input bg-background px-2 text-sm" [value]="selectedStatusFilter()" (change)="onStatusFilterChange($event)"><option value="">All statuses</option><option value="pending">Pending</option><option value="sent">Sent</option><option value="failed">Failed</option></select></label>
             <label class="grid min-w-40 gap-1 text-xs font-medium text-muted-foreground">Sort recipients<select appSelect aria-label="Sort recipients" class="h-control-9 rounded-ui-md border border-input bg-background px-2 text-sm" [value]="recipientSortBy()" (change)="sortRecipients($event)"><option value="rowIndex">Row</option><option value="email">Email</option><option value="status">Status</option><option value="createdAt">Created</option><option value="updatedAt">Updated</option></select></label>
           </div></app-data-table-controls>
@@ -157,15 +157,16 @@ import {
                   <tbody class="divide-y divide-border">
                     @for (rec of recipients(); track rec.id) {
                       <tr class="hover:bg-muted/50 transition-colors" [attr.data-testid]="'recipient-row-' + rec.id">
-                        <td class="px-6 py-3 font-mono text-xs text-muted-foreground">
+                        <td class="px-6 py-3 font-mono text-xs text-muted-foreground tabular-nums">
                           #{{ rec.rowIndex + 1 }}
                         </td>
-                        <td class="px-6 py-3 font-medium">
+                        <td class="px-6 py-3 font-medium max-w-[16rem] truncate" [title]="rec.email">
                           {{ rec.email }}
                         </td>
                         <td class="px-6 py-3">
                           <span
                             hlmBadge
+                            class="capitalize"
                             [variant]="recipientBadgeVariant(rec.status)"
                             [attr.data-testid]="'recipient-badge-' + rec.id"
                           >

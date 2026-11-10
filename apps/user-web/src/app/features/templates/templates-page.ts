@@ -94,7 +94,7 @@ function extractPlaceholders(text: string): string[] {
       <!-- Form Mode with Editor and Live Preview -->
       @if (showForm()) {
         <app-drawer [open]="showForm()" [title]="editingId() ? 'Edit email template' : 'New email template'" (closed)="closeForm()">
-        <div class="grid gap-6 lg:grid-cols-2">
+        <div class="grid grid-cols-1 gap-6">
           <!-- Editor Form -->
           <div hlmCard data-testid="template-form-card">
             <div hlmCardHeader>
@@ -216,7 +216,7 @@ function extractPlaceholders(text: string): string[] {
       }
 
       @if (!showForm()) {
-        <app-data-table-controls [query]="listQuery()" (queryChange)="searchTemplates($event)"><div table-filters><label class="grid min-w-40 gap-1 text-xs font-medium text-muted-foreground">Sort templates
+        <app-data-table-controls [query]="listQuery()" searchPlaceholder="Search templates..." (queryChange)="searchTemplates($event)"><div table-filters><label class="grid min-w-40 gap-1 text-xs font-medium text-muted-foreground">Sort templates
           <select appSelect aria-label="Sort templates" class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm" [value]="sortBy()" (change)="sortTemplates($event)"><option value="createdAt">Created</option><option value="updatedAt">Updated</option><option value="name">Name</option><option value="subject">Subject</option></select>
         </label></div></app-data-table-controls>
         <app-list-body [state]="listState()" [itemCount]="templates().length" [query]="listQuery()" errorTitle="Failed to load email templates" [errorMessage]="loadError() ?? ''" emptyTitle="No templates yet" emptyMessage="Create an email template to start sending personalized emails." emptyResultLabel="No templates match" (retry)="loadTemplates()" (clearQuery)="searchTemplates('')">
@@ -430,6 +430,7 @@ export class TemplatesPage implements OnInit {
         next: (created) => {
           this.isSaving.set(false);
           this.templates.update((list) => [...list, created]);
+          this.listMetadata.update((m) => ({ ...m, total: m.total + 1 }));
           this.closeForm();
           this.actionSuccess.set('Template created successfully');
         },
@@ -451,6 +452,7 @@ export class TemplatesPage implements OnInit {
         this.isDeletingId.set(null);
         this.confirmingDeleteId.set(null);
         this.templates.update((list) => list.filter((t) => t.id !== id));
+        this.listMetadata.update((m) => ({ ...m, total: Math.max(0, m.total - 1) }));
         this.actionSuccess.set('Template deleted successfully');
       },
       error: (err: unknown) => {

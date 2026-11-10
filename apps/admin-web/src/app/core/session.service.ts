@@ -1,3 +1,4 @@
+import { DOCUMENT } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
@@ -6,9 +7,14 @@ import { environment } from '../../environments/environment';
 export type SessionUser = { id: string; email: string; name?: string; image?: string | null; role: string };
 type SessionResponse = { user: SessionUser; session: unknown } | null;
 
+export function adminAuthCallbackUrl(origin: string, baseHref: string): string {
+  return new URL(baseHref, `${origin.replace(/\/$/, '')}/`).toString();
+}
+
 @Injectable({ providedIn: 'root' })
 export class SessionService {
   private readonly http = inject(HttpClient);
+  private readonly document = inject(DOCUMENT);
   readonly user = signal<SessionUser | null>(null);
   readonly loading = signal(true);
 
@@ -29,7 +35,13 @@ export class SessionService {
   async signIn(): Promise<void> {
     const response = await firstValueFrom(this.http.post<{ url?: string; redirect?: boolean }>(
       `${environment.apiBase}/api/auth/sign-in/social`,
-      { provider: 'google', callbackURL: `${window.location.origin}/` },
+      {
+        provider: 'google',
+        callbackURL: adminAuthCallbackUrl(
+          window.location.origin,
+          this.document.querySelector('base')?.getAttribute('href') ?? '/',
+        ),
+      },
       { withCredentials: true },
     ));
     if (response.url) window.location.assign(response.url);

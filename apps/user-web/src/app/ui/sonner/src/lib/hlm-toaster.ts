@@ -9,12 +9,12 @@ import {
 } from '@angular/core';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import {
-  lucideCircleCheck,
-  lucideInfo,
-  lucideLoader2,
-  lucideOctagonX,
-  lucideTriangleAlert,
-} from '@ng-icons/lucide';
+  tablerAlertOctagon,
+  tablerAlertTriangle,
+  tablerCircleCheck,
+  tablerInfoCircle,
+  tablerLoader2,
+} from '@ng-icons/tabler-icons';
 import { BrnSonnerImports, type ToasterProps } from '@spartan-ng/brain/sonner';
 import { HlmButtonImports } from '@lokaslip/ui/button';
 import { hlm } from '@lokaslip/ui/utils';
@@ -26,11 +26,11 @@ import type { ClassValue } from 'clsx';
   imports: [BrnSonnerImports, HlmButtonImports, NgIcon],
   providers: [
     provideIcons({
-      lucideCircleCheck,
-      lucideInfo,
-      lucideTriangleAlert,
-      lucideOctagonX,
-      lucideLoader2,
+      tablerCircleCheck,
+      tablerInfoCircle,
+      tablerAlertTriangle,
+      tablerAlertOctagon,
+      tablerLoader2,
     }),
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -52,22 +52,22 @@ import type { ClassValue } from 'clsx';
     >
       <ng-template #loadingIcon>
         <ng-icon
-          name="lucideLoader2"
+          name="tablerLoader2"
           class="overflow-visible! text-base [&>svg]:motion-safe:animate-spin"
         />
       </ng-template>
       <ng-template #successIcon>
-        <ng-icon name="lucideCircleCheck" class="overflow-visible! text-base" />
+        <ng-icon name="tablerCircleCheck" class="overflow-visible! text-base" />
       </ng-template>
       <ng-template #errorIcon>
-        <ng-icon name="lucideOctagonX" class="overflow-visible! text-base" />
+        <ng-icon name="tablerAlertOctagon" class="overflow-visible! text-base" />
       </ng-template>
       <ng-template #infoIcon>
-        <ng-icon name="lucideInfo" class="overflow-visible! text-base" />
+        <ng-icon name="tablerInfoCircle" class="overflow-visible! text-base" />
       </ng-template>
       <ng-template #warningIcon>
         <ng-icon
-          name="lucideTriangleAlert"
+          name="tablerAlertTriangle"
           class="overflow-visible! text-base"
         />
       </ng-template>

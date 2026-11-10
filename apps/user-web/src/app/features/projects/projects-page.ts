@@ -57,6 +57,8 @@ type ProjectCounts = { campaigns: number; templates: number; uploads: number };
         New project
       </button>
     </app-page-header>
+    
+    <br/>
 
     @if (mutationError()) {
       <p class="text-sm text-destructive" role="alert">{{ mutationError() }}</p>

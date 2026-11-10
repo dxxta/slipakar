@@ -12,7 +12,7 @@ import { Tabs, type TabItem } from '../../ui';
       <div>
         <a
           routerLink="/projects"
-          class="text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          class="-ml-2 inline-flex min-h-10 items-center rounded-ui-sm px-2 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           ← All projects
         </a>

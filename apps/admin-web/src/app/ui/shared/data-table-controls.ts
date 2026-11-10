@@ -4,6 +4,7 @@ export type TablePageMetadata = { page: number; limit: number; total: number };
 
 @Component({
   selector: 'app-data-table-controls',
+  host: { class: 'mb-3 block' },
   template: `
     <div data-filter-row class="flex flex-wrap items-end gap-3">
       <label class="grid min-w-64 flex-1 gap-1 text-xs font-medium text-muted-foreground">

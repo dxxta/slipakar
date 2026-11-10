@@ -2,6 +2,8 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { tablerPencil } from '@ng-icons/tabler-icons';
 import { environment } from '../../../environments/environment';
 import { SessionService } from '../../core/session.service';
 import { ThemePreferencesService } from '../../core/theme-preferences.service';
@@ -12,7 +14,8 @@ import { PageHeader, SelectControl } from '../../ui';
 
 @Component({
   selector: 'app-profile-page',
-  imports: [CommonModule, Avatar, HlmButton, PageHeader, SelectControl],
+  imports: [CommonModule, Avatar, HlmButton, PageHeader, SelectControl, NgIcon],
+  providers: [provideIcons({ tablerPencil })],
   template: `
     <app-page-header
       title="Profile"
@@ -60,9 +63,7 @@ import { PageHeader, SelectControl } from '../../ui';
             class="absolute inset-0 grid place-items-center rounded-full bg-black/55 text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
             aria-hidden="true"
           >
-            <svg class="size-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m16.86 4.49 2.65 2.65M4 20l4.14-.83L19 8.3a1.88 1.88 0 0 0-2.65-2.65L5.49 16.51 4 20Z" />
-            </svg>
+            <ng-icon name="tablerPencil" class="size-7" />
           </span>
         </button>
       </div>
@@ -71,7 +72,7 @@ import { PageHeader, SelectControl } from '../../ui';
           <label for="profile-name" class="text-sm font-medium">Name</label>
           <input
             id="profile-name"
-            class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm"
+            class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
             placeholder="Your name"
             [value]="name()"
             (input)="name.set(inputValue($event))"
@@ -118,28 +119,29 @@ import { PageHeader, SelectControl } from '../../ui';
         <h2 id="email-heading" class="text-lg font-semibold">Email address</h2>
         <p class="mt-1 text-sm text-muted-foreground">Current email: <strong>{{ session.user()?.email }}</strong></p>
       </div>
-      <div class="grid gap-2">
-        <label for="profile-email" class="text-sm font-medium">New email</label>
-        <input
-          id="profile-email"
-          type="email"
-          autocomplete="email"
-          class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm"
-          placeholder="name@example.com"
-          [value]="newEmail()"
-          (input)="newEmail.set(inputValue($event))"
-          required
-        />
-      </div>
-      <button
-        hlmBtn
-        type="button"
-        data-action="request-email-change"
-        [disabled]="emailSending() || !newEmail().trim()"
-        (click)="requestEmailChange()"
-      >
-        {{ emailSending() ? 'Sending…' : 'Send verification link' }}
-      </button>
+      <form class="space-y-4" (submit)="$event.preventDefault(); requestEmailChange()">
+        <div class="grid gap-2">
+          <label for="profile-email" class="text-sm font-medium">New email</label>
+          <input
+            id="profile-email"
+            type="email"
+            autocomplete="email"
+            class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            placeholder="name@example.com"
+            [value]="newEmail()"
+            (input)="newEmail.set(inputValue($event))"
+            required
+          />
+        </div>
+        <button
+          hlmBtn
+          type="submit"
+          data-action="request-email-change"
+          [disabled]="emailSending() || !newEmail().trim()"
+        >
+          {{ emailSending() ? 'Sending…' : 'Send verification link' }}
+        </button>
+      </form>
       @if (pendingEmail()) {
         <p role="status" class="text-sm text-emerald-700 dark:text-emerald-300">Check {{ pendingEmail() }} to confirm</p>
       }
@@ -171,7 +173,7 @@ import { PageHeader, SelectControl } from '../../ui';
             @for (accent of accents; track accent) {
               <button
                 type="button"
-                class="grid size-11 place-items-center rounded-full border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                class="grid size-11 place-items-center rounded-full border border-border aria-pressed:ring-2 aria-pressed:ring-ring aria-pressed:ring-offset-2 aria-pressed:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 [attr.aria-label]="accentLabel(accent)"
                 [attr.aria-pressed]="themePreferences.preference().themeAccent === accent"
                 (click)="themePreferences.setAccent(accent)"

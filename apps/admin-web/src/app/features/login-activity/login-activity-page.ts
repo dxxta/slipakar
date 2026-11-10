@@ -41,10 +41,10 @@ import { LoginActivityService, type LoginActivityItem, type LoginActivitySort } 
           <tbody class="divide-y divide-border">
             @for (event of events(); track event.id) {
               <tr class="align-top hover:bg-muted/30">
-                <td class="whitespace-nowrap px-4 py-4">{{ event.createdAt | date:'medium' }}</td>
+                <td class="whitespace-nowrap px-4 py-4 tabular-nums">{{ event.createdAt | date:'medium' }}</td>
                 <td class="px-4 py-4"><p class="font-medium">{{ event.userName || 'Unnamed user' }}</p><p class="text-xs text-muted-foreground">{{ event.userEmail || 'Unknown account' }}</p></td>
                 <td class="px-4 py-4"><p class="font-medium">{{ event.deviceType || 'Unknown device' }}</p><p class="mt-1 text-xs text-muted-foreground">{{ event.browser || 'Unknown browser' }} · {{ event.os || 'Unknown OS' }}</p></td>
-                <td class="px-4 py-4 font-mono text-xs">{{ event.ip || 'Unavailable' }}</td>
+                <td class="px-4 py-4 font-mono text-xs tabular-nums">{{ event.ip || 'Unavailable' }}</td>
                 <td class="px-4 py-4">@if (event.proxy && !isPrivateIp(event.ip)) { <span hlmBadge variant="outline" aria-label="Possible proxy (best effort)" title="best effort">Possible proxy</span> } @else { <span class="text-muted-foreground">No proxy signal</span> }</td>
                 <td class="px-4 py-4">{{ locationLabel(event) }}</td>
                 <td class="px-4 py-4">@if (hasCoordinates(event)) { <button hlmBtn variant="outline" size="sm" type="button" [attr.aria-label]="'View map for ' + locationLabel(event)" (click)="openMap(event)">View map</button> } @else { <span class="text-xs text-muted-foreground" [title]="isPrivateIp(event.ip) ? 'Private network addresses cannot be located' : 'Location coordinates are unavailable'">No map</span> }</td>

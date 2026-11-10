@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { SelectControl } from '../../ui/shared/select-control';
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { tablerAlertTriangle, tablerCheck, tablerInfoCircle } from '@ng-icons/tabler-icons';
 import { ApiClient } from '../../core/api-client';
 import { UnreadNotificationsStore } from '../../core/unread-notifications.store';
 import { DataTableControls } from '../../ui/shared/data-table-controls';
@@ -29,7 +31,9 @@ interface Project {
     PageHeader,
     Pagination,
     Tabs,
+    NgIcon,
   ],
+  providers: [provideIcons({ tablerCheck, tablerAlertTriangle, tablerInfoCircle })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-page-header
@@ -154,10 +158,10 @@ interface Project {
                         ></span>
                       }
                       <div class="min-w-0">
-                        <h3 class="font-medium">{{ notice.title }}</h3>
-                        <p class="mt-1 whitespace-pre-wrap text-sm text-muted-foreground">{{ notice.message }}</p>
+                        <h3 class="font-medium break-words">{{ notice.title }}</h3>
+                        <p class="mt-1 whitespace-pre-wrap break-words text-sm text-muted-foreground">{{ notice.message }}</p>
                         <time
-                          class="mt-2 block text-xs text-muted-foreground"
+                          class="mt-2 block text-xs text-muted-foreground tabular-nums"
                           [attr.datetime]="notice.createdAt"
                         >
                           {{ notice.createdAt | date: 'medium' }}
@@ -220,35 +224,19 @@ interface Project {
                         <span
                           class="flex size-8 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
                         >
-                          <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                          </svg>
+                          <ng-icon name="tablerCheck" class="size-4" />
                         </span>
                       } @else if (item.type === 'send_failed') {
                         <span
                           class="flex size-8 items-center justify-center rounded-full bg-destructive/10 text-destructive"
                         >
-                          <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                            />
-                          </svg>
+                          <ng-icon name="tablerAlertTriangle" class="size-4" />
                         </span>
                       } @else {
                         <span
                           class="flex size-8 items-center justify-center rounded-full bg-primary/10 text-primary"
                         >
-                          <svg class="size-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path
-                              stroke-linecap="round"
-                              stroke-linejoin="round"
-                              stroke-width="2"
-                              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                            />
-                          </svg>
+                          <ng-icon name="tablerInfoCircle" class="size-4" />
                         </span>
                       }
                     </div>
@@ -258,7 +246,7 @@ interface Project {
                           {{ typeLabel(item.type) }}
                         </span>
                         <time
-                          class="text-xs text-muted-foreground"
+                          class="text-xs text-muted-foreground tabular-nums"
                           [attr.datetime]="item.createdAt"
                           [attr.title]="item.createdAt"
                         >

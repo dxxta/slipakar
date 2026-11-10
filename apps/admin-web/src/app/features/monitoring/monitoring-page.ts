@@ -1,6 +1,8 @@
 import { DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { tablerExternalLink, tablerRefresh } from '@ng-icons/tabler-icons';
 import { HlmBadge } from '../../ui/badge/src/lib/hlm-badge';
 import { HlmButton } from '../../ui/button/src/lib/hlm-button';
 import {
@@ -29,7 +31,9 @@ export type HealthStatus = 'loading' | 'healthy' | 'unreachable';
     HlmCardHeader,
     HlmCardTitle,
     PageHeader,
+    NgIcon,
   ],
+  providers: [provideIcons({ tablerExternalLink, tablerRefresh })],
   template: `
     <div class="space-y-10">
       <app-page-header
@@ -65,20 +69,7 @@ export type HealthStatus = 'loading' | 'healthy' | 'unreachable';
                     [attr.aria-label]="service.buttonLabel"
                   >
                     Open
-                    <svg
-                      class="ml-1 size-3.5"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <path d="M15 3h6v6" />
-                      <path d="M10 14 21 3" />
-                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                    </svg>
+                    <ng-icon name="tablerExternalLink" class="ml-1 size-3.5" aria-hidden="true" />
                   </a>
                 </div>
               </div>
@@ -136,28 +127,18 @@ export type HealthStatus = 'loading' | 'healthy' | 'unreachable';
                 [disabled]="isChecking()"
                 aria-label="Refresh API health status"
               >
-                <svg
+                <ng-icon
+                  name="tablerRefresh"
                   class="mr-1.5 size-3.5"
                   [class.animate-spin]="isChecking()"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
                   aria-hidden="true"
-                >
-                  <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-                  <path d="M3 3v5h5" />
-                  <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-                  <path d="M16 16h5v5" />
-                </svg>
+                />
                 Refresh
               </button>
             </div>
           </div>
           <div hlmCardContent>
-            <p class="text-xs text-muted-foreground" data-testid="last-checked">
+            <p class="text-xs text-muted-foreground tabular-nums" data-testid="last-checked">
               @if (lastChecked(); as date) {
                 Last checked: {{ date | date: 'medium' }}
               } @else {

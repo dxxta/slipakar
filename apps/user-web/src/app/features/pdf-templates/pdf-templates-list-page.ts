@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { SelectControl } from '../../ui/shared/select-control';
 import { ChangeDetectionStrategy, Component, OnInit, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { tablerAlertTriangle } from '@ng-icons/tabler-icons';
 import { ApiError } from '../../core/api-error';
 import { HlmButton } from '../../ui/button/src';
 import { DataTableControls } from '../../ui/shared/data-table-controls';
@@ -18,7 +20,8 @@ import { Pagination } from '../../ui/shared/pagination';
 @Component({
   selector: 'app-pdf-templates-list-page',
   imports: [
-    SelectControl, CommonModule, HlmButton, HlmBadge, DataTableControls, ListBody, PageHeader, RowActions, ConfirmModal, Drawer, Pagination],
+    SelectControl, CommonModule, HlmButton, HlmBadge, DataTableControls, ListBody, PageHeader, RowActions, ConfirmModal, Drawer, Pagination, NgIcon],
+  providers: [provideIcons({ tablerAlertTriangle })],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="app-list-layout">
@@ -40,9 +43,7 @@ import { Pagination } from '../../ui/shared/pagination';
         <div data-testid="feature-disabled-card" role="status" class="rounded-lg border border-amber-500/30 bg-amber-500/5 p-6 text-card-foreground">
           <div class="flex items-start gap-4">
             <div class="rounded-full bg-amber-500/10 p-2 text-amber-700 dark:text-amber-300" aria-hidden="true">
-              <svg class="size-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
+              <ng-icon name="tablerAlertTriangle" class="size-6" />
             </div>
             <div class="space-y-1">
               <h3 class="text-base font-semibold">PDF Builder is disabled</h3>
@@ -73,8 +74,8 @@ import { Pagination } from '../../ui/shared/pagination';
                 @for (template of templates(); track template.id) {
                   <tr class="hover:bg-muted/50 transition-colors" [attr.data-testid]="'template-row-' + template.id">
                     <td class="px-6 py-4 font-medium">{{ template.name }}</td>
-                    <td class="px-6 py-4 text-muted-foreground">{{ nodeCount(template) }} {{ nodeCount(template) === 1 ? 'node' : 'nodes' }}</td>
-                    <td class="px-6 py-4 text-muted-foreground"><time [attr.datetime]="template.updatedAt" [attr.title]="template.updatedAt">{{ formatDate(template.updatedAt) }}</time></td>
+                    <td class="px-6 py-4 text-muted-foreground tabular-nums">{{ nodeCount(template) }} {{ nodeCount(template) === 1 ? 'node' : 'nodes' }}</td>
+                    <td class="px-6 py-4 text-muted-foreground tabular-nums"><time [attr.datetime]="template.updatedAt" [attr.title]="template.updatedAt">{{ formatDate(template.updatedAt) }}</time></td>
                     <td class="px-6 py-4 text-right">
                       <app-row-actions [attr.data-testid]="'pdf-template-actions-' + template.id" [label]="'Actions for ' + template.name" [items]="templateActions" (actionSelect)="handleTemplateAction($event, template)" />
                       @if (confirmingDeleteId() === template.id) {
@@ -208,6 +209,7 @@ export class PdfTemplatesListPage implements OnInit {
     this.service.deleteTemplate(pid, template.id).subscribe({
       next: () => {
         this.templates.update((list) => list.filter((t) => t.id !== template.id));
+        this.metadata.update((m) => ({ ...m, total: Math.max(0, m.total - 1) }));
         this.confirmingDeleteId.set(null);
         this.deletingId.set(null);
       },

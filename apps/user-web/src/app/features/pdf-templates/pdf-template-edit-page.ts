@@ -49,7 +49,7 @@ import {
       <div>
         <a
           [href]="'/projects/' + projectId() + '/pdf-templates'"
-          class="text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          class="-ml-2 inline-flex min-h-10 items-center rounded-ui-sm px-2 text-sm text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           (click)="onBack($event)"
         >
           ← Back to PDF Templates
@@ -133,11 +133,11 @@ import {
 
       <p class="text-sm text-muted-foreground">Template name: <strong class="text-foreground">{{ name() || 'Untitled template' }}</strong></p>
       <app-drawer [open]="nameDrawerOpen()" title="Template details" (closed)="nameDrawerOpen.set(false)">
-        <div class="space-y-4">
+        <form class="space-y-4" (submit)="$event.preventDefault(); nameDrawerOpen.set(false)">
           <label for="template-name" class="block text-sm font-medium">Template Name</label>
-          <input id="template-name" data-testid="template-name-input" type="text" required maxlength="100" class="h-control-9 w-full rounded-ui-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" placeholder="e.g. Monthly Tax Invoice" [ngModel]="name()" (ngModelChange)="onNameChange($event)" />
-          <button hlmBtn type="button" (click)="nameDrawerOpen.set(false)">Done</button>
-        </div>
+          <input id="template-name" data-testid="template-name-input" type="text" required maxlength="100" class="h-control-9 w-full rounded-ui-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" placeholder="e.g. Monthly Tax Invoice" [ngModel]="name()" [ngModelOptions]="{standalone: true}" (ngModelChange)="onNameChange($event)" />
+          <button hlmBtn type="submit">Done</button>
+        </form>
       </app-drawer>
 
       <!-- Editor Canvas Area hosting <app-pdf-builder-editor> with projected [panel] -->

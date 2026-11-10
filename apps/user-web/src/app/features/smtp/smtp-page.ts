@@ -102,13 +102,10 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
     <!-- Add / Edit Drawer -->
     <app-drawer [open]="showForm()" [title]="editingId() ? 'Edit SMTP connection' : 'Add SMTP connection'" (closed)="closeForm()">
       <div hlmCard data-testid="smtp-form-card" class="border-0 shadow-none">
-        <div hlmCardHeader class="px-0 pt-0">
-          <h3 hlmCardTitle>{{ editingId() ? 'Edit SMTP Connection' : 'Add SMTP Connection' }}</h3>
-          <p hlmCardDescription>
+        <div hlmCardContent class="px-0">
+          <p class="mb-4 text-sm text-muted-foreground">
             {{ editingId() ? 'Update connection details. Leave password empty to keep existing password.' : 'Enter your SMTP server configuration.' }}
           </p>
-        </div>
-        <div hlmCardContent class="px-0">
           <form class="space-y-4" (submit)="$event.preventDefault(); submitForm()">
             <div class="grid gap-4 sm:grid-cols-2">
               <div>
@@ -129,7 +126,7 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
                   id="smtp-port"
                   data-testid="smtp-port-input"
                   type="number"
-                  class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm tabular-nums outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   placeholder="587"
                   [value]="formPort()"
                   (input)="formPort.set($any($event.target).value)"
@@ -137,6 +134,9 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
                   max="65535"
                   required
                 />
+                @if (portValidationError()) {
+                  <p class="mt-1 text-xs text-destructive" role="alert">{{ portValidationError() }}</p>
+                }
               </div>
             </div>
 
@@ -203,7 +203,7 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
                 hlmBtn
                 type="submit"
                 data-testid="smtp-save-button"
-                [disabled]="isSaving() || !formHost().trim() || !formUsername().trim() || (!editingId() && !formPassword().trim())"
+                [disabled]="isSaving() || !formHost().trim() || !formUsername().trim() || !!portValidationError() || (!editingId() && !formPassword().trim())"
               >
                 {{ isSaving() ? 'Saving…' : (editingId() ? 'Save changes' : 'Create connection') }}
               </button>
@@ -223,7 +223,7 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
           </div>
           <div>
             <dt class="text-xs font-medium text-muted-foreground">Port</dt>
-            <dd class="mt-1 font-medium">{{ conn.port }}</dd>
+            <dd class="mt-1 font-medium tabular-nums">{{ conn.port }}</dd>
           </div>
           <div>
             <dt class="text-xs font-medium text-muted-foreground">Security</dt>
@@ -239,11 +239,11 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
           </div>
           <div>
             <dt class="text-xs font-medium text-muted-foreground">Created</dt>
-            <dd class="mt-1">{{ conn.createdAt ? (conn.createdAt | date: 'medium') : '—' }}</dd>
+            <dd class="mt-1 tabular-nums">{{ conn.createdAt ? (conn.createdAt | date: 'medium') : '—' }}</dd>
           </div>
           <div>
             <dt class="text-xs font-medium text-muted-foreground">Updated</dt>
-            <dd class="mt-1">{{ conn.updatedAt ? (conn.updatedAt | date: 'medium') : '—' }}</dd>
+            <dd class="mt-1 tabular-nums">{{ conn.updatedAt ? (conn.updatedAt | date: 'medium') : '—' }}</dd>
           </div>
         </dl>
         <div class="mt-6 flex justify-end">
@@ -271,7 +271,7 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
             <div hlmCardHeader class="pb-2">
               <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                  <h3 hlmCardTitle class="text-base font-semibold">{{ conn.host }}:{{ conn.port }}</h3>
+                  <h3 hlmCardTitle class="text-base font-semibold tabular-nums">{{ conn.host }}:{{ conn.port }}</h3>
                   @if (conn.secure) {
                     <span hlmBadge variant="outline" class="text-xs">SSL/TLS</span>
                   }
@@ -307,7 +307,11 @@ import { type CreateSmtpPayload, type SmtpConnection, SmtpService, type UpdateSm
                 <!-- Test Connection Section -->
                 <p class="border-t border-border pt-3 text-xs text-muted-foreground">Verify SMTP credentials and server reachability from the row actions menu.</p>
 
-                @if (testResults()[conn.id]) {
+                @if (isTestingId() === conn.id) {
+                  <div class="mt-2" aria-live="polite" role="status">
+                    <p class="text-xs font-medium text-muted-foreground animate-pulse">Testing SMTP connection…</p>
+                  </div>
+                } @else if (testResults()[conn.id]) {
                   @if (testResults()[conn.id]?.ok) {
                     <div class="mt-2" aria-live="polite" role="status">
                       <p class="text-xs font-medium text-green-700 dark:text-green-300">SMTP test connection successful!</p>
@@ -376,6 +380,16 @@ export class SmtpPage implements OnInit {
   readonly listState = computed(() =>
     this.loading() ? 'loading' : this.loadError() ? 'error' : 'ready'
   );
+
+  readonly portValidationError = computed(() => {
+    const raw = this.formPort().trim();
+    if (!raw) return 'Port is required.';
+    const port = Number(raw);
+    if (!Number.isInteger(port) || port < 1 || port > 65535) {
+      return 'Port must be a number between 1 and 65535.';
+    }
+    return null;
+  });
 
   readonly rowActions: RowActionItem[] = [
     { id: 'detail', label: 'Detail', icon: 'eye' },
