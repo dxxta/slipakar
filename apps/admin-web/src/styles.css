@@ -71,3 +71,10 @@
 
 .wordmark { display: inline-flex; align-items: baseline; color: var(--ink); text-decoration: none; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.055em; white-space: nowrap; }
 .wordmark-dot { color: var(--teal); }
+/* Ripple wave created by the shared Ripple directive. */
+.ripple-wave {
+  position: absolute; border-radius: 9999px; pointer-events: none;
+  background-color: currentColor; opacity: 0.25; transform: scale(0);
+  animation: ripple-wave 550ms ease-out forwards;
+}
+@keyframes ripple-wave { to { transform: scale(1); opacity: 0; } }
