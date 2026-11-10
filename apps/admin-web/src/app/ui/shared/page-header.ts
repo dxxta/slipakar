@@ -8,7 +8,7 @@ import { PageBadge } from './page-badge';
   template: `
     <header class="flex flex-wrap items-start justify-between gap-4">
       <div class="min-w-0">
-        <div class="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+        <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
           <h1 class="text-3xl font-semibold tracking-tight text-balance">{{ title() }}</h1>
           @if (badge() && topLevel()) { <app-page-badge [label]="badge()" [topLevel]="true" /> }
         </div>
