@@ -23,7 +23,8 @@ import { createCryptoService } from '../../../../services/crypto.js';
 import { buildDemoProjectUseCase } from '../../usecase/demo-project.js';
 import { createDemoProjectRouter } from './demo-project.js';
 import { requireAdmin } from '../../../system-config/middleware/require-admin.js';
-import { seedSystemDemoProject } from '../../startup-seed.js';
+import { claimSystemDemoProject } from '../../claim.js';
+import { seedSystemDemoProject, SYSTEM_DEMO_EMAIL } from '../../startup-seed.js';
 import type { ErrorReporter } from '../../../../domain/error-reporting/interface.js';
 
 describe('Demo Project Integration', () => {
@@ -218,5 +219,47 @@ describe('Demo Project Integration', () => {
     expect(project?.campaigns[0].status).toBe('draft');
     expect(project?.smtpConnections).toHaveLength(1);
     expect(project?.smtpConnections[0].host).toBe('smtp.example.com');
+  });
+
+  it('transfers the system demo project to the first administrator exactly once', async () => {
+    await prisma.project.deleteMany({ where: { name: 'Example payroll project' } });
+    const systemUser = await prisma.user.upsert({
+      where: { email: SYSTEM_DEMO_EMAIL },
+      update: {},
+      create: {
+        email: SYSTEM_DEMO_EMAIL,
+        name: 'Slipakar Demo',
+        role: 'system',
+        emailVerified: true,
+        disabledAt: new Date(),
+        disabledReason: 'System account',
+      },
+      select: { id: true },
+    });
+    const seeded = await demoProjectUseCase.seedDemoProjectUseCase({ userId: systemUser.id });
+    const errorReporter: ErrorReporter = { capture: () => undefined };
+
+    await claimSystemDemoProject({
+      prisma,
+      userId: adminId,
+      userEmail: adminEmail,
+      adminEmails: [adminEmail],
+      errorReporter,
+    });
+    await claimSystemDemoProject({
+      prisma,
+      userId: adminId,
+      userEmail: adminEmail,
+      adminEmails: [adminEmail],
+      errorReporter,
+    });
+
+    const project = await prisma.project.findUnique({ where: { id: seeded.data.projectId } });
+    const assignmentAudits = await prisma.auditLog.findMany({
+      where: { entity: 'Project', entityId: seeded.data.projectId, fieldName: 'ownership' },
+    });
+    expect(project?.ownerId).toBe(adminId);
+    expect(assignmentAudits).toHaveLength(1);
+    expect(assignmentAudits[0].fieldValue).toBe('demo project assigned');
   });
 });
