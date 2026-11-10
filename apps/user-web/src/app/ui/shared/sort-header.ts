@@ -6,7 +6,7 @@ export type SortChange = { sortBy: string; sortDir: SortDirection };
 @Directive({
   selector: 'button[appSortHeader]',
   host: {
-    class: 'inline-flex items-center gap-1 rounded-sm text-left font-inherit hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+    class: 'sort-header-button inline-flex items-center gap-1 text-left focus-visible:outline-none',
   },
 })
 export class SortHeader {

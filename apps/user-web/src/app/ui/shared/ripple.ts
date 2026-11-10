@@ -18,6 +18,7 @@ export class Ripple {
   private readonly element = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
 
   protected onPointerDown(event: PointerEvent): void {
+    if (this.element.matches('button[appSortHeader]')) return;
     if (this.isDisabled() || event.button > 0) return;
     const view = this.element.ownerDocument.defaultView;
     if (!view || view.matchMedia?.('(prefers-reduced-motion: reduce)').matches) return;
@@ -39,6 +40,7 @@ export class Ripple {
   }
 
   protected ensureTooltip(): void {
+    if (this.element.matches('button[appSortHeader]')) return;
     if (this.element.getAttribute('role') === 'menuitem' || this.element.closest('[role="menu"]') !== null) {
       if (this.element.hasAttribute(AUTO_TITLE_ATTRIBUTE)) this.element.removeAttribute('title');
       this.element.removeAttribute(AUTO_TITLE_ATTRIBUTE);

@@ -302,30 +302,34 @@ table:not(.preview-table) thead th button { color: inherit !important; }
 }
 
 /* Standalone actions share the landing page's tactile control treatment. */
-button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.account-menu-signout):not(.sidebar-square-button):not(.account-menu-collapsed-trigger),
+button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.account-menu-signout):not(.sidebar-square-button):not(.account-menu-collapsed-trigger):not([appSortHeader]),
 a[data-slot='button'] {
   border: var(--border-width-strong) solid var(--ink-fixed) !important;
   border-radius: var(--radius-pill) !important;
   box-shadow: var(--shadow-hard) !important;
   transition: transform 140ms ease-out, box-shadow 140ms ease-out;
 }
-button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.account-menu-signout):not(.sidebar-square-button):not(.account-menu-collapsed-trigger):hover:not(:disabled),
+button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.account-menu-signout):not(.sidebar-square-button):not(.account-menu-collapsed-trigger):not([appSortHeader]):hover:not(:disabled),
 a[data-slot='button']:hover:not([aria-disabled='true']) {
   transform: translateY(-2px);
   box-shadow: var(--shadow-hover) !important;
 }
-button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.account-menu-signout):not(.sidebar-square-button):not(.account-menu-collapsed-trigger):active:not(:disabled),
+button:not([role='tab']):not([role='menuitem']):not([role='switch']):not([data-row-action-trigger]):not(.resize-handle):not(.theme-accent-swatch):not([data-quiet-button]):not(.account-menu-signout):not(.sidebar-square-button):not(.account-menu-collapsed-trigger):not([appSortHeader]):active:not(:disabled),
 a[data-slot='button']:active:not([aria-disabled='true']) {
   transform: translate(var(--press-x), var(--press-y));
   box-shadow: 0 0 0 var(--shadow-color) !important;
 }
-/* Sort controls are table-header controls, not the app's tactile standalone buttons. */
-:where(th) button, button[data-table-sort] {
+/* Sort controls are ordinary text inside the header cell, not standalone action buttons. */
+button[appSortHeader] {
   border: 0 !important;
   border-radius: 0 !important;
   background: transparent !important;
   color: inherit !important;
   font: inherit !important;
+  text-transform: inherit !important;
+  letter-spacing: inherit !important;
+  line-height: inherit !important;
+  font-weight: inherit !important;
   box-shadow: none !important;
   transform: none !important;
   transition: none !important;
@@ -333,20 +337,29 @@ a[data-slot='button']:active:not([aria-disabled='true']) {
   text-decoration: none;
   cursor: pointer;
 }
-:where(th) button:hover, button[data-table-sort]:hover {
+button[appSortHeader]:hover {
   color: inherit !important;
   text-decoration: underline !important;
-  text-underline-offset: 0.15em;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 2px;
 }
-:where(th) button:focus-visible, button[data-table-sort]:focus-visible {
+button[appSortHeader]:focus-visible {
   outline: 2px solid var(--ink-fixed) !important;
   outline-offset: 3px;
   box-shadow: none !important;
 }
-:where(th) button:active, button[data-table-sort]:active {
+button[appSortHeader]:active {
   transform: none !important;
   box-shadow: none !important;
 }
+th[aria-sort='ascending'] button[appSortHeader]::after,
+th[aria-sort='descending'] button[appSortHeader]::after {
+  margin-inline-start: 0.25rem;
+  font-size: 0.75em;
+  line-height: 1;
+}
+th[aria-sort='ascending'] button[appSortHeader]::after { content: '↑'; }
+th[aria-sort='descending'] button[appSortHeader]::after { content: '↓'; }
 button[data-quiet-button] {
   border: 1px solid var(--border) !important;
   border-radius: 0.5rem !important;
