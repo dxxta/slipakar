@@ -311,9 +311,9 @@ export class AdminSetupUseCase implements AdminSetupUseCaseInterface {
       this.mapToView(k, map.get(k) ?? null),
     );
 
-    const complete =
-      integrations.length === INTEGRATION_KEYS.length &&
-      integrations.every((i) => i.configured && i.lastStatus === 'ok');
+    // Uptime Kuma runs as a separate status deployment, so setup only requires Grafana and Mail.
+    const required = integrations.filter((i) => i.key !== 'uptime');
+    const complete = required.length > 0 && required.every((i) => i.configured && i.lastStatus === 'ok');
 
     return {
       complete,
