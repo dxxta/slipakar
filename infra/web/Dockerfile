@@ -54,9 +54,10 @@ COPY --from=build /app/apps/admin-web/dist/admin-web/browser /usr/share/nginx/ht
 COPY infra/web/nginx.conf /etc/nginx/templates/default.conf.template
 COPY infra/web/security-headers.conf /etc/nginx/security-headers.conf
 COPY infra/web/robots-header.conf /etc/nginx/robots-header.conf
-COPY infra/web/entrypoint/20-embed-frame-ancestors.envsh /docker-entrypoint.d/20-embed-frame-ancestors.envsh
+# The Nginx entrypoint only sources .envsh files that are executable.
+COPY --chmod=755 infra/web/entrypoint/20-embed-frame-ancestors.envsh /docker-entrypoint.d/20-embed-frame-ancestors.envsh
 
-ENV API_UPSTREAM=api:3000 PORT=8080
+ENV API_UPSTREAM=api:3000 PORT=8080 EMBED_FRAME_ANCESTORS="'none'"
 ENV NGINX_ENVSUBST_FILTER='^(PORT|API_UPSTREAM|EMBED_FRAME_ANCESTORS)$'
 ENV NGINX_ENVSUBST_OUTPUT_DIR=/etc/nginx/conf.d
 
