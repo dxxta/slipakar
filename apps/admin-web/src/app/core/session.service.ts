@@ -155,6 +155,7 @@ export class SessionService {
         {
           provider: 'google',
           callbackURL: adminAuthCallbackUrl(view.location.origin, this.baseHref(), target),
+          errorCallbackURL: adminAuthCallbackUrl(view.location.origin, this.baseHref(), adminRequestedReturnUrl('/auth/error', this.baseHref())),
         },
         { withCredentials: true },
       ));
@@ -255,7 +256,7 @@ export class SessionService {
     if (!view) return;
     const response = await firstValueFrom(this.http.post<{ url?: string }>(
       `${environment.apiBase}/api/auth/link-social`,
-      { provider: 'google', callbackURL },
+      { provider: 'google', callbackURL, errorCallbackURL: this.frontendPageUrl('auth/error') },
       { withCredentials: true },
     ));
     if (response.url) view.location.assign(response.url);

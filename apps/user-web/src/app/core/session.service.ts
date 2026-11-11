@@ -105,7 +105,7 @@ export class SessionService {
     try {
       const response = await firstValueFrom(this.http.post<{ url?: string; redirect?: boolean }>(
         `${environment.apiBase}/api/auth/sign-in/social`,
-        { provider: 'google', callbackURL },
+        { provider: 'google', callbackURL, errorCallbackURL: new URL('/auth/error', view.location.origin).toString() },
         { withCredentials: true },
       ));
       if (response.url) view.location.assign(response.url);
@@ -204,7 +204,7 @@ export class SessionService {
     if (!view) return;
     const response = await firstValueFrom(this.http.post<{ url?: string }>(
       `${environment.apiBase}/api/auth/link-social`,
-      { provider: 'google', callbackURL },
+      { provider: 'google', callbackURL, errorCallbackURL: this.frontendPageUrl('auth/error') },
       { withCredentials: true },
     ));
     if (response.url) view.location.assign(response.url);

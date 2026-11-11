@@ -6,9 +6,11 @@ import { LoginPage } from './pages/login-page';
 import { NotFoundPage } from './pages/not-found-page';
 import { UserAppRedirect } from './pages/user-app-redirect';
 import { ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from './pages/credential-pages';
+import { AuthErrorPage } from './pages/auth-error-page';
 
 export const routes: Routes = [
   { path: 'login', component: LoginPage },
+  { path: 'auth/error', component: AuthErrorPage },
   { path: 'forgot-password', component: ForgotPasswordPage },
   { path: 'reset-password', component: ResetPasswordPage },
   { path: 'verify-email', component: VerifyEmailPage },

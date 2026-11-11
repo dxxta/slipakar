@@ -341,7 +341,7 @@ The API environment schema is in `apps/api/src/config/env.ts`. Compose-specific 
 | `SETUP_GRAFANA_API_TOKEN` | No | Empty | Optional Grafana token used by the Setup connection test. |
 | `METRICS_TOKEN` | API: optional; Compose: required | None in API schema | Bearer token for `/metrics`; must be at least 16 characters. |
 | `PORT` | No | `3000` | API listen port; Compose sets it to `3000`. |
-| `APP_URL` | No | Empty (falls back to first entry in `TRUSTED_ORIGINS`) | Frontend application URL used for email verification redirect callbacks. |
+| `APP_URL` | No | Empty (falls back to first entry in `TRUSTED_ORIGINS`) | Frontend application URL used for email verification redirect callbacks and as the fallback `/auth/error` page for failed Google sign-in. |
 | `AUTH_SMTP_HOST` | Optional (all `AUTH_SMTP_*` must be set together) | None | Platform SMTP server hostname for transactional auth emails (email change verification). |
 | `AUTH_SMTP_PORT` | No | `587` | Platform SMTP server port. |
 | `AUTH_SMTP_SECURE` | No | `false` | Enable TLS/SSL connection for platform SMTP (`true` or `false`). |

@@ -314,6 +314,7 @@ function buildAuth({ prisma, env, authEmailSender, loginActivityUseCase, adminEm
     secret: env.secret,
     baseURL: env.baseUrl,
     trustedOrigins: env.trustedOrigins,
+    ...(env.appUrl ? { onAPIError: { errorURL: `${env.appUrl.replace(/\/+$/, '')}/auth/error` } } : {}),
     advanced: { disableOriginCheck: false },
     plugins,
     rateLimit: {
@@ -365,7 +366,8 @@ function buildAuth({ prisma, env, authEmailSender, loginActivityUseCase, adminEm
         },
         update: {
           before: async (account) => {
-            if (account.providerId === 'google') await assertGoogleCanLink(account);
+            // Returning Google sign-ins only refresh tokens, so the partial update carries no accountId/userId to validate.
+            if (account.providerId === 'google' && (account.accountId || account.userId)) await assertGoogleCanLink(account);
           },
           after: async (account) => {
             if (account.providerId === 'google') await syncGoogleEmail(account, false);

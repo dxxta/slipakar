@@ -9,6 +9,7 @@ import { NotFoundPage } from './features/not-found/not-found-page';
 import { ProjectDetailLayout } from './features/project-detail/project-detail-layout';
 import { AccountDisabledPage } from './features/account-disabled/account-disabled-page';
 import { ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from './features/login/credential-pages';
+import { AuthErrorPage } from './features/auth-error/auth-error-page';
 
 const projectFeatureRoutes: Routes = [
   { path: 'overview', loadComponent: () => import('./features/project-detail/tabs/overview-page').then((page) => page.ProjectOverviewPage) },
@@ -48,6 +49,7 @@ const embedFeatureRoutes: Routes = projectFeatureRoutes
 
 export const routes: Routes = [
   { path: 'login', component: LoginPage, canActivate: [preventAuthRouteInEmbedGuard] },
+  { path: 'auth/error', component: AuthErrorPage },
   { path: 'forgot-password', component: ForgotPasswordPage, canActivate: [preventAuthRouteInEmbedGuard] },
   { path: 'reset-password', component: ResetPasswordPage, canActivate: [preventAuthRouteInEmbedGuard] },
   { path: 'verify-email', component: VerifyEmailPage, canActivate: [preventAuthRouteInEmbedGuard] },
