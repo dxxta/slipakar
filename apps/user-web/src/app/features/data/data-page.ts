@@ -423,6 +423,7 @@ function extractPlaceholders(text: string): string[] {
                         Ready to save mapping.
                       </span>
                     }
+                  </div>
                   <button
                     hlmBtn
                     type="button"

@@ -17,7 +17,7 @@ import { ApiError } from '../../core/api-error';
 import { environment } from '../../../environments/environment';
 import { HlmBadge } from '../../ui/badge/src';
 import { HlmButton } from '../../ui/button/src';
-import { Drawer } from '../../ui/shared/drawer';
+import { Modal } from '../../ui/shared/modal';
 import { RowActions, type RowActionItem } from '../../ui/shared/row-actions';
 import { BackButton } from '../../ui/shared/back-button';
 import { PdfBuilderEditor } from '../pdf-builder/pdf-builder-editor';
@@ -45,7 +45,7 @@ import { Ripple } from '../../ui/shared/ripple';
     BackButton,
     PdfNodePropertiesComponent,
     PdfBuilderEditor,
-    Drawer,
+    Modal,
     RowActions,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -133,13 +133,13 @@ import { Ripple } from '../../ui/shared/ripple';
           <iframe #previewFrame class="min-h-0 w-full flex-1 border-0 bg-muted" title="PDF print preview" [src]="url"></iframe>
         </div>
       }
-      <app-drawer [open]="nameDrawerOpen()" title="Template details" (closed)="nameDrawerOpen.set(false)">
+      <app-modal [open]="nameDrawerOpen()" title="Template details" size="sm" (closed)="nameDrawerOpen.set(false)">
         <form id="template-name-form" class="space-y-4" (submit)="$event.preventDefault(); nameDrawerOpen.set(false)">
           <label for="template-name" class="block text-sm font-medium">Template Name</label>
           <input id="template-name" data-testid="template-name-input" type="text" required maxlength="100" class="h-control-9 w-full rounded-ui-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" placeholder="e.g. Monthly Tax Invoice" [ngModel]="name()" [ngModelOptions]="{standalone: true}" (ngModelChange)="onNameChange($event)" />
         </form>
         <button drawer-footer hlmBtn type="submit" form="template-name-form">Done</button>
-      </app-drawer>
+      </app-modal>
 
       <!-- Editor Canvas Area hosting <app-pdf-builder-editor> with projected [panel] -->
       @if (loading()) {

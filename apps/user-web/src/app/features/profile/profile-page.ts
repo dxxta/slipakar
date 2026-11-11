@@ -11,13 +11,13 @@ import { ThemePreferencesService } from '../../core/theme-preferences.service';
 import { contrastRatio, isHexColor, readableForeground, type BaseColorKey, type ThemeAccent, type ThemeMode } from '../../core/theme-preferences';
 import { Avatar } from '@slipakar/ui/avatar';
 import { HlmButton } from '../../ui/button/src';
-import { Drawer, PageHeader, SelectControl, SegmentedTabs } from '../../ui';
+import { Drawer, Modal, PageHeader, SelectControl, SegmentedTabs } from '../../ui';
 import type { TabItem } from '../../ui';
 import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
   selector: 'app-profile-page',
-  imports: [Ripple, CommonModule, Avatar, HlmButton, PageHeader, SelectControl, SegmentedTabs, NgIcon, Drawer],
+  imports: [Ripple, CommonModule, Avatar, HlmButton, PageHeader, SelectControl, SegmentedTabs, NgIcon, Drawer, Modal],
   providers: [provideIcons({ tablerPencil })],
   template: `
     <div class="space-y-6">
@@ -284,7 +284,7 @@ import { Ripple } from '../../ui/shared/ripple';
       </div>
     </section>
 
-    <app-drawer [open]="signinDrawer() !== null" [title]="signinDrawerTitle()" (closed)="closeSigninDrawer()">
+    <app-modal [open]="signinDrawer() !== null && signinDrawer() !== 'change-password'" [title]="signinDrawerTitle()" (closed)="closeSigninDrawer()">
       @if (signinDrawer() === 'set-password') {
         <div class="space-y-4">
           <p class="text-sm text-muted-foreground">To keep access to your account you must first verify your email and set a password.</p>
@@ -305,19 +305,21 @@ import { Ripple } from '../../ui/shared/ripple';
           @if (signinMethodError()) { <p role="alert" class="rounded-ui-md bg-[#E5484D]/10 p-3 text-sm text-[#E5484D]">{{ signinMethodError() }}</p> }
           <button hlmBtn variant="destructive" type="button" [disabled]="methodBusy() || (session.user()?.twoFactorEnabled && !validSensitiveCode())" (click)="disconnectGoogle()">{{ methodBusy() ? 'Disconnecting…' : 'Confirm disconnect' }}</button>
         </div>
-      } @else if (signinDrawer() === 'change-password') {
-        <form class="space-y-4" (submit)="changeCredentialPassword($event)">
-          <label class="grid gap-2 text-sm font-medium" for="current-password">Current password<input id="current-password" class="profile-control" type="password" autocomplete="current-password" placeholder="Current password" [value]="currentPassword()" (input)="currentPassword.set(inputValue($event))" required /></label>
-          @if (session.user()?.twoFactorEnabled) { <label class="grid gap-2 text-sm font-medium" for="change-password-code">Current authenticator code<input id="change-password-code" class="profile-control" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="000000" maxlength="6" [value]="sensitiveCode()" (input)="onSensitiveCodeInput($event)" required /></label> }
-          <label class="grid gap-2 text-sm font-medium" for="new-password">New password<input id="new-password" class="profile-control" type="password" autocomplete="new-password" placeholder="At least 12 characters" [value]="newPassword()" (input)="newPassword.set(inputValue($event))" minlength="12" required /></label>
-          <label class="grid gap-2 text-sm font-medium" for="confirm-new-password">Confirm new password<input id="confirm-new-password" class="profile-control" type="password" autocomplete="new-password" placeholder="Re-enter new password" [value]="confirmNewPassword()" (input)="confirmNewPassword.set(inputValue($event))" minlength="12" required /></label>
-          @if (signinMethodError()) { <p role="alert" class="rounded-ui-md bg-[#E5484D]/10 p-3 text-sm text-[#E5484D]">{{ signinMethodError() }}</p> }
-          <button hlmBtn type="submit" [disabled]="methodBusy()">{{ methodBusy() ? 'Saving…' : 'Change password' }}</button>
-        </form>
       }
+    </app-modal>
+
+    <app-drawer [open]="signinDrawer() === 'change-password'" [title]="signinDrawerTitle()" (closed)="closeSigninDrawer()">
+      <form class="space-y-4" (submit)="changeCredentialPassword($event)">
+        <label class="grid gap-2 text-sm font-medium" for="current-password">Current password<input id="current-password" class="profile-control" type="password" autocomplete="current-password" placeholder="Current password" [value]="currentPassword()" (input)="currentPassword.set(inputValue($event))" required /></label>
+        @if (session.user()?.twoFactorEnabled) { <label class="grid gap-2 text-sm font-medium" for="change-password-code">Current authenticator code<input id="change-password-code" class="profile-control" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="000000" maxlength="6" [value]="sensitiveCode()" (input)="onSensitiveCodeInput($event)" required /></label> }
+        <label class="grid gap-2 text-sm font-medium" for="new-password">New password<input id="new-password" class="profile-control" type="password" autocomplete="new-password" placeholder="At least 12 characters" [value]="newPassword()" (input)="newPassword.set(inputValue($event))" minlength="12" required /></label>
+        <label class="grid gap-2 text-sm font-medium" for="confirm-new-password">Confirm new password<input id="confirm-new-password" class="profile-control" type="password" autocomplete="new-password" placeholder="Re-enter new password" [value]="confirmNewPassword()" (input)="confirmNewPassword.set(inputValue($event))" minlength="12" required /></label>
+        @if (signinMethodError()) { <p role="alert" class="rounded-ui-md bg-[#E5484D]/10 p-3 text-sm text-[#E5484D]">{{ signinMethodError() }}</p> }
+        <button hlmBtn type="submit" [disabled]="methodBusy()">{{ methodBusy() ? 'Saving…' : 'Change password' }}</button>
+      </form>
     </app-drawer>
 
-    <app-drawer [open]="twoFactorDrawer() !== null" [title]="twoFactorDrawerTitle()" (closed)="closeTwoFactorDrawer()">
+    <app-modal [open]="twoFactorDrawer() !== null" [title]="twoFactorDrawerTitle()" size="md" (closed)="closeTwoFactorDrawer()">
       @if (twoFactorDrawer() === 'enable' && twoFactorStep() === 'password') {
         <form class="space-y-4" (submit)="beginTwoFactorSetup($event)">
           <p class="text-sm text-muted-foreground">Confirm your credential password to create an authenticator setup.</p>
@@ -359,7 +361,7 @@ import { Ripple } from '../../ui/shared/ripple';
           <button hlmBtn variant="destructive" type="submit" [disabled]="twoFactorBusy() || !validTotpCode()">{{ twoFactorBusy() ? 'Disabling…' : 'Disable two-factor' }}</button>
         </form>
       }
-    </app-drawer>
+    </app-modal>
     </div>
   `,
   styles: [`.profile-control{width:100%;height:2.5rem;border:1px solid var(--input);border-radius:.5rem;background:var(--background);padding:0 .75rem;font-size:.875rem;outline:none}.profile-control:focus-visible{outline:2px solid var(--ring);outline-offset:2px}`],

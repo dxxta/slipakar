@@ -12,6 +12,7 @@ import {
   ConfirmModal,
   DataTableControls,
   Drawer,
+  Modal,
   ListBody,
   PageHeader,
   Pagination,
@@ -40,6 +41,7 @@ type ProjectCounts = { campaigns: number; templates: number; uploads: number };
     NgIcon,
     HlmButton,
     Drawer,
+    Modal,
     ConfirmModal,
     DataTableControls,
     ListBody,
@@ -160,7 +162,7 @@ type ProjectCounts = { campaigns: number; templates: number; uploads: number };
     <app-pagination [metadata]="metadata()" (pageChange)="onPageChange($event)" />
 
     <!-- Create / Edit Drawer -->
-    <app-drawer [open]="formOpen()" [title]="editingProject() ? 'Rename project' : 'Create project'" (closed)="closeForm()">
+    <app-modal [open]="formOpen()" [title]="editingProject() ? 'Rename project' : 'Create project'" size="sm" (closed)="closeForm()">
       <form id="project-form" class="space-y-5" (submit)="$event.preventDefault(); saveProject()">
         <div class="grid gap-2">
           <label for="project-name" class="text-sm font-medium">Project name</label>
@@ -188,7 +190,7 @@ type ProjectCounts = { campaigns: number; templates: number; uploads: number };
             {{ saving() ? 'Saving…' : (editingProject() ? 'Save name' : 'Create project') }}
           </button>
         </div>
-    </app-drawer>
+    </app-modal>
 
     <!-- Read-only Detail Drawer -->
     <app-drawer [open]="detailProject() !== null" [title]="detailProject()?.name ?? 'Project details'" (closed)="closeDetail()">

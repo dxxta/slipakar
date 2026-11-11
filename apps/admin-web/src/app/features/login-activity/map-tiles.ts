@@ -44,3 +44,32 @@ export function getMapTiles(latitude: number, longitude: number, zoom: MapZoom =
 
   return tiles;
 }
+
+export type MapViewTile = { key: string; url: string; left: number; top: number };
+export type MapView = { tiles: MapViewTile[]; markerLeft: number; markerTop: number };
+export const MAP_MIN_ZOOM = 3;
+export const MAP_MAX_ZOOM = 17;
+const viewTileSize = 256;
+const viewSpan = 3;
+
+/** Tiles around the point at full 256px size; markerLeft/markerTop is the point's pixel position inside the tile grid. */
+export function getMapView(latitude: number, longitude: number, zoom: number): MapView {
+  const z = Math.max(MAP_MIN_ZOOM, Math.min(MAP_MAX_ZOOM, Math.round(zoom)));
+  const tileCount = 2 ** z;
+  const lat = Math.max(-latitudeLimit, Math.min(latitudeLimit, latitude));
+  const rad = (lat * Math.PI) / 180;
+  const worldX = ((longitude + 180) / 360) * tileCount;
+  const worldY = ((1 - Math.log(Math.tan(rad) + 1 / Math.cos(rad)) / Math.PI) / 2) * tileCount;
+  const centerX = Math.floor(worldX);
+  const centerY = Math.floor(worldY);
+  const tiles: MapViewTile[] = [];
+  for (let row = -viewSpan; row <= viewSpan; row += 1) {
+    const y = centerY + row;
+    if (y < 0 || y >= tileCount) continue;
+    for (let column = -viewSpan; column <= viewSpan; column += 1) {
+      const x = (((centerX + column) % tileCount) + tileCount) % tileCount;
+      tiles.push({ key: `${z}-${column}-${row}`, url: `https://tile.openstreetmap.org/${z}/${x}/${y}.png`, left: (column + viewSpan) * viewTileSize, top: (row + viewSpan) * viewTileSize });
+    }
+  }
+  return { tiles, markerLeft: (viewSpan + (worldX - centerX)) * viewTileSize, markerTop: (viewSpan + (worldY - centerY)) * viewTileSize };
+}

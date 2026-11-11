@@ -7,6 +7,7 @@ export * from './switch/src/index';
 export * from './alert/src/index';
 export * from './sonner/src/index';
 export * from './shared/drawer';
+export * from './shared/modal';
 export * from './shared/confirm-modal';
 export * from './shared/data-table-controls';
 export * from './shared/pagination';

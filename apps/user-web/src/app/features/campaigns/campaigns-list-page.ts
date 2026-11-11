@@ -30,8 +30,7 @@ import { Ripple } from '../../ui/shared/ripple';
   template: `
     <div class="app-list-layout">
       <app-page-header title="Campaigns" description="Manage and track bulk personalized email campaigns." [topLevel]="false">
-        @if (!embed.isEmbedMode()) { <button
-          page-actions
+        @if (!embed.isEmbedMode()) { <ng-container page-actions><button
           hlmBtn
           type="button"
           class="max-md:hidden"
@@ -41,7 +40,7 @@ import { Ripple } from '../../ui/shared/ripple';
           <ng-icon name="tablerPlus" aria-hidden="true" class="size-[1.1rem]" />
           New campaign
         </button>
-        <app-row-actions page-actions class="md:hidden" [solid]="true" label="Page actions" [items]="pageActions" (actionSelect)="navigateToCreate()" /> }
+        <app-row-actions class="md:hidden" [solid]="true" label="Page actions" [items]="pageActions" (actionSelect)="navigateToCreate()" /></ng-container> }
       </app-page-header>
       <app-data-table-controls [query]="query()" searchPlaceholder="Search campaigns..." (queryChange)="search($event)"><div table-filters><label class="grid min-w-40 gap-1 text-xs font-medium text-muted-foreground">Sort campaigns
         <select appSelect aria-label="Sort campaigns" class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm" [value]="sortBy()" (change)="sort($event)"><option value="createdAt">Created</option><option value="updatedAt">Updated</option><option value="status">Status</option></select>

@@ -4,7 +4,7 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { HlmBadge } from '../../ui/badge/src';
 import { HlmButton } from '../../ui/button/src';
 import { DataTableControls, Drawer, ListBody, PageHeader, Pagination, SelectControl } from '../../ui';
-import { getMapTiles, type LoginMapTile } from './map-tiles';
+import { getMapView, MAP_MAX_ZOOM, MAP_MIN_ZOOM } from './map-tiles';
 import { LoginActivityService, type LoginActivityItem, type LoginActivitySort } from './login-activity.service';
 import { Ripple } from '../../ui/shared/ripple';
 
@@ -146,34 +146,45 @@ import { Ripple } from '../../ui/shared/ripple';
 
     <app-drawer [open]="mapEvent() !== null" title="Login location map" (closed)="mapEvent.set(null)">
       @if (mapEvent(); as event) {
-        <div class="space-y-4">
+        <div class="flex h-[calc(100dvh-13rem)] min-h-80 flex-col gap-3">
           <p class="text-sm text-muted-foreground">{{ locationLabel(event) }}</p>
           <div
-            class="grid w-fit grid-cols-3 gap-0.5 overflow-hidden rounded-ui-md border border-border"
+            class="relative min-h-0 flex-1 overflow-hidden rounded-ui-md border border-border bg-muted"
             role="img"
             [attr.aria-label]="'Map around ' + locationLabel(event)"
           >
-            @for (tile of mapTiles(); track tile.key) {
-              <div class="relative size-28">
-                <img
-                  [src]="tile.url"
-                  alt=""
-                  width="256"
-                  height="256"
-                  loading="lazy"
-                  referrerpolicy="strict-origin-when-cross-origin"
-                  class="size-28 object-cover"
-                />
-                @if (tile.center) {
-                  <span
-                    class="absolute size-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-destructive shadow"
-                    [style.left.px]="tile.markerLeft"
-                    [style.top.px]="tile.markerTop"
-                    aria-label="Login location marker"
-                  ></span>
+            @if (mapView(); as view) {
+              <div
+                class="absolute"
+                [style.width.px]="1792"
+                [style.height.px]="1792"
+                [style.left]="'calc(50% - ' + view.markerLeft + 'px)'"
+                [style.top]="'calc(50% - ' + view.markerTop + 'px)'"
+              >
+                @for (tile of view.tiles; track tile.key) {
+                  <img
+                    [src]="tile.url"
+                    alt=""
+                    width="256"
+                    height="256"
+                    referrerpolicy="strict-origin-when-cross-origin"
+                    class="absolute size-64 max-w-none"
+                    [style.left.px]="tile.left"
+                    [style.top.px]="tile.top"
+                  />
                 }
+                <span
+                  class="absolute size-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white bg-[#E5484D] shadow"
+                  [style.left.px]="view.markerLeft"
+                  [style.top.px]="view.markerTop"
+                  aria-label="Login location marker"
+                ></span>
               </div>
             }
+            <div class="absolute right-3 top-3 flex flex-col gap-2">
+              <button type="button" data-quiet-button data-pill class="size-9 text-lg leading-none" aria-label="Zoom in" [disabled]="mapZoom() >= maxZoom" (click)="zoomMap(1)">+</button>
+              <button type="button" data-quiet-button data-pill class="size-9 text-lg leading-none" aria-label="Zoom out" [disabled]="mapZoom() <= minZoom" (click)="zoomMap(-1)">−</button>
+            </div>
           </div>
           <a
             href="https://www.openstreetmap.org/copyright"
@@ -199,10 +210,16 @@ export class LoginActivityPage implements OnInit {
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly mapEvent = signal<LoginActivityItem | null>(null);
-  readonly mapTiles = computed<LoginMapTile[]>(() => {
+  readonly minZoom = MAP_MIN_ZOOM;
+  readonly maxZoom = MAP_MAX_ZOOM;
+  readonly mapZoom = signal(10);
+  readonly mapView = computed(() => {
     const event = this.mapEvent();
-    return event && this.hasCoordinates(event) ? getMapTiles(event.latitude!, event.longitude!) : [];
+    return event && this.hasCoordinates(event) ? getMapView(event.latitude!, event.longitude!, this.mapZoom()) : null;
   });
+  zoomMap(delta: number): void {
+    this.mapZoom.update((zoom) => Math.max(MAP_MIN_ZOOM, Math.min(MAP_MAX_ZOOM, zoom + delta)));
+  }
 
   readonly listState = computed(() =>
     this.loading() ? 'loading' : this.error() ? 'error' : 'ready'
@@ -268,6 +285,9 @@ export class LoginActivityPage implements OnInit {
   }
 
   openMap(event: LoginActivityItem): void {
-    if (this.hasCoordinates(event)) this.mapEvent.set(event);
+    if (this.hasCoordinates(event)) {
+      this.mapZoom.set(10);
+      this.mapEvent.set(event);
+    }
   }
 }

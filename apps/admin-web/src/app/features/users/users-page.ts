@@ -2,13 +2,13 @@ import { CommonModule } from '@angular/common';
 import { Component, computed, OnInit, inject, signal } from '@angular/core';
 import { HlmBadge } from '../../ui/badge/src';
 import { HlmButton } from '../../ui/button/src';
-import { ConfirmModal, DataTableControls, Drawer, ListBody, PageHeader, Pagination, RowActions, type RowActionItem, SelectControl } from '../../ui';
+import { ConfirmModal, DataTableControls, Drawer, ListBody, Modal, PageHeader, Pagination, RowActions, type RowActionItem, SelectControl } from '../../ui';
 import { type AdminUser, type AdminUserSort, UsersService } from './users.service';
 import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
   selector: 'app-users-page',
-  imports: [Ripple, CommonModule, HlmBadge, HlmButton, ConfirmModal, DataTableControls, Drawer, ListBody, PageHeader, Pagination, RowActions, SelectControl],
+  imports: [Ripple, CommonModule, HlmBadge, HlmButton, ConfirmModal, DataTableControls, Drawer, ListBody, Modal, PageHeader, Pagination, RowActions, SelectControl],
   template: `
     <app-page-header
       title="Users"
@@ -62,37 +62,35 @@ import { Ripple } from '../../ui/shared/ripple';
       <app-pagination [metadata]="metadata()" (pageChange)="page.set($event); load()" />
     }
 
-    <app-drawer [open]="drawerMode() !== null" [title]="drawerMode() === 'edit' ? 'Edit user' : 'User details'" (closed)="closeDrawer()">
+    <app-drawer [open]="drawerMode() === 'view'" title="User details" (closed)="closeDrawer()">
       @if (selectedUser(); as user) {
-        @if (drawerMode() === 'view') {
-          <dl class="grid gap-4 text-sm">
-            <div><dt class="text-muted-foreground">Name</dt><dd class="font-medium">{{ user.name || '—' }}</dd></div>
-            <div><dt class="text-muted-foreground">Email</dt><dd class="font-medium">{{ user.email }}</dd></div>
-            <div><dt class="text-muted-foreground">Image</dt><dd class="break-all font-medium">{{ user.image || '—' }}</dd></div>
-            <div><dt class="text-muted-foreground">Role</dt><dd class="font-medium">{{ user.role }}</dd></div>
-            <div><dt class="text-muted-foreground">Email verified</dt><dd class="font-medium">{{ user.emailVerified ? 'Yes' : 'No' }}</dd></div>
-            <div><dt class="text-muted-foreground">Created</dt><dd class="font-medium tabular-nums">{{ user.createdAt | date:'medium' }}</dd></div>
-            <div><dt class="text-muted-foreground">Disabled at</dt><dd class="font-medium tabular-nums">{{ user.disabledAt ? (user.disabledAt | date:'medium') : '—' }}</dd></div>
-          </dl>
-        }
-        @else {
-          <form id="user-form" class="space-y-4" (submit)="$event.preventDefault(); saveUser()">
-            <div class="grid gap-2"><label for="user-name" class="text-sm font-medium">Name</label><input id="user-name" class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" [value]="editName()" (input)="editName.set(inputValue($event))" maxlength="100" placeholder="User name" /></div>
-            <div class="grid gap-2"><label for="user-image" class="text-sm font-medium">Image URL</label><input id="user-image" type="url" class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" [value]="editImage()" (input)="onImageInput($event)" placeholder="https://example.com" /></div>
-            <p class="text-xs text-muted-foreground">Only absolute image URLs can be saved here. A blank image keeps the current value unless you edit this field.</p>
-            @if (error()) { <p role="alert" class="rounded-ui-md border border-[#E5484D]/30 bg-[#E5484D]/10 px-3 py-2 text-sm text-[#E5484D]">{{ error() }}</p> }
-          </form>
-        }
-      }
-      @if (selectedUser()) {
-        @if (drawerMode() !== 'view') {
-          <div drawer-footer class="contents">
-            <button hlmBtn variant="outline" type="button" (click)="closeDrawer()">Cancel</button>
-            <button hlmBtn type="submit" form="user-form" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save user' }}</button>
-          </div>
-        }
+        <dl class="grid gap-4 text-sm">
+          <div><dt class="text-muted-foreground">Name</dt><dd class="font-medium">{{ user.name || '—' }}</dd></div>
+          <div><dt class="text-muted-foreground">Email</dt><dd class="font-medium">{{ user.email }}</dd></div>
+          <div><dt class="text-muted-foreground">Image</dt><dd class="break-all font-medium">{{ user.image || '—' }}</dd></div>
+          <div><dt class="text-muted-foreground">Role</dt><dd class="font-medium">{{ user.role }}</dd></div>
+          <div><dt class="text-muted-foreground">Email verified</dt><dd class="font-medium">{{ user.emailVerified ? 'Yes' : 'No' }}</dd></div>
+          <div><dt class="text-muted-foreground">Created</dt><dd class="font-medium tabular-nums">{{ user.createdAt | date:'medium' }}</dd></div>
+          <div><dt class="text-muted-foreground">Disabled at</dt><dd class="font-medium tabular-nums">{{ user.disabledAt ? (user.disabledAt | date:'medium') : '—' }}</dd></div>
+        </dl>
       }
     </app-drawer>
+    <app-modal [open]="drawerMode() === 'edit'" title="Edit user" (closed)="closeDrawer()">
+      @if (selectedUser()) {
+        <form id="user-form" class="space-y-4" (submit)="$event.preventDefault(); saveUser()">
+          <div class="grid gap-2"><label for="user-name" class="text-sm font-medium">Name</label><input id="user-name" class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" [value]="editName()" (input)="editName.set(inputValue($event))" maxlength="100" placeholder="User name" /></div>
+          <div class="grid gap-2"><label for="user-image" class="text-sm font-medium">Image URL</label><input id="user-image" type="url" class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" [value]="editImage()" (input)="onImageInput($event)" placeholder="https://example.com" /></div>
+          <p class="text-xs text-muted-foreground">Only absolute image URLs can be saved here. A blank image keeps the current value unless you edit this field.</p>
+          @if (error()) { <p role="alert" class="rounded-ui-md border border-[#E5484D]/30 bg-[#E5484D]/10 px-3 py-2 text-sm text-[#E5484D]">{{ error() }}</p> }
+        </form>
+      }
+      @if (selectedUser()) {
+        <div drawer-footer class="contents">
+          <button hlmBtn variant="outline" type="button" (click)="closeDrawer()">Cancel</button>
+          <button hlmBtn type="submit" form="user-form" [disabled]="saving()">{{ saving() ? 'Saving…' : 'Save user' }}</button>
+        </div>
+      }
+    </app-modal>
     <app-confirm-modal
       [open]="confirmTarget() !== null"
       [title]="(confirmTarget()?.disabledAt ? 'Enable ' : 'Disable ') + (confirmTarget()?.email ?? 'user') + '?'"

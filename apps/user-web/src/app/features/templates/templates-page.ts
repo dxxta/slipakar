@@ -20,7 +20,7 @@ import { Ripple } from '../../ui/shared/ripple';
   template: `
     <div class="app-list-layout">
       <app-page-header title="Email Templates" description="Manage personalized email templates and placeholder bindings." [topLevel]="false">
-        @if (canWrite()) { <button page-actions hlmBtn type="button" class="max-md:hidden" data-testid="add-template-button" (click)="openAddForm()"><ng-icon name="tablerPlus" aria-hidden="true" class="size-[1.1rem]" />New template</button><app-row-actions page-actions class="md:hidden" [solid]="true" label="Page actions" [items]="pageActions" (actionSelect)="openAddForm()" /> }
+        @if (canWrite()) { <ng-container page-actions><button hlmBtn type="button" class="max-md:hidden" data-testid="add-template-button" (click)="openAddForm()"><ng-icon name="tablerPlus" aria-hidden="true" class="size-[1.1rem]" />New template</button><app-row-actions class="md:hidden" [solid]="true" label="Page actions" [items]="pageActions" (actionSelect)="openAddForm()" /></ng-container> }
       </app-page-header>
       @if (actionError()) { <div aria-live="polite" role="alert"><div hlmAlert variant="destructive"><h2 hlmAlertTitle>Error</h2><p hlmAlertDescription>{{ actionError() }}</p></div></div> }
       @if (actionSuccess()) { <div aria-live="polite" role="status"><div hlmAlert class="border-emerald-500/25 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200"><h2 hlmAlertTitle>Success</h2><p hlmAlertDescription>{{ actionSuccess() }}</p></div></div> }
