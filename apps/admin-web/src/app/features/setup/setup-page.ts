@@ -64,7 +64,7 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
             </div>
           </article>
         }
-        @for (integration of state.integrations; track integration.key) {
+        @for (integration of visibleIntegrations(state.integrations); track integration.key) {
           <article appPressed class="flex w-full min-w-0 flex-col rounded-ui-lg border border-border bg-card p-card" [attr.data-testid]="'setup-row-' + integration.key">
             <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-6">
               <div class="min-w-0 flex-1">
@@ -216,6 +216,9 @@ export class SetupPage implements OnInit {
     grafana: false,
     mail: false,
   });
+
+  // Uptime Kuma runs as a separate status deployment, so it is not configured from this page.
+  protected visibleIntegrations(items: readonly IntegrationItem[]): IntegrationItem[] { return items.filter((item) => item.key !== 'uptime'); }
 
   ngOnInit(): void { void this.load(); }
 

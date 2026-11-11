@@ -26,7 +26,7 @@ describe('SetupPage', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Uptime Kuma');
+    expect(fixture.nativeElement.textContent).not.toContain('Uptime Kuma');
     expect(fixture.nativeElement.textContent).toContain('Grafana');
     expect(fixture.nativeElement.textContent).toContain('Mail');
     expect(fixture.nativeElement.textContent).toContain('Environment');
@@ -55,9 +55,8 @@ describe('SetupPage', () => {
     const uptime = fixture.nativeElement.querySelector('[data-testid="setup-row-uptime"]') as HTMLElement;
     const mail = fixture.nativeElement.querySelector('[data-testid="setup-row-mail"]') as HTMLElement;
     expect(grafana.textContent).toContain('Configured by the Docker environment');
-    expect(uptime.textContent).toContain('Configured by the Docker environment');
+    expect(uptime).toBeNull();
     expect(grafana.textContent).not.toContain('Edit settings');
-    expect(uptime.textContent).not.toContain('Edit settings');
     expect(mail.textContent).toContain('Configure');
     expect(mail.textContent).toContain('Not configured');
     expect(envView.complete).toBe(false);
@@ -110,26 +109,9 @@ describe('SetupPage', () => {
     expect(rowsContainer).not.toBeNull();
     expect(rowsContainer.classList.contains('grid-cols-1')).toBe(true);
     expect(rowsContainer.classList.contains('md:grid-cols-3')).toBe(false);
-    expect(uptimeToggle).not.toBeNull();
+    expect(uptimeToggle).toBeNull();
     expect(grafanaToggle).not.toBeNull();
     expect(mailToggle).not.toBeNull();
-    expect(uptimeToggle.getAttribute('aria-expanded')).toBe('false');
-    expect(fixture.nativeElement.querySelector('[data-testid="card-help-uptime"]')).toBeNull();
-
-    // Expand Uptime Kuma help
-    uptimeToggle.click();
-    fixture.detectChanges();
-    expect(uptimeToggle.getAttribute('aria-expanded')).toBe('true');
-    const uptimeHelp = fixture.nativeElement.querySelector('[data-testid="card-help-uptime"]') as HTMLElement;
-    expect(uptimeHelp).not.toBeNull();
-    expect(uptimeHelp.textContent).toContain('SETUP_UPTIME_URL');
-    expect(uptimeHelp.textContent).toContain('docker-compose.status.yml');
-    expect(uptimeHelp.textContent).toContain('UPTIME_KUMA_ADMIN_PASSWORD');
-
-    // Collapse Uptime Kuma help
-    uptimeToggle.click();
-    fixture.detectChanges();
-    expect(uptimeToggle.getAttribute('aria-expanded')).toBe('false');
     expect(fixture.nativeElement.querySelector('[data-testid="card-help-uptime"]')).toBeNull();
 
     // Expand Grafana and Mail help on cards
@@ -140,16 +122,5 @@ describe('SetupPage', () => {
     expect(mailToggle.getAttribute('aria-expanded')).toBe('true');
     expect(fixture.nativeElement.querySelector('[data-testid="card-help-grafana"]')?.textContent).toContain('GRAFANA_ADMIN_PASSWORD');
     expect(fixture.nativeElement.querySelector('[data-testid="card-help-mail"]')?.textContent).toContain('AUTH_SMTP_*');
-
-    // Open Uptime Kuma configure drawer and verify help is rendered above the form
-    const uptimeCard = [...fixture.nativeElement.querySelectorAll('article')].find((card: HTMLElement) => card.textContent?.includes('Uptime Kuma')) as HTMLElement;
-    (uptimeCard.querySelector('button') as HTMLButtonElement).click();
-    fixture.detectChanges();
-
-    const drawerHelp = fixture.nativeElement.querySelector('[data-testid="drawer-help-uptime"]') as HTMLElement;
-    expect(drawerHelp).not.toBeNull();
-    expect(drawerHelp.textContent).toContain('How to configure');
-    expect(drawerHelp.textContent).toContain('docker-compose.status.yml');
-    expect(drawerHelp.nextElementSibling?.tagName).toBe('FORM');
   });
 });
