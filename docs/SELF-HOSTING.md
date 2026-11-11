@@ -351,6 +351,16 @@ If the deployment used a custom Compose project name, keep that exact name in `C
 - **Login activity shows `"Local network"`**:
   Signing in from `localhost` or directly through the Docker bridge network records a loopback or Docker gateway IP (e.g. `172.18.0.1`), which is private and has no GeoIP coordinates (`null` location, `proxy: false`). Behind an external reverse proxy, ensure `X-Forwarded-For` is forwarded and `TRUST_PROXY` matches your proxy hop count or CIDRs.
 
+### Real client IP behind Traefik or Cloudflare
+
+If login activity shows private or unknown IPs:
+
+- With Docker Swarm (for example Dokploy), the ingress network hides the visitor address. Publish the Traefik web and websecure ports in `host` mode so it sees the real source IP.
+- Make Traefik trust forwarded headers only from your proxy. For Cloudflare, add its published IP ranges to `forwardedHeaders.trustedIPs`, or turn the orange cloud off.
+- Set `TRUST_PROXY` to the number of proxies in front of the API: `2` for Traefik plus the bundled nginx, `3` when Cloudflare proxies traffic as well.
+- Cloudflare: use SSL mode Full (strict), bypass the cache for `/api`, `/admin` and `/me`, and turn Rocket Loader and Auto Minify off.
+- Keep the GeoIP database updated, or locations will stay empty for new address ranges.
+
 ## Browser login location
 
 Login coordinates are collected from the browser only when the user allows location access. If location access is denied or unavailable, the login history uses the approximate location derived from the request IP.
