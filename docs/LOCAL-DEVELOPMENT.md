@@ -39,11 +39,16 @@ Two Compose files provide the dependencies on host-published ports that do not c
 | Redis | 6380 | 6381 |
 | RabbitMQ | 5673 | 5674 |
 | Garage S3 | 3910 | 3911 |
+| Mailpit SMTP / inbox | — | 1025 / 8025 |
 | Start | `cd apps/api && make infra-up` | `make dev-infra-up` |
 | Stop | `make infra-down` | `make dev-infra-down` |
 | Wipe data | `make infra-reset` | `make dev-infra-reset` |
 
 The API `.env` defaults use the `apps/api` development ports. To use the root dev stack, change the ports in `apps/api/.env` accordingly.
+
+### Local email (Mailpit)
+
+Mailpit catches email for local development. `make dev-infra-up` starts it with the root development services; open the inbox at <http://localhost:8025> or send SMTP to `localhost:1025`. Copy the `AUTH_SMTP_*` values from `apps/api/.env.example` into `apps/api/.env` so the API sends platform email to Mailpit. Project SMTP connections created in the user app can also use host `localhost`, port `1025`, and any non-empty username and password. Mailpit is for local development only and is not part of `docker-compose.yml`.
 
 Optional monitoring for local development uses the `monitoring` Compose profile:
 

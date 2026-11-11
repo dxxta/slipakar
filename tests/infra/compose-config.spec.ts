@@ -197,6 +197,20 @@ describe('docker-compose.yml configuration', () => {
     expect(config.services.api).toBeUndefined();
   });
 
+  it('keeps Mailpit in local development Compose only', () => {
+    const devCompose = fs.readFileSync(path.join(rootDir, 'docker-compose.dev.yml'), 'utf8');
+    const productionCompose = fs.readFileSync(composeFile, 'utf8');
+    const statusCompose = fs.readFileSync(path.join(rootDir, 'docker-compose.status.yml'), 'utf8');
+    const rootEnv = fs.readFileSync(path.join(rootDir, '.env.example'), 'utf8');
+
+    expect(devCompose).toContain('  mailpit:');
+    expect(devCompose).toContain('"127.0.0.1:1025:1025"');
+    expect(devCompose).toContain('"127.0.0.1:8025:8025"');
+    expect(productionCompose).not.toContain('mailpit');
+    expect(statusCompose).not.toContain('mailpit');
+    expect(rootEnv).not.toContain('mailpit');
+  });
+
   it('allows existing deployments to retain their database, queue, bucket, and compose project names', ({ skip }) => {
     if (!dockerComposeAvailable) {
       skip('docker compose command is unavailable in this environment');

@@ -55,10 +55,10 @@ secrets: ## Generate cryptographically secure secrets for production and compose
 # DEVELOPMENT
 # ==============================================================================
 
-# Start the dev infrastructure in Docker (Postgres 5434, Redis 6381, RabbitMQ 5674, Garage 3911) on localhost and wait until healthy
-dev-infra-up: ## Start the dev infrastructure (Postgres, Redis, RabbitMQ, Garage) in Docker on localhost
+# Start the dev infrastructure in Docker (Postgres 5434, Redis 6381, RabbitMQ 5674, Garage 3911, Mailpit 1025/8025) on localhost and wait until healthy
+dev-infra-up: ## Start the dev infrastructure (Postgres, Redis, RabbitMQ, Garage, Mailpit) in Docker on localhost
 	docker compose -f docker-compose.dev.yml up -d --wait
-	@echo "Postgres localhost:5434  Redis localhost:6381  RabbitMQ localhost:5674  Garage S3 localhost:3911 (user/password slipakar/slipakar_dev)"
+	@echo "Postgres localhost:5434  Redis localhost:6381  RabbitMQ localhost:5674  Garage S3 localhost:3911 (user/password slipakar/slipakar_dev)  Mailpit SMTP localhost:1025  inbox http://localhost:8025"
 
 # Stop the dev infrastructure and keep its data
 dev-infra-down: ## Stop the dev infrastructure and keep its data

@@ -179,6 +179,8 @@ docker compose up -d postgres redis rabbitmq garage garage-init
 
 Those services do not publish their ports to the host. A host-run, hot-reload API therefore needs local or otherwise host-reachable PostgreSQL, Redis, RabbitMQ, and S3-compatible storage at the URLs in its environment. The Compose-only dependencies are reachable by services running inside the Compose network.
 
+For host-run local development with published dependency ports, use `make dev-infra-up`; it also starts Mailpit at SMTP `localhost:1025` and inbox <http://localhost:8025> for local email testing.
+
 Start the API and Angular apps with the Make targets:
 
 ```bash
