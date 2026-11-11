@@ -122,7 +122,8 @@ describe('SetupPage', () => {
     expect(uptimeToggle.getAttribute('aria-expanded')).toBe('true');
     const uptimeHelp = fixture.nativeElement.querySelector('[data-testid="card-help-uptime"]') as HTMLElement;
     expect(uptimeHelp).not.toBeNull();
-    expect(uptimeHelp.textContent).toContain('http://uptime-kuma:3001');
+    expect(uptimeHelp.textContent).toContain('SETUP_UPTIME_URL');
+    expect(uptimeHelp.textContent).toContain('docker-compose.status.yml');
     expect(uptimeHelp.textContent).toContain('UPTIME_KUMA_ADMIN_PASSWORD');
 
     // Collapse Uptime Kuma help
@@ -148,7 +149,7 @@ describe('SetupPage', () => {
     const drawerHelp = fixture.nativeElement.querySelector('[data-testid="drawer-help-uptime"]') as HTMLElement;
     expect(drawerHelp).not.toBeNull();
     expect(drawerHelp.textContent).toContain('How to configure');
-    expect(drawerHelp.textContent).toContain('http://uptime-kuma:3001');
+    expect(drawerHelp.textContent).toContain('docker-compose.status.yml');
     expect(drawerHelp.nextElementSibling?.tagName).toBe('FORM');
   });
 });

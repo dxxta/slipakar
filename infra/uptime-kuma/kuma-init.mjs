@@ -1,21 +1,32 @@
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
 
-
+/** @typedef {'webUrl' | 'adminUrl' | 'apiUrl' | 'landingUrl'} MonitorUrlOption */
+/** @type {{ name: string; type: 'http'; urlOption: MonitorUrlOption; landing?: boolean }[]} */
 const MONITORS = [
-  { name: 'Slipakar API', type: 'http', url: 'http://api:3000/health' },
-  { name: 'Slipakar Web', type: 'http', url: 'http://web:8080/healthz' },
-  { name: 'Slipakar Landing', type: 'http', url: 'http://landing:8082/healthz' },
+  { name: 'Slipakar Web', type: 'http', urlOption: 'webUrl' },
+  { name: 'Slipakar Admin', type: 'http', urlOption: 'adminUrl' },
+  { name: 'Slipakar API', type: 'http', urlOption: 'apiUrl' },
+  { name: 'Slipakar Landing', type: 'http', urlOption: 'landingUrl', landing: true },
 ];
 
-/** @typedef {{ name: string; type: string; url?: string }} MonitorSummary */
+/** @typedef {{ id?: number; name: string; type: string; url?: string }} MonitorSummary */
+/** @typedef {{ username: string; password: string; includeLanding: boolean; webUrl?: string; adminUrl?: string; apiUrl?: string; landingUrl?: string; statusPageSlug?: string; statusPageTitle?: string }} ProvisionOptions */
 /** @typedef {{ emit(event: string, ...args: unknown[]): unknown; once(event: string, listener: (...args: unknown[]) => void): unknown; off?(event: string, listener: (...args: unknown[]) => void): unknown }} MonitorSocket */
 
-/** @param {MonitorSummary[]} existing @param {boolean} includeLanding @returns {MonitorSummary[]} */
-export function missingMonitors(existing, includeLanding = false) {
-  const desired = includeLanding ? MONITORS : MONITORS.filter((monitor) => monitor.name !== 'Slipakar Landing');
+/** @param {ProvisionOptions} options @returns {MonitorSummary[]} */
+function configuredMonitors(options) {
+  return MONITORS.flatMap((monitor) => {
+    if (monitor.landing && !options.includeLanding) return [];
+    const url = options[monitor.urlOption]?.trim();
+    return url ? [{ name: monitor.name, type: monitor.type, url }] : [];
+  });
+}
+
+/** @param {MonitorSummary[]} existing @param {ProvisionOptions} options @returns {MonitorSummary[]} */
+export function missingMonitors(existing, options) {
   const names = new Set(existing.map((monitor) => monitor.name));
-  return desired.filter((monitor) => !names.has(monitor.name));
+  return configuredMonitors(options).filter((monitor) => !names.has(monitor.name));
 }
 
 /** @param {MonitorSocket} socket @param {string} event @param {...unknown} args @returns {Promise<unknown>} */
@@ -39,41 +50,94 @@ function assertOk(response, operation) {
   }
 }
 
+/** @param {MonitorSocket} socket @param {string} event @returns {Promise<unknown>} */
+function waitForEvent(socket, event) {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => reject(new Error(`Uptime Kuma ${event} event timed out`)), 8_000);
+    socket.once(event, (value) => {
+      clearTimeout(timeout);
+      resolve(value);
+    });
+  });
+}
 
 /** @param {unknown} value @returns {MonitorSummary[]} */
 function normalizeMonitorList(value) {
   if (Array.isArray(value)) return value;
-  if (value && typeof value === 'object') {
-    return Object.values(value).filter((monitor) => monitor && typeof monitor === 'object');
-  }
-  return [];
+  if (!value || typeof value !== 'object') return [];
+  return Object.entries(value).flatMap(([key, monitor]) => {
+    if (!monitor || typeof monitor !== 'object') return [];
+    const summary = /** @type {MonitorSummary} */ (monitor);
+    const id = Number(key);
+    return [{ ...summary, ...(summary.id === undefined && Number.isSafeInteger(id) ? { id } : {}) }];
+  });
 }
 
-/** @param {MonitorSocket} socket @param {{ username: string; password: string; includeLanding: boolean }} options @returns {Promise<{created: string[]}>} */
+/** @param {unknown} value @returns {{ slug?: string; config?: { slug?: string } }[]} */
+function normalizeStatusPageList(value) {
+  if (Array.isArray(value)) return value;
+  if (!value || typeof value !== 'object') return [];
+  return Object.entries(value).flatMap(([slug, page]) => {
+    if (!page || typeof page !== 'object') return [];
+    const statusPage = /** @type {{ slug?: string; config?: { slug?: string } }} */ (page);
+    return [{ ...statusPage, slug: statusPage.slug ?? slug }];
+  });
+}
+
+/** @param {MonitorSocket} socket @returns {Promise<MonitorSummary[]>} */
+async function getMonitorList(socket) {
+  const listPromise = waitForEvent(socket, 'monitorList');
+  void listPromise.catch(() => undefined);
+  assertOk(await emitWithAck(socket, 'getMonitorList'), 'getMonitorList');
+  return normalizeMonitorList(await listPromise);
+}
+
+/** @param {MonitorSocket} socket @param {ProvisionOptions} options @param {{ slug?: string; config?: { slug?: string } }[]} statusPages @returns {Promise<void>} */
+async function saveStatusPage(socket, options, statusPages) {
+  const slug = options.statusPageSlug || 'status';
+  const title = options.statusPageTitle || 'Slipakar status';
+  const exists = statusPages.some((page) => page.slug === slug || page.config?.slug === slug);
+  if (!exists) assertOk(await emitWithAck(socket, 'addStatusPage', title, slug), 'addStatusPage');
+
+  const desiredNames = new Set(configuredMonitors(options).map((monitor) => monitor.name));
+  const monitors = await getMonitorList(socket);
+  const monitorList = monitors
+    .filter((monitor) => desiredNames.has(monitor.name) && typeof monitor.id === 'number' && Number.isSafeInteger(monitor.id))
+    .map((monitor) => ({ id: /** @type {number} */ (monitor.id) }));
+  const config = {
+    slug,
+    title,
+    description: '',
+    theme: 'auto',
+    published: true,
+    showTags: false,
+    showPoweredBy: false,
+    footerText: '',
+    customCSS: '',
+    autoRefreshInterval: 300,
+    domainNameList: [],
+  };
+  assertOk(await emitWithAck(socket, 'saveStatusPage', slug, config, '/icon.svg', [{ name: 'Services', monitorList }]), 'saveStatusPage');
+}
+
+/** @param {MonitorSocket} socket @param {ProvisionOptions} options @returns {Promise<{created: string[]}>} */
 export async function provisionMonitors(socket, options) {
   const needSetup = await emitWithAck(socket, 'needSetup');
   if (needSetup === true) {
     assertOk(await emitWithAck(socket, 'setup', options.username, options.password), 'setup');
   }
 
+  const statusPagesPromise = waitForEvent(socket, 'statusPageList');
+  void statusPagesPromise.catch(() => undefined);
   assertOk(await emitWithAck(socket, 'login', { username: options.username, password: options.password }), 'login');
 
-  const listPromise = new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => reject(new Error('Uptime Kuma monitorList event timed out')), 8_000);
-    socket.once('monitorList', (list) => {
-      clearTimeout(timeout);
-      resolve(normalizeMonitorList(list));
-    });
-  });
-  assertOk(await emitWithAck(socket, 'getMonitorList'), 'getMonitorList');
-  const existing = await listPromise;
-  const missing = missingMonitors(existing, options.includeLanding);
+  const existing = await getMonitorList(socket);
+  const missing = missingMonitors(existing, options);
+  /** @type {string[]} */
   const created = [];
-
   for (const monitor of missing) {
     const response = await emitWithAck(socket, 'add', {
       ...monitor,
-      url: (monitor.name === 'Slipakar API' ? options.apiUrl : monitor.name === 'Slipakar Web' ? options.webUrl : options.landingUrl) || monitor.url,
       method: 'GET',
       interval: 60,
       retryInterval: 60,
@@ -92,10 +156,17 @@ export async function provisionMonitors(socket, options) {
     created.push(monitor.name);
   }
 
+  try {
+    await saveStatusPage(socket, options, normalizeStatusPageList(await statusPagesPromise));
+  } catch (error) {
+    console.warn(`Uptime Kuma status page initialization failed: ${safeError(error, options.password)}`);
+    throw error;
+  }
+
   return { created };
 }
 
-/** @param {{ username: string; password: string; includeLanding: boolean }} options @returns {Promise<{created: string[]}>} */
+/** @param {{ username: string; password: string; includeLanding: boolean; apiUrl?: string; webUrl?: string; adminUrl?: string; landingUrl?: string; statusPageSlug?: string; statusPageTitle?: string }} options @returns {Promise<{created: string[]}>} */
 async function connectAndProvision(options) {
   const require = createRequire('/app/server/server.js');
   const { io } = require('socket.io-client');
@@ -145,7 +216,10 @@ export async function main() {
     includeLanding: process.env.KUMA_MONITOR_LANDING === 'true',
     apiUrl: process.env.KUMA_MONITOR_API_URL,
     webUrl: process.env.KUMA_MONITOR_WEB_URL,
+    adminUrl: process.env.KUMA_MONITOR_ADMIN_URL,
     landingUrl: process.env.KUMA_MONITOR_LANDING_URL,
+    statusPageSlug: process.env.STATUS_PAGE_SLUG || 'status',
+    statusPageTitle: process.env.STATUS_PAGE_TITLE || 'Slipakar status',
   };
 
   let delay = 1_000;

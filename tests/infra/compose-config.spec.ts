@@ -46,7 +46,7 @@ describe('docker-compose.yml configuration', () => {
       'METRICS_TOKEN=fake-metrics-token-16-chars-min',
       'GRAFANA_ADMIN_USER=admin',
       'GRAFANA_ADMIN_PASSWORD=fake-grafana-pw',
-      'UPTIME_KUMA_ADMIN_PASSWORD=fake-kuma-pw',
+      'UPTIME_KUMA_ADMIN_USER=admin',
       'ADMIN_EMAILS=admin@example.com',
       'BIND_ADDRESS=127.0.0.1',
     ].join('\n');
@@ -85,8 +85,6 @@ describe('docker-compose.yml configuration', () => {
       'garage-init',
       'prometheus',
       'grafana',
-      'uptime-kuma',
-      'kuma-init',
     ];
 
     // (1) all expected services exist with the contract names
@@ -96,7 +94,7 @@ describe('docker-compose.yml configuration', () => {
 
     // (2) long-running services have restart unless-stopped, garage-init has restart "no"
     for (const service of expectedServices) {
-      if (service === 'garage-init' || service === 'kuma-init') {
+      if (service === 'garage-init') {
         expect(
           config.services[service].restart,
           `Expected service ${service} to have restart no`,
@@ -120,7 +118,7 @@ describe('docker-compose.yml configuration', () => {
     }
 
     // (4) the published ports are bound to 127.0.0.1
-    const publishedServices = ['api', 'web', 'grafana', 'uptime-kuma'];
+    const publishedServices = ['api', 'web', 'grafana'];
     for (const service of publishedServices) {
       const ports = config.services[service].ports;
       expect(ports, `Expected service ${service} to have published ports`).toBeDefined();
@@ -147,12 +145,12 @@ describe('docker-compose.yml configuration', () => {
     expect(config.services.api.environment.RABBITMQ_URL).toBe('amqp://slipakar:fake-rabbitmq-pw@rabbitmq:5672');
     expect(config.services.api.environment.S3_BUCKET).toBe('slipakar');
     expect(config.services['garage-init'].environment.S3_BUCKET).toBe('slipakar');
-    expect(config.services['uptime-kuma'].image).toBe('louislam/uptime-kuma:1.23.17');
-    expect(config.services['kuma-init'].depends_on['uptime-kuma'].condition).toBe('service_healthy');
-    expect(config.services['kuma-init'].restart).toBe('no');
+    expect(config.services['uptime-kuma']).toBeUndefined();
+    expect(config.services['kuma-init']).toBeUndefined();
     expect(config.services.api.environment.SETUP_GRAFANA_URL).toBe('http://grafana:3000');
-    expect(config.services.api.environment.SETUP_UPTIME_URL).toBe('http://uptime-kuma:3001');
-    expect(config.services.api.environment.SETUP_UPTIME_PASSWORD).toBe('fake-kuma-pw');
+    expect(config.services.api.environment.SETUP_UPTIME_URL).toBe('');
+    expect(config.services.api.environment.SETUP_UPTIME_USERNAME).toBe('admin');
+    expect(config.services.api.environment.SETUP_UPTIME_PASSWORD).toBe('');
 
     expect(config.services.landing).toBeUndefined();
     const landingConfigOutput = execFileSync(
@@ -174,6 +172,19 @@ describe('docker-compose.yml configuration', () => {
     }
     expect(apiDepends['garage-init'], 'Expected api to depend on garage-init').toBeDefined();
     expect(apiDepends['garage-init'].condition).toBe('service_completed_successfully');
+  });
+
+  it('defines a separate status stack with a loopback dashboard and a default-deny public gateway', () => {
+    const statusCompose = fs.readFileSync(path.join(rootDir, 'docker-compose.status.yml'), 'utf8');
+    const gatewayConfig = fs.readFileSync(path.join(rootDir, 'infra/status/nginx.conf.template'), 'utf8');
+    for (const service of ['uptime-kuma:', 'kuma-init:', 'status-gateway:']) expect(statusCompose).toContain(service);
+    expect(statusCompose).toContain('"${KUMA_ADMIN_BIND_ADDRESS:-127.0.0.1}:${KUMA_ADMIN_PORT:-3002}:3001"');
+    expect(statusCompose).toContain('"${STATUS_BIND_ADDRESS:-127.0.0.1}:${STATUS_PORT:-8081}:8081"');
+    expect(statusCompose.match(/STATUS_BIND_ADDRESS/g)).toHaveLength(1);
+    expect(gatewayConfig).toContain('location / {');
+    expect(gatewayConfig).toContain('return 404;');
+    expect(gatewayConfig).not.toContain('location /dashboard');
+    expect(gatewayConfig).not.toContain('location /socket.io');
   });
 
   it('configures optional dev monitoring services under the monitoring profile', ({ skip }) => {

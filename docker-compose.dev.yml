@@ -140,6 +140,7 @@ services:
       KUMA_MONITOR_LANDING: "false"
       KUMA_MONITOR_API_URL: "http://host.docker.internal:3000/health"
       KUMA_MONITOR_WEB_URL: "http://host.docker.internal:4300/"
+      KUMA_MONITOR_ADMIN_URL: "http://host.docker.internal:4301/"
       KUMA_MONITOR_LANDING_URL: "http://host.docker.internal:4302/"
     volumes:
       - ./infra/uptime-kuma/kuma-init.mjs:/init/kuma-init.mjs:ro

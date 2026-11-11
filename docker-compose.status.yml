@@ -1,0 +1,61 @@
+# Dokploy: Compose service, Compose Path ./docker-compose.status.yml; point the public domain to service status-gateway port 8081.
+name: ${COMPOSE_PROJECT_NAME:-slipakar-status}
+
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:1.23.17
+    restart: unless-stopped
+    ports:
+      - "${KUMA_ADMIN_BIND_ADDRESS:-127.0.0.1}:${KUMA_ADMIN_PORT:-3002}:3001"
+    volumes:
+      - uptime_kuma_data:/app/data
+    healthcheck:
+      test: ["CMD", "node", "extra/healthcheck.js"]
+      interval: 10s
+      timeout: 30s
+      retries: 12
+      start_period: 180s
+
+  kuma-init:
+    image: louislam/uptime-kuma:1.23.17
+    entrypoint: ["node", "/init/kuma-init.mjs"]
+    restart: "no"
+    depends_on:
+      uptime-kuma:
+        condition: service_healthy
+    environment:
+      NODE_PATH: /app/node_modules
+      UPTIME_KUMA_ADMIN_USER: "${UPTIME_KUMA_ADMIN_USER:-admin}"
+      UPTIME_KUMA_ADMIN_PASSWORD: "${UPTIME_KUMA_ADMIN_PASSWORD:?UPTIME_KUMA_ADMIN_PASSWORD is required}"
+      KUMA_MONITOR_WEB_URL: "${KUMA_MONITOR_WEB_URL:-}"
+      KUMA_MONITOR_ADMIN_URL: "${KUMA_MONITOR_ADMIN_URL:-}"
+      KUMA_MONITOR_API_URL: "${KUMA_MONITOR_API_URL:-}"
+      KUMA_MONITOR_LANDING_URL: "${KUMA_MONITOR_LANDING_URL:-}"
+      KUMA_MONITOR_LANDING: "${KUMA_MONITOR_LANDING:-false}"
+      STATUS_PAGE_SLUG: "${STATUS_PAGE_SLUG:-status}"
+      STATUS_PAGE_TITLE: "${STATUS_PAGE_TITLE:-Slipakar status}"
+    volumes:
+      - ./infra/uptime-kuma/kuma-init.mjs:/init/kuma-init.mjs:ro
+
+  status-gateway:
+    build:
+      context: .
+      dockerfile: infra/status/Dockerfile
+    restart: unless-stopped
+    depends_on:
+      uptime-kuma:
+        condition: service_healthy
+    ports:
+      - "${STATUS_BIND_ADDRESS:-127.0.0.1}:${STATUS_PORT:-8081}:8081"
+    environment:
+      STATUS_PAGE_SLUG: "${STATUS_PAGE_SLUG:-status}"
+      NGINX_ENVSUBST_FILTER: "^(STATUS_PAGE_SLUG)$"
+      NGINX_ENVSUBST_OUTPUT_DIR: /etc/nginx/conf.d
+    healthcheck:
+      test: ["CMD", "busybox", "wget", "-q", "-O", "-", "http://127.0.0.1:8081/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  uptime_kuma_data:

@@ -46,10 +46,8 @@ The primary use case is HR, finance, or operations uploading a spreadsheet, mapp
 | `garage` | S3-compatible object storage for attachments, generated PDFs, and error records | Internal only |
 | `prometheus` | Scrapes API metrics | Internal only |
 | `grafana` | Metrics dashboards | `3001` |
-| `uptime-kuma` | Uptime and health monitoring | `3002` |
-| `kuma-init` | One-shot Kuma account setup and idempotent default monitor creation | None |
 
-The API, web, Grafana, Uptime Kuma, and optional landing-site ports bind to `127.0.0.1` by default. PostgreSQL, Redis, RabbitMQ, Garage, Prometheus, and the one-shot `kuma-init` stay on the internal Compose network.
+The API, web, Grafana, and optional landing-site ports bind to `127.0.0.1` by default. PostgreSQL, Redis, RabbitMQ, Garage, and Prometheus stay on the internal Compose network. Uptime Kuma runs separately through `docker-compose.status.yml` so its public status gateway can remain available if the application stack is down.
 
 The public landing site is served by the `landing` service on port `8082`. It provides English and Indonesian product information, a terms page, a dynamic sitemap, and a robots policy that blocks selected AI model crawlers while allowing search crawlers. Configure the public app, site, repository, and self-hosting guide URLs with the `LANDING_*_URL` variables.
 
@@ -87,7 +85,7 @@ cp .env.example .env
 make secrets
 ```
 
-`make secrets` prints values for `APP_ENCRYPTION_KEY`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `GARAGE_RPC_SECRET`, `GARAGE_ADMIN_TOKEN`, and `UPTIME_KUMA_ADMIN_PASSWORD`. Generate the remaining passwords and tokens with OpenSSL, for example:
+`make secrets` prints values for `APP_ENCRYPTION_KEY`, `S3_ACCESS_KEY`, `S3_SECRET_KEY`, `GARAGE_RPC_SECRET`, `GARAGE_ADMIN_TOKEN`, and the standalone status stack's `UPTIME_KUMA_ADMIN_PASSWORD`. Generate the remaining passwords and tokens with OpenSSL, for example:
 
 ```bash
 openssl rand -hex 32   # POSTGRES_PASSWORD, RABBITMQ_PASSWORD, GRAFANA_ADMIN_PASSWORD, METRICS_TOKEN
@@ -111,15 +109,13 @@ The API applies database migrations during startup. Wait for the services to bec
 | Admin app | `http://127.0.0.1:8080/console/` | Same origin as user app |
 | API | `http://127.0.0.1:3000` | `127.0.0.1:3000` |
 | Grafana | `http://127.0.0.1:3001` | `127.0.0.1:3001` |
-| Uptime Kuma | `http://127.0.0.1:3002` | `127.0.0.1:3002` |
-| Kuma initializer | one-shot startup job | no published port |
 | Landing site (optional) | `http://127.0.0.1:8082` | `127.0.0.1:8082` |
 
 `BIND_ADDRESS` controls the host IP and `WEB_PORT` changes the published web port. The admin app is served from `/console/` on that same origin. The landing site is opt-in: start it with `docker compose --profile landing up -d` or `make up-landing`. For public access, place an HTTPS reverse proxy in front of the web port; see [Self-Hosting](docs/SELF-HOSTING.md).
 
 To grant admin access, add the account's Google email to `ADMIN_EMAILS` before signing in. Admin-only routes compare the signed-in email with this configured list.
 
-The API seeds one example payroll workspace at startup by default (`SEED_DEMO_PROJECT=false` disables it). It is first owned by a disabled, hidden system account and transfers to the first administrator who signs in. It contains a sample XLSX upload and mapping, email and PDF templates, a placeholder SMTP connection (`smtp.example.com`), and a draft campaign. The placeholder campaign cannot send until a real project SMTP connection is configured. Grafana provisioning and Uptime Kuma account/monitor creation are automatic; the Admin Setup page remains available for platform mail.
+The API seeds one example payroll workspace at startup by default (`SEED_DEMO_PROJECT=false` disables it). It is first owned by a disabled, hidden system account and transfers to the first administrator who signs in. It contains a sample XLSX upload and mapping, email and PDF templates, a placeholder SMTP connection (`smtp.example.com`), and a draft campaign. The placeholder campaign cannot send until a real project SMTP connection is configured. Grafana provisioning is automatic; the Admin Setup page remains available for platform mail.
 
 ## Google sign-in setup
 
@@ -335,9 +331,9 @@ The API environment schema is in `apps/api/src/config/env.ts`. Compose-specific 
 | `ADMIN_EMAILS` | No | Empty | Comma-separated admin email allowlist. |
 | `SEED_DEMO_PROJECT` | No | `true` (test environment defaults to `false`) | Seed the one-time example workspace during API startup. |
 | `SETUP_GRAFANA_URL` | No | Compose: `http://grafana:3000`; local dev: `http://localhost:3011` | Trusted environment URL for Grafana in Admin Setup. |
-| `SETUP_UPTIME_URL` | No | Compose: `http://uptime-kuma:3001`; local dev: `http://localhost:3012` | Trusted environment URL for Uptime Kuma in Admin Setup. |
-| `SETUP_UPTIME_USERNAME` | No | Compose: `UPTIME_KUMA_ADMIN_USER` (default `admin`) | Kuma username supplied to the API's Setup integration tester. |
-| `SETUP_UPTIME_PASSWORD` | No in API; required by Compose | Compose: `UPTIME_KUMA_ADMIN_PASSWORD` | Kuma password supplied to the API's Setup integration tester. |
+| `SETUP_UPTIME_URL` | No | Compose: Empty; local dev: `http://localhost:3012` | Optional private Kuma admin URL reachable from the API for its Setup connection test. |
+| `SETUP_UPTIME_USERNAME` | No | Empty unless `UPTIME_KUMA_ADMIN_USER` is set | Optional Kuma username supplied to the API's Setup integration tester. |
+| `SETUP_UPTIME_PASSWORD` | No | Empty unless `UPTIME_KUMA_ADMIN_PASSWORD` is set | Optional Kuma password supplied to the API's Setup integration tester. |
 | `SETUP_GRAFANA_API_TOKEN` | No | Empty | Optional Grafana token used by the Setup connection test. |
 | `METRICS_TOKEN` | API: optional; Compose: required | None in API schema | Bearer token for `/metrics`; must be at least 16 characters. |
 | `PORT` | No | `3000` | API listen port; Compose sets it to `3000`. |
@@ -355,9 +351,19 @@ The API environment schema is in `apps/api/src/config/env.ts`. Compose-specific 
 | `GARAGE_METRICS_TOKEN` | No | Empty | Optional token forwarded to the Garage container. |
 | `GRAFANA_ADMIN_USER` | No | `admin` | Grafana login name. |
 | `GRAFANA_ADMIN_PASSWORD` | Compose: yes | None | Grafana login password. |
-| `UPTIME_KUMA_ADMIN_USER` | No | `admin` | Kuma admin username created by `kuma-init`. |
-| `UPTIME_KUMA_ADMIN_PASSWORD` | Compose: yes | None | Kuma admin password; `make secrets` generates it. |
-| `KUMA_MONITOR_LANDING` | No | `false` | Also create the Landing monitor when the optional landing profile is in use. |
+| `UPTIME_KUMA_ADMIN_USER` | No | `admin` | Admin username for the standalone status stack; also used by the optional API Setup test. |
+| `UPTIME_KUMA_ADMIN_PASSWORD` | Required by standalone status Compose only | None | Kuma password; `make secrets` generates it. Not required by the main application stack. |
+| `KUMA_MONITOR_WEB_URL` | No | Empty | Public Web URL to monitor in the standalone status stack; empty skips it. |
+| `KUMA_MONITOR_ADMIN_URL` | No | Empty | Public Admin URL to monitor in the standalone status stack; empty skips it. |
+| `KUMA_MONITOR_API_URL` | No | Empty | Public API health URL to monitor in the standalone status stack; empty skips it. |
+| `KUMA_MONITOR_LANDING_URL` | No | Empty | Public Landing URL to monitor; empty skips it. |
+| `KUMA_MONITOR_LANDING` | No | `false` | Enable creation of the Landing monitor when its URL is set. |
+| `STATUS_PAGE_SLUG` | No | `status` | Public Uptime Kuma status-page slug. |
+| `STATUS_PAGE_TITLE` | No | `Slipakar status` | Public status-page title. |
+| `STATUS_PORT` | No | `8081` | Host port for the standalone public status gateway. |
+| `STATUS_BIND_ADDRESS` | No | `127.0.0.1` | Host address for the standalone status gateway; keep loopback when using a reverse proxy. |
+| `KUMA_ADMIN_PORT` | No | `3002` | Host port for the standalone Kuma dashboard. |
+| `KUMA_ADMIN_BIND_ADDRESS` | No | `127.0.0.1` | Host address for the private Kuma dashboard. |
 | `BIND_ADDRESS` | No | `127.0.0.1` | Host IP used for published Compose ports. |
 | `WEB_PORT` | No | `8080` | Host port for the user and admin web apps; admin is under `/console/`. |
 | `API_UPSTREAM` | No | `api:3000` | Nginx upstream address for API requests inside Compose. |
@@ -369,7 +375,7 @@ The API environment schema is in `apps/api/src/config/env.ts`. Compose-specific 
 
 - **Backups:** PostgreSQL and service state live in named volumes. Back up the database and both Garage volumes (`garage_meta` and `garage_data`) consistently. The backup examples and volume list are in [Self-Hosting](docs/SELF-HOSTING.md).
 - **Upgrades:** rebuild and restart with the steps in [Self-Hosting](docs/SELF-HOSTING.md). API migrations run on startup. Keep a verified backup before upgrading.
-- **Uptime Kuma password:** change it in Kuma's account settings and update `UPTIME_KUMA_ADMIN_PASSWORD` in `.env` to the same value so the API's Admin Setup tester can continue to authenticate. Existing monitors and credentials persist in the named volume.
+- **Uptime Kuma:** deploy it separately with `docker compose -f docker-compose.status.yml up -d --build`. Its account and monitors persist in the standalone `uptime_kuma_data` volume; the API Setup connection test is optional and needs a private URL reachable from the API.
 - **Sentry:** set `SENTRY_DSN_USER` and/or `SENTRY_DSN_ADMIN` in the build environment, then rebuild the `web` image. The DSNs are embedded in production browser bundles; keep them out of committed source.
 - **Reverse proxy and security:** Compose binds the API and web service to loopback by default. The optional landing service also binds to loopback and can be started with the `landing` profile. Review [Self-Hosting](docs/SELF-HOSTING.md) for TLS proxy examples, cookie behavior, port details, and deployment security notes.
 
