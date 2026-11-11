@@ -5,9 +5,9 @@ import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { LoginContextService } from './login-context.service';
 
-export type SessionUser = { id: string; email: string; emailVerified?: boolean; name?: string; image?: string | null; role: string };
+export type SessionUser = { id: string; email: string; emailVerified?: boolean; name?: string; image?: string | null; role: string; twoFactorEnabled?: boolean };
 type SessionResponse = { user: SessionUser; session: unknown } | null;
-type EmailAuthResponse = { user?: SessionUser; token?: string | null; status?: boolean };
+type EmailAuthResponse = { user?: SessionUser; token?: string | null; status?: boolean; twoFactorRedirect?: boolean; twoFactorMethods?: string[] };
 export type AuthAccountView = { id: string; providerId: string; accountId: string };
 export const USER_RETURN_URL_STORAGE_KEY = 'slipakar.user-return-url';
 
@@ -44,6 +44,7 @@ export class SessionService {
   readonly user = signal<SessionUser | null>(null);
   readonly loading = signal(true);
   readonly accountDisabled = signal(false);
+  readonly twoFactorPending = signal(false);
 
   async loadSession(): Promise<SessionUser | null> {
     this.loading.set(true);
@@ -130,16 +131,39 @@ export class SessionService {
     return new URL(route, view.location.origin).toString();
   }
 
-  async signInWithEmail(email: string, password: string, returnUrl?: string): Promise<SessionUser> {
+  async signInWithEmail(email: string, password: string, returnUrl?: string): Promise<SessionUser | null> {
     const response = await firstValueFrom(this.http.post<EmailAuthResponse>(
       `${environment.apiBase}/api/auth/sign-in/email`,
       { email: email.trim(), password, callbackURL: this.callbackUrlFor(returnUrl) },
       { withCredentials: true },
     ));
+    if (response.twoFactorRedirect) {
+      this.twoFactorPending.set(true);
+      return null;
+    }
     if (!response.user) throw new Error('Credential sign-in did not return a user');
+    this.twoFactorPending.set(false);
     this.loginContext.markPending();
     this.user.set(response.user);
     return response.user;
+  }
+
+  async verifyTwoFactor(code: string, backupCode = false, trustDevice = false): Promise<SessionUser> {
+    const endpoint = backupCode ? 'verify-backup-code' : 'verify-totp';
+    const response = await firstValueFrom(this.http.post<{ user?: SessionUser; token?: string }>(
+      `${environment.apiBase}/api/auth/two-factor/${endpoint}`,
+      { code, trustDevice },
+      { withCredentials: true },
+    ));
+    if (!response.user) throw new Error('Two-factor verification did not return a user');
+    this.user.set(response.user);
+    this.twoFactorPending.set(false);
+    this.loginContext.markPending();
+    return response.user;
+  }
+
+  cancelTwoFactorChallenge(): void {
+    this.twoFactorPending.set(false);
   }
 
   async signUpWithEmail(name: string, email: string, password: string, callbackURL: string): Promise<void> {
@@ -195,6 +219,7 @@ export class SessionService {
       await firstValueFrom(this.http.post(`${environment.apiBase}/api/auth/sign-out`, {}, { withCredentials: true }));
     } finally {
       this.user.set(null);
+      this.twoFactorPending.set(false);
       this.clearReturnUrl();
     }
   }

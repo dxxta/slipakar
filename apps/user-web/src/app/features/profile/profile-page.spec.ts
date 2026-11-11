@@ -10,6 +10,8 @@ import { ACCENT_PRESET_COLORS, defaultThemeColors, type ThemeAccent } from '../.
 import { ProfilePage } from './profile-page';
 import type { ComponentFixture } from '@angular/core/testing';
 
+vi.mock('qrcode', () => ({ toDataURL: vi.fn().mockResolvedValue('data:image/png;base64,qr-code') }));
+
 describe('ProfilePage', async () => {
   let http: HttpTestingController;
   let session: SessionService;
@@ -71,6 +73,55 @@ describe('ProfilePage', async () => {
     expect(googleOnly.nativeElement.textContent).toContain('Your email follows your Google account.');
     expect(googleOnly.nativeElement.textContent).toContain('Connected');
     googleOnly.destroy();
+  });
+
+  it('keeps two-factor disabled until setup code verification, then shows backup codes once', async () => {
+    const fixture = await createFixture();
+    const enable = [...fixture.nativeElement.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent?.includes('Enable two-factor')) as HTMLButtonElement;
+    enable.click(); fixture.detectChanges();
+    const password = fixture.nativeElement.querySelector('#two-factor-password') as HTMLInputElement;
+    password.value = 'a-long-enough-password'; password.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    (password.closest('form') as HTMLFormElement).dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    const setup = http.expectOne('/api/auth/two-factor/enable');
+    expect(setup.request.body).toEqual({ password: 'a-long-enough-password', method: 'totp', issuer: 'Slipakar' });
+    setup.flush({ method: 'totp', totpURI: 'otpauth://totp/Slipakar:ada?secret=TESTSECRET&issuer=Slipakar', backupCodes: ['ABCDE-12345', 'FGHIJ-67890'] });
+    await fixture.whenStable(); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('#activate-two-factor-code')).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('TESTSECRET');
+
+    const code = fixture.nativeElement.querySelector('#activate-two-factor-code') as HTMLInputElement;
+    code.value = '123456'; code.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    (code.closest('form') as HTMLFormElement).dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    http.expectOne('/api/auth/two-factor/verify-totp').flush({ token: 'session-token', user: { ...session.user(), twoFactorEnabled: true } });
+    http.expectOne('/api/auth/get-session').flush({ user: { ...session.user(), twoFactorEnabled: true }, session: {} });
+    await fixture.whenStable(); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Save these backup codes now');
+    expect(fixture.nativeElement.querySelectorAll('ol li')).toHaveLength(2);
+    expect(fixture.nativeElement.querySelector('#two-factor-heading')).not.toBeNull();
+  });
+
+  it('asks for password and current TOTP before disabling two-factor', async () => {
+    session.user.set({ id: 'u-1', email: 'old@example.test', name: 'Ada Lovelace', role: 'user', twoFactorEnabled: true });
+    const fixture = await createFixture();
+    const disable = [...fixture.nativeElement.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent?.includes('Disable two-factor')) as HTMLButtonElement;
+    disable.click(); fixture.detectChanges();
+    const password = fixture.nativeElement.querySelector('#disable-two-factor-password') as HTMLInputElement;
+    const code = fixture.nativeElement.querySelector('#disable-two-factor-code') as HTMLInputElement;
+    password.value = 'a-long-enough-password'; password.dispatchEvent(new Event('input'));
+    code.value = '123456'; code.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    (password.closest('form') as HTMLFormElement).dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    const verify = http.expectOne('/api/auth/two-factor/verify-totp');
+    expect(verify.request.body).toEqual({ code: '123456' });
+    verify.flush({ token: 'session-token', user: session.user()! });
+    const disableRequest = http.expectOne('/api/auth/two-factor/disable');
+    expect(disableRequest.request.body).toEqual({ password: 'a-long-enough-password' });
+    disableRequest.flush({ status: true });
+    http.expectOne('/api/auth/get-session').flush({ user: { ...session.user(), twoFactorEnabled: false }, session: {} });
+    await fixture.whenStable(); fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Two-factor authentication disabled.');
   });
 
   it('requests a password setup link for a Google-only account and closes the drawer on success', async () => {

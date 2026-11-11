@@ -1,9 +1,11 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { tablerPencil } from '@ng-icons/tabler-icons';
+import * as QRCode from 'qrcode';
+import { firstValueFrom } from 'rxjs';
 import { AuthAccountView, SessionService, credentialAuthErrorMessage } from '../../core/session.service';
 import { ThemePreferencesService } from '../../core/theme-preferences.service';
 import { contrastRatio, isHexColor, readableForeground, type BaseColorKey, type ThemeAccent, type ThemeMode } from '../../core/theme-preferences';
@@ -141,6 +143,22 @@ import { Ripple } from '../../ui/shared/ripple';
     </section>
     }
 
+    @if (accountsLoaded()) {
+    <section class="space-y-4 rounded-ui-lg border border-border bg-card p-card" aria-labelledby="two-factor-heading">
+      <div class="flex flex-wrap items-start justify-between gap-3">
+        <div><h2 id="two-factor-heading" class="text-lg font-semibold">Two-factor authentication</h2><p class="mt-1 text-sm text-muted-foreground">Add an authenticator code to credential login.</p></div>
+        <span class="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium"><span class="size-2 rounded-full" [class.bg-primary]="session.user()?.twoFactorEnabled" [class.bg-muted-foreground]="!session.user()?.twoFactorEnabled" aria-hidden="true"></span>{{ session.user()?.twoFactorEnabled ? 'On' : 'Off' }}</span>
+      </div>
+      @if (session.user()?.twoFactorEnabled) {
+        <div class="flex flex-wrap gap-3"><button hlmBtn variant="outline" type="button" (click)="openTwoFactorDrawer('regenerate')">Regenerate backup codes</button><button hlmBtn variant="destructive" type="button" (click)="openTwoFactorDrawer('disable')">Disable two-factor</button></div>
+      } @else if (credentialSet()) {
+        <button hlmBtn type="button" (click)="openTwoFactorDrawer('enable')">Enable two-factor</button>
+      } @else {
+        <div class="flex flex-wrap items-center gap-3"><p class="text-sm text-muted-foreground">Set a password first</p><button hlmBtn variant="outline" type="button" (click)="openSigninDrawer('set-password')">Set a password</button></div>
+      }
+    </section>
+    }
+
     @if (accountsLoaded() && credentialSet()) {
     <section class="space-y-4 rounded-ui-lg border border-border bg-card p-card" aria-labelledby="email-heading">
       <div>
@@ -161,6 +179,7 @@ import { Ripple } from '../../ui/shared/ripple';
             required
           />
         </div>
+        @if (session.user()?.twoFactorEnabled) { <label class="grid gap-2 text-sm font-medium" for="change-email-code">Current authenticator code<input id="change-email-code" class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="000000" maxlength="6" [value]="sensitiveCode()" (input)="onSensitiveCodeInput($event)" required /></label> }
         <button
           hlmBtn
           type="submit"
@@ -282,16 +301,62 @@ import { Ripple } from '../../ui/shared/ripple';
       } @else if (signinDrawer() === 'disconnect-google') {
         <div class="space-y-4">
           <p class="text-sm">Disconnect Google login from this account? You’ll still be able to sign in with your credential login.</p>
+          @if (session.user()?.twoFactorEnabled) { <label class="grid gap-2 text-sm font-medium" for="disconnect-google-code">Current authenticator code<input id="disconnect-google-code" class="profile-control" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="000000" maxlength="6" [value]="sensitiveCode()" (input)="onSensitiveCodeInput($event)" required /></label> }
           @if (signinMethodError()) { <p role="alert" class="rounded-ui-md bg-[#E5484D]/10 p-3 text-sm text-[#E5484D]">{{ signinMethodError() }}</p> }
-          <button hlmBtn variant="destructive" type="button" [disabled]="methodBusy()" (click)="disconnectGoogle()">{{ methodBusy() ? 'Disconnecting…' : 'Confirm disconnect' }}</button>
+          <button hlmBtn variant="destructive" type="button" [disabled]="methodBusy() || (session.user()?.twoFactorEnabled && !validSensitiveCode())" (click)="disconnectGoogle()">{{ methodBusy() ? 'Disconnecting…' : 'Confirm disconnect' }}</button>
         </div>
       } @else if (signinDrawer() === 'change-password') {
         <form class="space-y-4" (submit)="changeCredentialPassword($event)">
           <label class="grid gap-2 text-sm font-medium" for="current-password">Current password<input id="current-password" class="profile-control" type="password" autocomplete="current-password" placeholder="Current password" [value]="currentPassword()" (input)="currentPassword.set(inputValue($event))" required /></label>
+          @if (session.user()?.twoFactorEnabled) { <label class="grid gap-2 text-sm font-medium" for="change-password-code">Current authenticator code<input id="change-password-code" class="profile-control" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="000000" maxlength="6" [value]="sensitiveCode()" (input)="onSensitiveCodeInput($event)" required /></label> }
           <label class="grid gap-2 text-sm font-medium" for="new-password">New password<input id="new-password" class="profile-control" type="password" autocomplete="new-password" placeholder="At least 12 characters" [value]="newPassword()" (input)="newPassword.set(inputValue($event))" minlength="12" required /></label>
           <label class="grid gap-2 text-sm font-medium" for="confirm-new-password">Confirm new password<input id="confirm-new-password" class="profile-control" type="password" autocomplete="new-password" placeholder="Re-enter new password" [value]="confirmNewPassword()" (input)="confirmNewPassword.set(inputValue($event))" minlength="12" required /></label>
           @if (signinMethodError()) { <p role="alert" class="rounded-ui-md bg-[#E5484D]/10 p-3 text-sm text-[#E5484D]">{{ signinMethodError() }}</p> }
           <button hlmBtn type="submit" [disabled]="methodBusy()">{{ methodBusy() ? 'Saving…' : 'Change password' }}</button>
+        </form>
+      }
+    </app-drawer>
+
+    <app-drawer [open]="twoFactorDrawer() !== null" [title]="twoFactorDrawerTitle()" (closed)="closeTwoFactorDrawer()">
+      @if (twoFactorDrawer() === 'enable' && twoFactorStep() === 'password') {
+        <form class="space-y-4" (submit)="beginTwoFactorSetup($event)">
+          <p class="text-sm text-muted-foreground">Confirm your credential password to create an authenticator setup.</p>
+          <label class="grid gap-2 text-sm font-medium" for="two-factor-password">Password<input id="two-factor-password" class="profile-control" type="password" autocomplete="current-password" placeholder="Your password" [value]="twoFactorPassword()" (input)="twoFactorPassword.set(inputValue($event))" required /></label>
+          @if (twoFactorError()) { <p role="alert" class="rounded-ui-md bg-[#E5484D]/10 p-3 text-sm text-[#E5484D]">{{ twoFactorError() }}</p> }
+          <button hlmBtn type="submit" [disabled]="twoFactorBusy()">{{ twoFactorBusy() ? 'Preparing…' : 'Continue' }}</button>
+        </form>
+      } @else if (twoFactorDrawer() === 'enable' && twoFactorStep() === 'setup') {
+        <div class="space-y-4">
+          <p class="text-sm text-muted-foreground">Scan this QR code with your authenticator app, or enter the setup key manually.</p>
+          @if (qrCodeDataUrl()) { <img class="mx-auto size-48 rounded-ui-md border border-border bg-white p-2" [src]="qrCodeDataUrl()" alt="Authenticator setup QR code" /> }
+          <div class="rounded-ui-md border border-border bg-muted/40 p-3"><p class="text-xs font-medium text-muted-foreground">Setup key</p><code class="mt-1 block break-all text-sm">{{ setupKey() }}</code><button hlmBtn variant="outline" type="button" class="mt-3" (click)="copySetupKey()">Copy setup key</button></div>
+          <form class="space-y-4" (submit)="activateTwoFactor($event)">
+            <label class="grid gap-2 text-sm font-medium" for="activate-two-factor-code">6-digit code<input id="activate-two-factor-code" class="profile-control" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="000000" maxlength="6" [value]="twoFactorCode()" (input)="onTwoFactorInput($event)" required /></label>
+            @if (twoFactorError()) { <p role="alert" class="rounded-ui-md bg-[#E5484D]/10 p-3 text-sm text-[#E5484D]">{{ twoFactorError() }}</p> }
+            <button hlmBtn type="submit" [disabled]="twoFactorBusy() || !validTotpCode()">{{ twoFactorBusy() ? 'Verifying…' : 'Verify and enable' }}</button>
+          </form>
+        </div>
+      } @else if (twoFactorStep() === 'backup-codes') {
+        <div class="space-y-4">
+          <p role="status" class="text-sm font-medium">Save these backup codes now. Each code can be used once.</p>
+          <ol class="grid grid-cols-2 gap-2 rounded-ui-md border border-border bg-muted/40 p-4 font-mono text-sm">@for (code of backupCodes(); track code) { <li>{{ code }}</li> }</ol>
+          <div class="flex flex-wrap gap-3"><button hlmBtn variant="outline" type="button" (click)="copyBackupCodes()">Copy codes</button><button hlmBtn variant="outline" type="button" (click)="downloadBackupCodes()">Download .txt</button><button hlmBtn type="button" (click)="finishBackupCodes()">I saved these codes</button></div>
+        </div>
+      } @else if (twoFactorDrawer() === 'regenerate') {
+        <form class="space-y-4" (submit)="regenerateTwoFactorCodes($event)">
+          <p class="text-sm text-muted-foreground">Confirm your password and a current authenticator code. Previous backup codes will stop working.</p>
+          <label class="grid gap-2 text-sm font-medium" for="regenerate-two-factor-password">Password<input id="regenerate-two-factor-password" class="profile-control" type="password" autocomplete="current-password" placeholder="Your password" [value]="twoFactorPassword()" (input)="twoFactorPassword.set(inputValue($event))" required /></label>
+          <label class="grid gap-2 text-sm font-medium" for="regenerate-two-factor-code">6-digit code<input id="regenerate-two-factor-code" class="profile-control" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="000000" maxlength="6" [value]="twoFactorCode()" (input)="onTwoFactorInput($event)" required /></label>
+          @if (twoFactorError()) { <p role="alert" class="rounded-ui-md bg-[#E5484D]/10 p-3 text-sm text-[#E5484D]">{{ twoFactorError() }}</p> }
+          <button hlmBtn type="submit" [disabled]="twoFactorBusy() || !validTotpCode()">{{ twoFactorBusy() ? 'Generating…' : 'Regenerate codes' }}</button>
+        </form>
+      } @else if (twoFactorDrawer() === 'disable') {
+        <form class="space-y-4" (submit)="disableTwoFactor($event)">
+          <p class="text-sm text-muted-foreground">Confirm your password and a current authenticator code to turn off two-factor authentication.</p>
+          <label class="grid gap-2 text-sm font-medium" for="disable-two-factor-password">Password<input id="disable-two-factor-password" class="profile-control" type="password" autocomplete="current-password" placeholder="Your password" [value]="twoFactorPassword()" (input)="twoFactorPassword.set(inputValue($event))" required /></label>
+          <label class="grid gap-2 text-sm font-medium" for="disable-two-factor-code">6-digit code<input id="disable-two-factor-code" class="profile-control" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="000000" maxlength="6" [value]="twoFactorCode()" (input)="onTwoFactorInput($event)" required /></label>
+          @if (twoFactorError()) { <p role="alert" class="rounded-ui-md bg-[#E5484D]/10 p-3 text-sm text-[#E5484D]">{{ twoFactorError() }}</p> }
+          <button hlmBtn variant="destructive" type="submit" [disabled]="twoFactorBusy() || !validTotpCode()">{{ twoFactorBusy() ? 'Disabling…' : 'Disable two-factor' }}</button>
         </form>
       }
     </app-drawer>
@@ -303,6 +368,7 @@ export class ProfilePage {
   protected readonly session = inject(SessionService);
   protected readonly themePreferences = inject(ThemePreferencesService);
   private readonly http = inject(HttpClient);
+  private readonly document = inject(DOCUMENT);
   private readonly router = inject(Router);
   readonly name = signal('');
   readonly image = signal('');
@@ -318,9 +384,19 @@ export class ProfilePage {
   readonly signinMethodError = signal<string | null>(null);
   readonly methodBusy = signal(false);
   readonly signinDrawer = signal<'set-password' | 'connect-google' | 'disconnect-google' | 'change-password' | null>(null);
+  readonly twoFactorDrawer = signal<'enable' | 'regenerate' | 'disable' | null>(null);
+  readonly twoFactorStep = signal<'password' | 'setup' | 'backup-codes' | null>(null);
+  readonly twoFactorError = signal<string | null>(null);
+  readonly twoFactorBusy = signal(false);
+  readonly twoFactorPassword = signal('');
+  readonly twoFactorCode = signal('');
+  readonly twoFactorUri = signal('');
+  readonly qrCodeDataUrl = signal('');
+  readonly backupCodes = signal<string[]>([]);
   readonly currentPassword = signal('');
   readonly newPassword = signal('');
   readonly confirmNewPassword = signal('');
+  readonly sensitiveCode = signal('');
   readonly credentialAccount = computed(() => this.accounts().find((account) => account.providerId === 'credential' && account.id) ?? null);
   readonly googleAccount = computed(() => this.accounts().find((account) => account.providerId === 'google') ?? null);
   readonly credentialSet = computed(() => Boolean(this.credentialAccount()));
@@ -366,6 +442,146 @@ export class ProfilePage {
     this.signinDrawer.set(mode);
   }
 
+  protected openTwoFactorDrawer(mode: 'enable' | 'regenerate' | 'disable'): void {
+    this.twoFactorError.set(null);
+    this.twoFactorPassword.set('');
+    this.twoFactorCode.set('');
+    this.backupCodes.set([]);
+    this.twoFactorStep.set(mode === 'enable' ? 'password' : null);
+    this.twoFactorDrawer.set(mode);
+  }
+
+  protected twoFactorDrawerTitle(): string {
+    const mode = this.twoFactorDrawer();
+    if (this.twoFactorStep() === 'backup-codes') return 'Save your backup codes';
+    if (mode === 'enable') return this.twoFactorStep() === 'setup' ? 'Set up an authenticator' : 'Enable two-factor authentication';
+    if (mode === 'regenerate') return 'Regenerate backup codes';
+    if (mode === 'disable') return 'Disable two-factor authentication';
+    return 'Two-factor authentication';
+  }
+
+  protected closeTwoFactorDrawer(): void {
+    if (this.twoFactorBusy()) return;
+    this.twoFactorDrawer.set(null);
+    this.twoFactorStep.set(null);
+    this.twoFactorError.set(null);
+    this.twoFactorPassword.set('');
+    this.twoFactorCode.set('');
+    this.twoFactorUri.set('');
+    this.qrCodeDataUrl.set('');
+    this.backupCodes.set([]);
+  }
+
+  protected setupKey(): string {
+    try { return new URL(this.twoFactorUri()).searchParams.get('secret') ?? ''; }
+    catch { return ''; }
+  }
+
+  protected validTotpCode(): boolean { return /^\d{6}$/.test(this.twoFactorCode()); }
+  protected validSensitiveCode(): boolean { return /^\d{6}$/.test(this.sensitiveCode()); }
+
+  protected onSensitiveCodeInput(event: Event): void {
+    this.sensitiveCode.set((event.currentTarget as HTMLInputElement).value.replace(/\D/g, '').slice(0, 6));
+  }
+
+  private async verifySensitiveActionCode(): Promise<void> {
+    if (!this.session.user()?.twoFactorEnabled) return;
+    if (!this.validSensitiveCode()) throw new Error('Enter a current authenticator code.');
+    await firstValueFrom(this.http.post('/api/auth/two-factor/verify-totp', { code: this.sensitiveCode() }));
+    this.sensitiveCode.set('');
+  }
+
+  protected onTwoFactorInput(event: Event): void {
+    this.twoFactorCode.set((event.currentTarget as HTMLInputElement).value.replace(/\D/g, '').slice(0, 6));
+  }
+
+  protected async beginTwoFactorSetup(event: Event): Promise<void> {
+    event.preventDefault();
+    if (this.twoFactorBusy()) return;
+    this.twoFactorBusy.set(true); this.twoFactorError.set(null);
+    try {
+      const response = await firstValueFrom(this.http.post<{ method: 'totp'; totpURI: string; backupCodes: string[] }>('/api/auth/two-factor/enable', {
+        password: this.twoFactorPassword(), method: 'totp', issuer: 'Slipakar',
+      }));
+      this.twoFactorUri.set(response.totpURI);
+      this.backupCodes.set(response.backupCodes);
+      this.qrCodeDataUrl.set(await QRCode.toDataURL(response.totpURI, { errorCorrectionLevel: 'M', margin: 2, width: 240 }));
+      this.twoFactorStep.set('setup');
+    } catch {
+      this.twoFactorError.set('Could not start two-factor setup. Check your password and try again.');
+    } finally { this.twoFactorBusy.set(false); }
+  }
+
+  protected async activateTwoFactor(event: Event): Promise<void> {
+    event.preventDefault();
+    if (!this.validTotpCode() || this.twoFactorBusy()) return;
+    this.twoFactorBusy.set(true); this.twoFactorError.set(null);
+    try {
+      await firstValueFrom(this.http.post('/api/auth/two-factor/verify-totp', { code: this.twoFactorCode() }));
+      await this.session.loadSession();
+      this.twoFactorStep.set('backup-codes');
+      this.twoFactorPassword.set(''); this.twoFactorCode.set('');
+    } catch {
+      this.twoFactorError.set('That code could not be verified. Check it and try again.');
+    } finally { this.twoFactorBusy.set(false); }
+  }
+
+  protected async regenerateTwoFactorCodes(event: Event): Promise<void> {
+    event.preventDefault();
+    if (!this.validTotpCode() || this.twoFactorBusy()) return;
+    this.twoFactorBusy.set(true); this.twoFactorError.set(null);
+    try {
+      await firstValueFrom(this.http.post('/api/auth/two-factor/verify-totp', { code: this.twoFactorCode() }));
+      const response = await firstValueFrom(this.http.post<{ status: boolean; backupCodes: string[] }>('/api/auth/two-factor/generate-backup-codes', { password: this.twoFactorPassword() }));
+      this.backupCodes.set(response.backupCodes);
+      this.twoFactorStep.set('backup-codes');
+      this.twoFactorPassword.set(''); this.twoFactorCode.set('');
+    } catch {
+      this.twoFactorError.set('Could not regenerate backup codes. Check your password and code, then try again.');
+    } finally { this.twoFactorBusy.set(false); }
+  }
+
+  protected async disableTwoFactor(event: Event): Promise<void> {
+    event.preventDefault();
+    if (!this.validTotpCode() || this.twoFactorBusy()) return;
+    this.twoFactorBusy.set(true); this.twoFactorError.set(null);
+    try {
+      await firstValueFrom(this.http.post('/api/auth/two-factor/verify-totp', { code: this.twoFactorCode() }));
+      await firstValueFrom(this.http.post('/api/auth/two-factor/disable', { password: this.twoFactorPassword() }));
+      await this.session.loadSession();
+      this.twoFactorBusy.set(false);
+      this.closeTwoFactorDrawer();
+      this.success.set('Two-factor authentication disabled.');
+    } catch {
+      this.twoFactorError.set('Could not disable two-factor authentication. Check your password and code, then try again.');
+    } finally { this.twoFactorBusy.set(false); }
+  }
+
+  protected async copySetupKey(): Promise<void> {
+    try { await this.document.defaultView?.navigator.clipboard.writeText(this.setupKey()); }
+    catch { this.twoFactorError.set('Could not copy the setup key. Select and copy it manually.'); }
+  }
+
+  protected async copyBackupCodes(): Promise<void> {
+    try { await this.document.defaultView?.navigator.clipboard.writeText(this.backupCodes().join('\n')); }
+    catch { this.twoFactorError.set('Could not copy the codes. Select and copy them manually.'); }
+  }
+
+  protected downloadBackupCodes(): void {
+    const view = this.document.defaultView;
+    if (!view || !this.backupCodes().length) return;
+    const blobUrl = view.URL.createObjectURL(new Blob([this.backupCodes().join('\n')], { type: 'text/plain;charset=utf-8' }));
+    const anchor = this.document.createElement('a');
+    anchor.href = blobUrl; anchor.download = 'slipakar-backup-codes.txt'; anchor.click();
+    view.URL.revokeObjectURL(blobUrl);
+  }
+
+  protected finishBackupCodes(): void {
+    const mode = this.twoFactorDrawer();
+    this.closeTwoFactorDrawer();
+    this.success.set(mode === 'regenerate' ? 'Your backup codes have been updated.' : 'Two-factor authentication is enabled.');
+  }
+
   protected signinDrawerTitle(): string {
     const titles = { 'set-password': 'Set credential login', 'connect-google': 'Connect Google login', 'disconnect-google': 'Disconnect Google login?', 'change-password': 'Change password' };
     return this.signinDrawer() ? titles[this.signinDrawer()!] : 'Sign-in method';
@@ -403,6 +619,7 @@ export class ProfilePage {
     if (!google || !this.credentialSet() || this.methodBusy()) return;
     this.methodBusy.set(true); this.signinMethodError.set(null);
     try {
+      await this.verifySensitiveActionCode();
       await this.session.unlinkAccount(google.id);
       await this.refreshSigninMethods();
       this.signinDrawer.set(null);
@@ -418,6 +635,7 @@ export class ProfilePage {
     if (this.newPassword() !== this.confirmNewPassword()) { this.signinMethodError.set('Passwords do not match.'); return; }
     this.methodBusy.set(true); this.signinMethodError.set(null);
     try {
+      await this.verifySensitiveActionCode();
       await this.session.changePassword(this.currentPassword(), this.newPassword());
       await this.refreshSigninMethods();
       this.signinDrawer.set(null); this.success.set('Password changed successfully.');
@@ -510,6 +728,23 @@ export class ProfilePage {
     this.emailSending.set(true);
     this.error.set(null);
     this.success.set(null);
+
+    if (this.session.user()?.twoFactorEnabled) {
+      if (!this.validSensitiveCode()) {
+        this.error.set('Enter a current authenticator code.');
+        this.emailSending.set(false);
+        return;
+      }
+      this.http.post('/api/auth/two-factor/verify-totp', { code: this.sensitiveCode() }).subscribe({
+        next: () => { this.sensitiveCode.set(''); this.sendEmailChange(newEmail); },
+        error: () => { this.error.set('That code could not be verified. Check it and try again.'); this.emailSending.set(false); },
+      });
+      return;
+    }
+    this.sendEmailChange(newEmail);
+  }
+
+  private sendEmailChange(newEmail: string): void {
 
     this.http.post('/api/auth/change-email', { newEmail, callbackURL: '/profile' }).subscribe({
       next: () => {

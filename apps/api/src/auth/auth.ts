@@ -2,6 +2,7 @@ import type { PrismaClient } from '@prisma/client';
 import { APIError, betterAuth, type BetterAuthPlugin } from 'better-auth';
 import { createAuthMiddleware } from 'better-auth/api';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
+import { twoFactor } from 'better-auth/plugins';
 import type { AuthEmailSenderInterface } from '../domain/auth/sender.js';
 import type { LoginActivityUseCaseInterface } from '../domain/login-activity/interface.js';
 import { claimSystemDemoProject } from '../internal/demo-project/claim.js';
@@ -27,6 +28,22 @@ function buildAuth({ prisma, env, authEmailSender, loginActivityUseCase, adminEm
   const plugins: BetterAuthPlugin[] = [];
   const adminEmailSet = new Set(adminEmails.map((email) => email.trim().toLowerCase()));
   const googleProfiles = new Map<string, { email: string; verified: boolean; expiresAt: number }>();
+
+  const endpointPath = (context: unknown): string | null => {
+    if (!context || typeof context !== 'object') return null;
+    const endpointContext = context as { path?: unknown; request?: { url?: unknown } };
+    const normalizePath = (path: string): string => {
+      const withoutBasePath = path.replace(/^\/api\/auth(?=\/)/, '');
+      return withoutBasePath.startsWith('/') ? withoutBasePath : `/${withoutBasePath}`;
+    };
+    if (typeof endpointContext.path === 'string') return normalizePath(endpointContext.path);
+    if (typeof endpointContext.request?.url === 'string') {
+      try { return normalizePath(new URL(endpointContext.request.url).pathname); } catch { return null; }
+    }
+    return null;
+  };
+
+  const isCredentialSignIn = (context: unknown): boolean => endpointPath(context) === '/sign-in/email';
 
   const throwEmailUnavailable = (): never => {
     throw new APIError(400, {
@@ -181,6 +198,76 @@ function buildAuth({ prisma, env, authEmailSender, loginActivityUseCase, adminEm
     },
   });
 
+  plugins.push(twoFactor({
+    issuer: 'Slipakar',
+    totpOptions: { digits: 6, period: 30 },
+    backupCodeOptions: { amount: 10, storeBackupCodes: 'encrypted' },
+    trustDeviceMaxAge: 30 * 24 * 60 * 60,
+    accountLockout: { enabled: true, maxFailedAttempts: 5, durationSeconds: 15 * 60 },
+  }) as BetterAuthPlugin);
+
+  const finishSessionSetup = async (session: { userId?: string; ipAddress?: string | null; userAgent?: string | null }, context?: unknown): Promise<void> => {
+    if (!session.userId) return;
+    try {
+      const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { email: true } });
+      if (user) {
+        await claimSystemDemoProject({
+          prisma,
+          userId: session.userId,
+          userEmail: user.email,
+          adminEmails,
+          errorReporter: errorReporter ?? { capture: (error) => console.error('Demo project claim failed', error) },
+        });
+      }
+    } catch (error: unknown) {
+      try {
+        if (errorReporter) errorReporter.capture(error, { source: 'demo-project-claim' });
+        else console.error('Demo project claim failed', error);
+      } catch {
+        // Sign-in must not fail because demo ownership could not be updated.
+      }
+    }
+    if (loginActivityUseCase) {
+      try {
+        const ctx = context as { headers?: Record<string, string | string[] | undefined> & { get?: (k: string) => string | null }; request?: { headers?: { get?: (k: string) => string | null } } } | undefined;
+        const forwardedFor = ctx?.headers?.get?.('x-forwarded-for') ??
+          ctx?.request?.headers?.get?.('x-forwarded-for') ??
+          ctx?.headers?.['x-forwarded-for'];
+        await loginActivityUseCase.recordLogin({
+          userId: session.userId,
+          ipAddress: session.ipAddress ?? null,
+          userAgent: session.userAgent ?? null,
+          forwardedFor,
+        });
+      } catch {
+        // Recording login event should not block sign-in.
+      }
+    }
+  };
+
+  // A trusted-device credential sign-in does not need the verify endpoint, so
+  // run deferred session side effects only after Better Auth leaves its session intact.
+  plugins.push({
+    id: 'two-factor-session-finalizer',
+    hooks: {
+      after: [{
+        matcher: (ctx) => ctx.path === '/sign-in/email',
+        handler: createAuthMiddleware(async (ctx) => {
+          const session = ctx.context.newSession as { user?: { twoFactorEnabled?: boolean }; session?: { userId?: string; ipAddress?: string | null; userAgent?: string | null } } | null;
+          if (!session?.user?.twoFactorEnabled || !session.session) return;
+          const userId = session.session.userId;
+          if (userId) {
+            const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true, role: true } });
+            if (user && adminEmailSet.has(user.email.trim().toLowerCase()) && user.role !== 'admin') {
+              await prisma.user.update({ where: { id: userId }, data: { role: 'admin' } });
+            }
+          }
+          await finishSessionSetup(session.session, ctx);
+        }),
+      }],
+    },
+  });
+
   plugins.push({
     id: 'credential-account-link-guard',
     hooks: {
@@ -235,6 +322,8 @@ function buildAuth({ prisma, env, authEmailSender, loginActivityUseCase, adminEm
         '/sign-up/email': { window: 600, max: 3 },
         '/request-password-reset': { window: 600, max: 3 },
         '/reset-password': { window: 600, max: 5 },
+        '/two-factor/verify-totp': { window: 60, max: 5 },
+        '/two-factor/verify-backup-code': { window: 60, max: 5 },
       },
     },
     databaseHooks: {
@@ -247,54 +336,21 @@ function buildAuth({ prisma, env, authEmailSender, loginActivityUseCase, adminEm
       },
       session: {
         create: {
-          before: async (session) => {
+          before: async (session, context?: unknown) => {
             if (!session?.userId) return;
-            const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { email: true, emailVerified: true, disabledAt: true, role: true } });
+            const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { email: true, emailVerified: true, disabledAt: true, role: true, twoFactorEnabled: true } });
             if (user?.disabledAt) {
               throw new APIError(403, { message: 'This account is disabled', code: 'ACCOUNT_DISABLED' });
             }
-            if (user && adminEmailSet.has(user.email.trim().toLowerCase()) && user.role !== 'admin') {
+            if (user && !(user.twoFactorEnabled && isCredentialSignIn(context)) && adminEmailSet.has(user.email.trim().toLowerCase()) && user.role !== 'admin') {
               await prisma.user.update({ where: { id: session.userId }, data: { role: 'admin' } });
             }
           },
           after: async (session: { userId?: string; ipAddress?: string | null; userAgent?: string | null }, context?: unknown) => {
-            if (session?.userId) {
-              try {
-                const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { email: true } });
-                if (user) {
-                  await claimSystemDemoProject({
-                    prisma,
-                    userId: session.userId,
-                    userEmail: user.email,
-                    adminEmails,
-                    errorReporter: errorReporter ?? { capture: (error) => console.error('Demo project claim failed', error) },
-                  });
-                }
-              } catch (error: unknown) {
-                try {
-                  if (errorReporter) errorReporter.capture(error, { source: 'demo-project-claim' });
-                  else console.error('Demo project claim failed', error);
-                } catch {
-                  // Sign-in must not fail because demo ownership could not be updated.
-                }
-              }
-            }
-            if (loginActivityUseCase && session?.userId) {
-              try {
-                const ctx = context as { headers?: Record<string, string | string[] | undefined> & { get?: (k: string) => string | null }; request?: { headers?: { get?: (k: string) => string | null } } } | undefined;
-                const forwardedFor = ctx?.headers?.get?.('x-forwarded-for') ??
-                  ctx?.request?.headers?.get?.('x-forwarded-for') ??
-                  ctx?.headers?.['x-forwarded-for'];
-                await loginActivityUseCase.recordLogin({
-                  userId: session.userId,
-                  ipAddress: session.ipAddress ?? null,
-                  userAgent: session.userAgent ?? null,
-                  forwardedFor,
-                });
-              } catch {
-                // Recording login event should not block sign-in
-              }
-            }
+            if (!session?.userId) return;
+            const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { twoFactorEnabled: true } });
+            if (user?.twoFactorEnabled && isCredentialSignIn(context)) return;
+            await finishSessionSetup(session, context);
           },
         },
       },

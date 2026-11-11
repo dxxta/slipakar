@@ -16,6 +16,20 @@ import { Ripple } from '../../ui/shared/ripple';
           <p role="status" class="mt-3 rounded-ui-md border border-primary/40 bg-primary/10 p-3 text-sm">We sent a verification link to {{ email() }}. Confirm your email before signing in.</p>
           <a routerLink="/login" class="mt-5 inline-flex underline underline-offset-4">Return to sign in</a>
         } @else {
+          @if (session.twoFactorPending()) {
+            <h1 id="login-title" class="text-2xl font-semibold tracking-tight">Two-factor verification</h1>
+            <p class="mt-2 text-sm text-muted-foreground">Enter the code from your authenticator app to finish signing in.</p>
+            @if (error()) { <p role="alert" class="mt-4 rounded-ui-md border border-[#E5484D]/30 bg-[#E5484D]/10 p-3 text-sm text-[#E5484D]">{{ error() }}</p> }
+            <form class="mt-5 space-y-4" (submit)="verifyChallenge($event)">
+              <div class="grid gap-2"><label for="two-factor-code" class="text-sm font-medium">{{ backupMode() ? 'Backup code' : '6-digit code' }}</label><input id="two-factor-code" name="twoFactorCode" type="text" [attr.inputmode]="backupMode() ? 'text' : 'numeric'" [attr.autocomplete]="backupMode() ? 'off' : 'one-time-code'" class="credential-control" [placeholder]="backupMode() ? 'ABCDE-12345' : '000000'" [value]="twoFactorCode()" (input)="onTwoFactorCodeInput($event)" [attr.maxlength]="backupMode() ? 32 : 6" required /></div>
+              <label class="flex min-h-11 items-center gap-3 text-sm"><input type="checkbox" [checked]="trustDevice()" (change)="trustDevice.set(checked($event))" />Trust this device for 30 days</label>
+              <button hlmBtn class="w-full" type="submit" [disabled]="busy() || !validTwoFactorCode()">{{ busy() ? 'Verifying…' : 'Verify' }}</button>
+            </form>
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm">
+              <button type="button" class="underline underline-offset-4" (click)="backupMode.update((enabled) => !enabled); twoFactorCode.set(''); error.set(null)">{{ backupMode() ? 'Use an authenticator code' : 'Use a backup code' }}</button>
+              <button type="button" class="underline underline-offset-4" (click)="backToSignIn()">Back to sign in</button>
+            </div>
+          } @else {
           <h1 id="login-title" class="text-2xl font-semibold tracking-tight">{{ signingUp() ? 'Create your account' : 'Sign in to your workspace' }}</h1>
           <p class="mt-2 text-sm text-muted-foreground">Use Google login or your email and password.</p>
           @if (error()) { <p role="alert" class="mt-4 rounded-ui-md border border-[#E5484D]/30 bg-[#E5484D]/10 p-3 text-sm text-[#E5484D]">{{ error() }}</p> }
@@ -32,6 +46,7 @@ import { Ripple } from '../../ui/shared/ripple';
           <p class="mt-5 text-sm text-muted-foreground">{{ signingUp() ? 'Already have an account?' : 'New to Slipakar?' }} <button type="button" class="font-medium text-foreground underline underline-offset-4" (click)="toggleMode()">{{ signingUp() ? 'Sign in' : 'Create an account' }}</button></p>
           <div class="my-5 flex items-center gap-3 text-xs text-muted-foreground"><span class="h-px flex-1 bg-border"></span><span>OR</span><span class="h-px flex-1 bg-border"></span></div>
           <button hlmBtn variant="outline" class="w-full" type="button" aria-label="Sign in with Google" (click)="signInWithGoogle()">Continue with Google</button>
+          }
         }
       </section>
     </main>
@@ -51,8 +66,41 @@ export class LoginPage {
   readonly password = signal('');
   readonly confirmPassword = signal('');
   readonly error = signal<string | null>(null);
+  readonly backupMode = signal(false);
+  readonly twoFactorCode = signal('');
+  readonly trustDevice = signal(false);
 
   protected value(event: Event): string { return (event.currentTarget as HTMLInputElement).value; }
+  protected checked(event: Event): boolean { return (event.currentTarget as HTMLInputElement).checked; }
+  protected validTwoFactorCode(): boolean { return this.backupMode() ? Boolean(this.twoFactorCode().trim()) : /^\d{6}$/.test(this.twoFactorCode()); }
+
+  protected onTwoFactorCodeInput(event: Event): void {
+    const input = event.currentTarget as HTMLInputElement;
+    const value = this.backupMode() ? input.value.trim() : input.value.replace(/\D/g, '').slice(0, 6);
+    this.twoFactorCode.set(value);
+    if (!this.backupMode() && value.length === 6) void this.verifyChallenge();
+  }
+
+  protected backToSignIn(): void {
+    this.session.cancelTwoFactorChallenge();
+    this.twoFactorCode.set(''); this.backupMode.set(false); this.trustDevice.set(false); this.error.set(null);
+  }
+
+  protected async verifyChallenge(event?: Event): Promise<void> {
+    event?.preventDefault();
+    if (this.busy()) return;
+    const code = this.twoFactorCode().trim();
+    if (!code || (!this.backupMode() && !/^\d{6}$/.test(code))) { this.error.set('Enter a valid verification code.'); return; }
+    this.busy.set(true); this.error.set(null);
+    try {
+      await this.session.verifyTwoFactor(code, this.backupMode(), this.trustDevice());
+      const returnUrl = this.session.storedReturnUrl();
+      this.session.clearReturnUrl();
+      await this.router.navigateByUrl(returnUrl ?? '/projects');
+    } catch {
+      this.error.set('That code could not be verified. Check it and try again.');
+    } finally { this.busy.set(false); }
+  }
 
   protected toggleMode(): void {
     this.signingUp.update((value) => !value);
@@ -82,7 +130,8 @@ export class LoginPage {
       }
       const requested = this.route.snapshot.queryParamMap.get('returnUrl');
       const returnUrl = requested ? this.session.rememberReturnUrl(requested) : this.session.storedReturnUrl();
-      await this.session.signInWithEmail(email, password, returnUrl ?? undefined);
+      const signedIn = await this.session.signInWithEmail(email, password, returnUrl ?? undefined);
+      if (!signedIn) return;
       this.session.clearReturnUrl();
       await this.router.navigateByUrl(returnUrl ?? '/projects');
     } catch (error: unknown) {

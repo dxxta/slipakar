@@ -339,3 +339,6 @@ If the deployment used a custom Compose project name, keep that exact name in `C
 ## Browser login location
 
 Login coordinates are collected from the browser only when the user allows location access. If location access is denied or unavailable, the login history uses the approximate location derived from the request IP.
+# Two-factor authentication
+
+Credential login can use TOTP from any authenticator app, with one-time backup codes for recovery. Two-factor verification applies to email-and-password sign-ins; Google login continues to use Google's own verification. Enabling this feature requires the `20261111101500_totp_2fa` database migration, which is applied automatically when the API starts.

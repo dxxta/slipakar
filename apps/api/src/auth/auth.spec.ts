@@ -28,6 +28,53 @@ describe('createAuth', () => {
     }));
   });
 
+  it('configures encrypted TOTP with ten backup codes, trusted devices, rate limits, and five-failure lockout', () => {
+    createAuth({
+      prisma: {} as PrismaClient,
+      env: { googleClientId: 'id', googleClientSecret: 'secret', secret: 'auth', baseUrl: 'http://localhost', trustedOrigins: [] },
+    });
+    const config = betterAuthMock.mock.calls.at(-1)?.[0];
+    const twoFactorPlugin = config.plugins.find((plugin: { id: string }) => plugin.id === 'two-factor');
+    expect(twoFactorPlugin.options).toEqual(expect.objectContaining({
+      issuer: 'Slipakar',
+      totpOptions: { digits: 6, period: 30 },
+      backupCodeOptions: { amount: 10, storeBackupCodes: 'encrypted' },
+      trustDeviceMaxAge: 30 * 24 * 60 * 60,
+      accountLockout: { enabled: true, maxFailedAttempts: 5, durationSeconds: 900 },
+    }));
+    expect(config.rateLimit.customRules).toEqual(expect.objectContaining({
+      '/two-factor/verify-totp': { window: 60, max: 5 },
+      '/two-factor/verify-backup-code': { window: 60, max: 5 },
+    }));
+  });
+
+  it('defers credential 2FA role promotion and session side effects until verification succeeds', async () => {
+    const userUpdate = vi.fn().mockResolvedValue({ id: 'user-1' });
+    const recordLogin = vi.fn().mockResolvedValue({ id: 'event-1' });
+    const userFindUnique = vi.fn(async ({ select }: { select?: Record<string, boolean> }) => {
+      if (select?.disabledAt) return { id: 'user-1', email: 'admin@example.com', emailVerified: true, disabledAt: null, role: 'user', twoFactorEnabled: true };
+      if (select?.twoFactorEnabled) return { twoFactorEnabled: true };
+      return { email: 'admin@example.com', role: 'user', twoFactorEnabled: true };
+    });
+    const tx = { user: { findUnique: vi.fn().mockResolvedValue(null) } };
+    createAuth({
+      prisma: { user: { findUnique: userFindUnique, update: userUpdate }, $transaction: vi.fn(async (callback: (client: typeof tx) => Promise<void>) => callback(tx)) } as unknown as PrismaClient,
+      env: { googleClientId: 'id', googleClientSecret: 'secret', secret: 'auth', baseUrl: 'http://localhost', trustedOrigins: [] },
+      adminEmails: ['admin@example.com'],
+      loginActivityUseCase: { recordLogin } as never,
+    });
+    const config = betterAuthMock.mock.calls.at(-1)?.[0];
+    await config.databaseHooks.session.create.before({ userId: 'user-1' }, { path: '/sign-in/email' });
+    await config.databaseHooks.session.create.after({ userId: 'user-1' }, { path: '/sign-in/email' });
+    expect(userUpdate).not.toHaveBeenCalled();
+    expect(recordLogin).not.toHaveBeenCalled();
+
+    await config.databaseHooks.session.create.before({ userId: 'user-1' }, { path: '/two-factor/verify-totp' });
+    await config.databaseHooks.session.create.after({ userId: 'user-1' }, { path: '/two-factor/verify-totp' });
+    expect(userUpdate).toHaveBeenCalledWith({ where: { id: 'user-1' }, data: { role: 'admin' } });
+    expect(recordLogin).toHaveBeenCalledOnce();
+  });
+
   it('claims the demo project from the system owner after an administrator session is created', async () => {
     const tx = {
       user: { findUnique: vi.fn().mockResolvedValue({ id: 'system-owner' }) },

@@ -63,6 +63,31 @@ describe('LoginPage', () => {
     expect(TestBed.inject(SessionService).user()?.email).toBe('person@example.com');
   });
 
+  it('shows an authenticator challenge and verifies it before completing sign-in', async () => {
+    TestBed.overrideProvider(ActivatedRoute, {
+      useValue: { snapshot: { queryParamMap: { get: (key: string) => key === 'returnUrl' ? '/notifications' : null } } },
+    });
+    const fixture = TestBed.createComponent(LoginPage);
+    fixture.detectChanges();
+    const email = fixture.nativeElement.querySelector('#credential-email') as HTMLInputElement;
+    const password = fixture.nativeElement.querySelector('#credential-password') as HTMLInputElement;
+    email.value = 'person@example.com'; email.dispatchEvent(new Event('input'));
+    password.value = 'a-long-enough-password'; password.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('form') as HTMLFormElement).dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    http.expectOne('/api/auth/sign-in/email').flush({ twoFactorRedirect: true, twoFactorMethods: ['totp'] });
+    await fixture.whenStable(); fixture.detectChanges();
+    const code = fixture.nativeElement.querySelector('#two-factor-code') as HTMLInputElement;
+    expect(code.getAttribute('inputmode')).toBe('numeric');
+    expect(code.getAttribute('autocomplete')).toBe('one-time-code');
+    code.value = '123456'; code.dispatchEvent(new Event('input')); fixture.detectChanges();
+    const verify = http.expectOne('/api/auth/two-factor/verify-totp');
+    expect(verify.request.body).toEqual({ code: '123456', trustDevice: false });
+    verify.flush({ token: 'session-token', user: { id: 'u1', email: 'person@example.com', role: 'user' } });
+    await fixture.whenStable(); fixture.detectChanges();
+    expect(TestBed.inject(SessionService).user()?.email).toBe('person@example.com');
+  });
+
   it('shows the email verification confirmation after sign-up', async () => {
     const fixture = TestBed.createComponent(LoginPage);
     fixture.detectChanges();

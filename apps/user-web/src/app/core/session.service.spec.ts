@@ -67,6 +67,34 @@ describe('SessionService', () => {
     resetRequest.flush({ status: true }); await reset;
   });
 
+  it('holds credential sign-in at the challenge and marks login context only after factor verification', async () => {
+    window.sessionStorage.removeItem('slipakar.login-context-pending');
+    const signIn = service.signInWithEmail('person@example.com', 'long-password', '/notifications');
+    const signInRequest = http.expectOne('/api/auth/sign-in/email');
+    signInRequest.flush({ twoFactorRedirect: true, twoFactorMethods: ['totp'] });
+    await expect(signIn).resolves.toBeNull();
+    expect(service.twoFactorPending()).toBe(true);
+    expect(service.user()).toBeNull();
+    expect(window.sessionStorage.getItem('slipakar.login-context-pending')).toBeNull();
+
+    const verify = service.verifyTwoFactor('123456', false, true);
+    const verifyRequest = http.expectOne('/api/auth/two-factor/verify-totp');
+    expect(verifyRequest.request.body).toEqual({ code: '123456', trustDevice: true });
+    verifyRequest.flush({ token: 'session-token', user: { id: 'u1', email: 'person@example.com', role: 'user', twoFactorEnabled: true } });
+    await expect(verify).resolves.toMatchObject({ twoFactorEnabled: true });
+    expect(service.twoFactorPending()).toBe(false);
+    expect(window.sessionStorage.getItem('slipakar.login-context-pending')).toBe('1');
+    window.sessionStorage.removeItem('slipakar.login-context-pending');
+  });
+
+  it('posts backup-code verification through the dedicated endpoint', async () => {
+    const verifying = service.verifyTwoFactor('ABCDE-12345', true, false);
+    const request = http.expectOne('/api/auth/two-factor/verify-backup-code');
+    expect(request.request.body).toEqual({ code: 'ABCDE-12345', trustDevice: false });
+    request.flush({ token: 'session-token', user: { id: 'u1', email: 'person@example.com', role: 'user' } });
+    await expect(verifying).resolves.toMatchObject({ email: 'person@example.com' });
+  });
+
   it('posts password reset and change requests and reads account methods', async () => {
     const reset = service.resetPassword('opaque-token', 'new-long-password');
     const resetRequest = http.expectOne('/api/auth/reset-password');

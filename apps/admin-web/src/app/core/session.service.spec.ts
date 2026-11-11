@@ -60,6 +60,24 @@ describe('SessionService', () => {
     http.expectOne('/api/auth/list-accounts').flush([{ id: 'credential-1', providerId: 'credential', accountId: 'admin@example.com' }]);
     await expect(accounts).resolves.toEqual([{ id: 'credential-1', providerId: 'credential', accountId: 'admin@example.com' }]);
   });
+
+  it('waits for the second factor before completing credential login context', async () => {
+    window.sessionStorage.removeItem('slipakar.login-context-pending');
+    const signIn = service.signInWithEmail('admin@example.com', 'long-password', '/console/users');
+    http.expectOne('/api/auth/sign-in/email').flush({ twoFactorRedirect: true, twoFactorMethods: ['totp'] });
+    await expect(signIn).resolves.toBeNull();
+    expect(service.twoFactorPending()).toBe(true);
+    expect(window.sessionStorage.getItem('slipakar.login-context-pending')).toBeNull();
+
+    const verifying = service.verifyTwoFactor('123456');
+    const request = http.expectOne('/api/auth/two-factor/verify-totp');
+    expect(request.request.body).toEqual({ code: '123456', trustDevice: false });
+    request.flush({ token: 'session-token', user: { id: 'admin-1', email: 'admin@example.com', role: 'admin', twoFactorEnabled: true } });
+    await expect(verifying).resolves.toMatchObject({ twoFactorEnabled: true });
+    expect(service.twoFactorPending()).toBe(false);
+    expect(window.sessionStorage.getItem('slipakar.login-context-pending')).toBe('1');
+    window.sessionStorage.removeItem('slipakar.login-context-pending');
+  });
 });
 
 describe('adminAuthCallbackUrl', () => {

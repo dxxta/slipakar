@@ -11,6 +11,7 @@ model User {
   email          String    @unique
   name           String
   emailVerified  Boolean   @default(false)
+  twoFactorEnabled Boolean @default(false)
   image          String?
   role           String    @default("user")
   disabledAt     DateTime?
@@ -24,6 +25,7 @@ model User {
   userNotices    UserNotice[]
   broadcasts     Broadcast[]
   integrationConfigs IntegrationConfig[]
+  twoFactors     TwoFactor[]
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 }
@@ -70,6 +72,22 @@ model Verification {
   updatedAt  DateTime @updatedAt
 
   @@index([identifier])
+}
+
+model TwoFactor {
+  id                     String   @id @default(uuid())
+  secret                 String
+  backupCodes            String
+  userId                 String
+  user                   User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verified               Boolean  @default(true)
+  failedVerificationCount Int     @default(0)
+  lockedUntil            DateTime?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+
+  @@index([secret])
+  @@index([userId])
 }
 
 model Project {
