@@ -39,6 +39,8 @@ describe('Better Auth HTTP routes', () => {
         BETTER_AUTH_SECRET: 'better-auth-secret-long-enough-for-tests',
         BETTER_AUTH_URL: 'http://localhost:3000',
         TRUSTED_ORIGINS: [trustedOrigin],
+        API_ACCESS_ENABLED: false,
+        API_ALLOWED_ORIGINS: [],
         S3_ENDPOINT: 'localhost',
         S3_PORT: 3900,
         S3_USE_SSL: false,
@@ -116,6 +118,8 @@ describe('Better Auth HTTP routes', () => {
         BETTER_AUTH_SECRET: authSecret,
         BETTER_AUTH_URL: 'http://localhost:3000',
         TRUSTED_ORIGINS: [trustedOrigin],
+        API_ACCESS_ENABLED: false,
+        API_ALLOWED_ORIGINS: [],
         S3_ENDPOINT: 'localhost',
         S3_PORT: 3900,
         S3_USE_SSL: false,
@@ -154,7 +158,7 @@ describe('Better Auth HTTP routes', () => {
     expect(response.body.user.emailVerified).toBe(false);
     expect(sentEmails).toHaveLength(1);
     expect(sentEmails[0].subject).toBe('Verify your email address');
-    expect(sentEmails[0].html).toContain(`${trustedOrigin}/verify-email`);
+    expect(sentEmails[0].html).toContain(encodeURIComponent(`${trustedOrigin}/verify-email`));
     expect(await prisma.account.findFirst({ where: { userId: response.body.user.id, providerId: 'credential' } })).toMatchObject({
       password: expect.any(String),
     });
@@ -198,6 +202,8 @@ describe('Better Auth HTTP routes', () => {
         BETTER_AUTH_SECRET: 'better-auth-secret-long-enough-for-tests',
         BETTER_AUTH_URL: 'http://localhost:3000',
         TRUSTED_ORIGINS: [trustedOrigin],
+        API_ACCESS_ENABLED: false,
+        API_ALLOWED_ORIGINS: [],
         S3_ENDPOINT: 'localhost',
         S3_PORT: 3900,
         S3_USE_SSL: false,

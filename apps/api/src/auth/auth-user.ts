@@ -9,5 +9,6 @@ export type AuthUser = {
 declare module 'express-serve-static-core' {
   interface Request {
     user?: AuthUser;
+    apiKey?: { id: string; projectId: string; scopes: string[] };
   }
 }

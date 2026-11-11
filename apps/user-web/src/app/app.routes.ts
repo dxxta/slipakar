@@ -26,6 +26,7 @@ export const routes: Routes = [
         children: [
           { path: '', pathMatch: 'full', redirectTo: 'overview' },
           { path: 'overview', loadComponent: () => import('./features/project-detail/tabs/overview-page').then((page) => page.ProjectOverviewPage) },
+          { path: 'api-keys', loadComponent: () => import('./features/api-keys/api-keys-page').then((page) => page.ApiKeysPage) },
           { path: 'smtp', loadComponent: () => import('./features/smtp/smtp-page').then((page) => page.SmtpPage) },
           { path: 'templates/new', loadComponent: () => import('./features/templates/template-edit-page').then((page) => page.TemplateEditPage) },
           { path: 'templates/:templateId', loadComponent: () => import('./features/templates/template-edit-page').then((page) => page.TemplateEditPage) },

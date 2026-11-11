@@ -17,17 +17,26 @@ export type IntegrationItem = {
   lastError: string | null;
 };
 export type AdminSetupView = { complete: boolean; integrations: IntegrationItem[] };
+export type ApiAccessSettings = { environmentEnabled: boolean; allowedOrigins: string[]; runtimeEnabled: boolean };
 export type IntegrationUpdate = Record<string, string | number | boolean | undefined>;
 
 @Injectable({ providedIn: 'root' })
 export class AdminSetupService {
   private readonly api = inject(ApiClient);
   readonly view = signal<AdminSetupView | null>(null);
+  readonly apiAccess = signal<ApiAccessSettings | null>(null);
 
   async load(): Promise<AdminSetupView> {
     const result = await firstValueFrom(this.api.get<AdminSetupView>('/admin/setup'));
     this.view.set(result);
+    try { this.apiAccess.set(await firstValueFrom(this.api.get<ApiAccessSettings>('/admin/api-access'))); } catch { this.apiAccess.set(null); }
     return result;
+  }
+
+  async setApiAccess(enabled: boolean): Promise<ApiAccessSettings> {
+    await firstValueFrom(this.api.put<{ key: string; value: boolean }, { value: boolean }>('/admin/config/api_access_enabled', { value: enabled }));
+    const result = await firstValueFrom(this.api.get<ApiAccessSettings>('/admin/api-access'));
+    this.apiAccess.set(result); return result;
   }
 
   async save(key: IntegrationKey, payload: IntegrationUpdate): Promise<IntegrationItem> {

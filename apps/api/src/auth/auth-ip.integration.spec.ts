@@ -39,6 +39,8 @@ describe('Auth & Login Activity IP resolution', () => {
         BETTER_AUTH_SECRET: 'better-auth-secret-long-enough-for-tests',
         BETTER_AUTH_URL: 'http://localhost:3000',
         TRUSTED_ORIGINS: [trustedOrigin],
+        API_ACCESS_ENABLED: false,
+        API_ALLOWED_ORIGINS: [],
         S3_ENDPOINT: 'localhost',
         S3_PORT: 3900,
         S3_USE_SSL: false,

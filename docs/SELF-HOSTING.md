@@ -50,6 +50,8 @@ Before starting, ensure the host machine has the following tools installed:
      ```
    - **`BETTER_AUTH_URL`**: The single public origin users open for both web apps (for example `http://localhost:8080` locally or `https://app.example.com` behind Caddy). The admin app is served under `/console/`. Better Auth uses this URL when constructing OAuth callback URLs.
    - **`TRUSTED_ORIGINS`**: Comma-separated absolute browser origins accepted by Better Auth. Compose defaults to `http://localhost:8080`; the user and admin apps share this origin.
+   - **`API_ACCESS_ENABLED`**: Self-hosted bearer API master switch (default `false`); must be enabled alongside the runtime switch in Admin Setup. Hosted cloud keeps it disabled.
+   - **`API_ALLOWED_ORIGINS`**: Optional comma-separated absolute origins allowed for browser CORS with API keys (default empty; no wildcard or credentials). See [API integrations](INTEGRATIONS.md).
    - **`GOOGLE_CLIENT_ID`** & **`GOOGLE_CLIENT_SECRET`**: OAuth credentials from the Google Cloud Console.
    - **`METRICS_TOKEN`**: High-entropy secret token (at least 16 characters) used by Prometheus to scrape `/metrics`.
    - **`GRAFANA_ADMIN_PASSWORD`**: Password for the Grafana admin account (`admin`).
@@ -85,6 +87,8 @@ Slipakar uses [Garage](https://garagehq.deuxfleurs.fr/) (`dxflrs/garage:v1.0.1`)
 ### Preconfigured Monitoring
 
 Grafana loads the Prometheus data source and dashboard from `infra/grafana/provisioning` on first start. Uptime Kuma is pinned to `louislam/uptime-kuma:1.23.17`; its healthcheck uses the image's own `extra/healthcheck.js`. The one-shot `kuma-init` waits for Kuma health, creates the configured admin account if needed, logs in, and adds the `Slipakar API` and `Slipakar Web` monitors. Set `KUMA_MONITOR_LANDING=true` to add the landing monitor when using the optional landing profile. The initializer is idempotent and never prints the password.
+
+For optional self-hosted server-to-server API keys, see [API integrations](INTEGRATIONS.md). They are disabled by default and remain disabled on the hosted cloud service.
 
 The API receives `SETUP_GRAFANA_URL=http://grafana:3000` and `SETUP_UPTIME_URL=http://uptime-kuma:3001` from Compose, with the Kuma account credentials. The Setup page displays these as environment-configured and read-only; the connection test remains available. These operator-supplied Compose service URLs can use internal Docker DNS names and are validated as HTTP(S). User-entered integration URLs continue through the normal URL validation rules. The Setup page remains necessary for platform mail, which is not configured by this stack by default.
 

@@ -61,6 +61,8 @@ describe('loadEnv', () => {
       S3_PATH_STYLE: true,
       ADMIN_EMAILS: [],
       TRUSTED_ORIGINS: [],
+      API_ACCESS_ENABLED: false,
+      API_ALLOWED_ORIGINS: [],
       AUTH_SMTP_PORT: 587,
       AUTH_SMTP_SECURE: false,
     });
@@ -70,6 +72,15 @@ describe('loadEnv', () => {
     expect(loadEnv({ ...valid, TRUSTED_ORIGINS: ' https://app.example.com/,http://localhost:8081/ ' }).TRUSTED_ORIGINS)
       .toEqual(['https://app.example.com', 'http://localhost:8081']);
     expect(() => loadEnv({ ...valid, TRUSTED_ORIGINS: 'not-a-url' })).toThrow();
+  });
+
+  it('defaults API access off and validates browser origins as absolute origins', () => {
+    expect(loadEnv(valid).API_ACCESS_ENABLED).toBe(false);
+    expect(loadEnv(valid).API_ALLOWED_ORIGINS).toEqual([]);
+    expect(loadEnv({ ...valid, API_ACCESS_ENABLED: 'true', API_ALLOWED_ORIGINS: 'https://app.example.com/, http://localhost:4300' })).toMatchObject({ API_ACCESS_ENABLED: true, API_ALLOWED_ORIGINS: ['https://app.example.com', 'http://localhost:4300'] });
+    expect(loadEnv({ ...valid, API_ALLOWED_ORIGINS: 'https://app.example.com:443/' }).API_ALLOWED_ORIGINS).toEqual(['https://app.example.com']);
+    expect(() => loadEnv({ ...valid, API_ALLOWED_ORIGINS: 'https://app.example.com/path' })).toThrow();
+    expect(() => loadEnv({ ...valid, API_ALLOWED_ORIGINS: 'https://user:pass@app.example.com' })).toThrow();
   });
 
   it('parses ADMIN_EMAILS into trimmed lowercase emails and ignores blanks', () => {

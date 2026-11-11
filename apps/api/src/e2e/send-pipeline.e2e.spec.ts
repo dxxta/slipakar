@@ -88,6 +88,8 @@ describe('End-to-End Background Sending Pipeline', () => {
       GOOGLE_CLIENT_SECRET: 'fake-google-client-secret',
       BETTER_AUTH_SECRET: 'fake-better-auth-secret-1234567890',
       BETTER_AUTH_URL: 'http://localhost:3000',
+  API_ACCESS_ENABLED: false,
+  API_ALLOWED_ORIGINS: [],
       S3_ENDPOINT: garage.endpoint,
       S3_PORT: garage.port,
       S3_USE_SSL: false,

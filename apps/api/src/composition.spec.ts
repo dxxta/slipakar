@@ -13,6 +13,8 @@ const env = {
   BETTER_AUTH_SECRET: 'auth-secret',
   BETTER_AUTH_URL: 'http://localhost:3000',
   TRUSTED_ORIGINS: [],
+        API_ACCESS_ENABLED: false,
+        API_ALLOWED_ORIGINS: [],
   S3_ENDPOINT: 'localhost',
   S3_PORT: 3900,
   S3_USE_SSL: false,

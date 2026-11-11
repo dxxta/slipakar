@@ -14,6 +14,7 @@ export type RouteDoc = {
   query?: ZodType;
   body?: ZodType;
   multipart?: boolean;
+  apiKeyScope?: string;
   data?: ZodType; // Schema of data in { message, data, success: true }, omit for null
 };
 

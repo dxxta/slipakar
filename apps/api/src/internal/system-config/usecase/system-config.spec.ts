@@ -97,7 +97,7 @@ describe('system-config usecase', () => {
     expect(callOrder).toEqual(['upsert', 'notifyChanged']);
   });
 
-  it('getSystemConfigUseCase returns the 3 flags with effective values (true when missing) as an array of {key, value}', async () => {
+  it('getSystemConfigUseCase returns all flags with effective values (true when missing) as an array of {key, value}', async () => {
     const repository = {
       listSystemConfigRepository: vi.fn().mockResolvedValue({
         data: [
@@ -123,6 +123,7 @@ describe('system-config usecase', () => {
         { key: 'scalar_docs', value: false },
         { key: 'pdf_builder', value: true },
         { key: 'self_signup', value: true },
+        { key: 'api_access_enabled', value: false },
       ],
       success: true,
     });

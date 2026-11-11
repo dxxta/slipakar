@@ -17,6 +17,7 @@ export const smtpRoutes: RouteDoc[] = [
     tag: 'SMTP',
     summary: 'List SMTP connections',
     auth: 'session',
+    apiKeyScope: 'smtp:read',
     status: 200,
     query: listSmtpQueryDto,
   },

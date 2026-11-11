@@ -264,3 +264,21 @@ describe('buildOpenApiDocument', () => {
     expect(json).not.toContain('password123');
   });
 });
+
+describe('buildIntegrationOpenApiDocument', () => {
+  it('includes only explicitly scoped operations and documents bearer auth plus scope', async () => {
+    const { buildIntegrationOpenApiDocument } = await import('./document.js');
+    const routes: RouteDoc[] = [
+      { method: 'get', path: '/projects/:projectId/templates', tag: 'Templates', summary: 'List', auth: 'session', status: 200, apiKeyScope: 'templates:read' },
+      { method: 'delete', path: '/projects/:projectId', tag: 'Projects', summary: 'Delete', auth: 'session', status: 200 },
+    ];
+    const doc = buildIntegrationOpenApiDocument(routes, { title: 'Integrations', version: '1.0.0' });
+    expect(Object.keys(doc.paths)).toEqual(['/projects/{projectId}/templates']);
+    const operation = doc.paths['/projects/{projectId}/templates'].get as Record<string, unknown>;
+    expect(operation.security).toEqual([{ bearerApiKey: [] }]);
+    expect(operation['x-required-scope']).toBe('templates:read');
+    expect(doc.components?.securitySchemes?.bearerApiKey).toEqual({ type: 'http', scheme: 'bearer', bearerFormat: 'slp_*' });
+    expect(doc.components?.securitySchemes).toEqual({ bearerApiKey: { type: 'http', scheme: 'bearer', bearerFormat: 'slp_*' } });
+    expect(doc.components?.schemas?.Error).toBeDefined();
+  });
+});

@@ -30,11 +30,11 @@ function getLocationBlock(location: string, config: string = nginxConfig): strin
   return '';
 }
 
-async function renderScalarHtml(): Promise<string> {
+async function renderScalarHtml(specUrl = '/openapi.json', cdn = '/docs/assets/scalar/standalone.js'): Promise<string> {
   const app = express();
   app.use('/docs', apiReference({
-    spec: { url: '/openapi.json' },
-    cdn: '/docs/assets/scalar/standalone.js',
+    spec: { url: specUrl },
+    cdn,
   }));
   const server = app.listen(0, '127.0.0.1');
   await new Promise<void>((resolve) => server.once('listening', resolve));
@@ -136,6 +136,9 @@ describe('production web Nginx cache behavior', () => {
         '/me/login-activity?page=1&limit=20&sortBy=createdAt&sortDir=desc',
         '/me/notices?page=1&limit=20&unreadOnly=true',
         '/admin/config',
+        '/integrations/docs',
+        '/integrations/openapi.json',
+        '/integrations/assets/scalar/standalone.js',
       ];
       for (const requestUrl of expectedRequests) {
         const response = await fetch(`${baseUrl}${requestUrl}`, {
@@ -182,7 +185,7 @@ describe('production web Nginx cache behavior', () => {
 
     expect(block, `Expected Nginx location ${location}`).not.toBe('');
     expect(block).toContain('gzip_vary off;');
-    expect(block).toContain('add_header Vary "Accept, Accept-Encoding" always;');
+    expect(block).toContain('add_header Vary "Accept, Accept-Encoding, Origin" always;');
     expect(block).toContain('include /etc/nginx/security-headers.conf;');
   });
 
@@ -191,7 +194,7 @@ describe('production web Nginx cache behavior', () => {
 
     expect(block).toContain('proxy_hide_header Vary;');
     expect(block).toContain('gzip_vary off;');
-    expect(block).toContain('add_header Vary "Accept, Accept-Encoding" always;');
+    expect(block).toContain('add_header Vary "Accept, Accept-Encoding, Origin" always;');
     expect(block).toContain('proxy_hide_header Cache-Control;');
     expect(block).toContain('add_header Cache-Control "no-store" always;');
     expect(block).toContain('include /etc/nginx/security-headers.conf;');
@@ -209,7 +212,7 @@ describe('production web Nginx cache behavior', () => {
 
     expect(block).toContain('proxy_hide_header Vary;');
     expect(block).toContain('gzip_vary off;');
-    expect(block).toContain('add_header Vary "Accept, Accept-Encoding" always;');
+    expect(block).toContain('add_header Vary "Accept, Accept-Encoding, Origin" always;');
     expect(block).toContain('proxy_hide_header Cache-Control;');
     expect(block).toContain('add_header Cache-Control "no-store" always;');
     expect(block).toContain('include /etc/nginx/security-headers.conf;');
@@ -227,6 +230,10 @@ describe('production web Nginx cache behavior', () => {
   });
 
   it('keeps /admin/ as an API proxy while /console/ is the admin SPA', () => {
+    expect(getLocationBlock('= /integrations/docs')).toContain('proxy_pass http://api;');
+    expect(getLocationBlock('= /integrations/openapi.json')).toContain('proxy_pass http://api;');
+    expect(getLocationBlock('^~ /integrations/assets/scalar/')).toContain('proxy_pass http://api;');
+    expect(nginxConfig).toContain('proxy_set_header Authorization $http_authorization;');
     expect(getLocationBlock('^~ /admin/')).toContain('proxy_pass http://api;');
     expect(getLocationBlock('^~ /console/')).toContain('try_files $uri $uri/ /console/index.html;');
   });
@@ -272,23 +279,23 @@ describe('production web Nginx cache behavior', () => {
   // Scalar's caught Function("") feature probe and blocked fonts.scalar.com font requests are expected under this strict CSP; rendering uses the system-font fallback.
   it('allows only the exact inline Scalar initializer on both docs endpoints', async () => {
     const html = await renderScalarHtml();
+    const integrationHtml = await renderScalarHtml('/integrations/openapi.json', '/integrations/assets/scalar/standalone.js');
     const inlineScripts = [...html.matchAll(/<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)];
+    const integrationScripts = [...integrationHtml.matchAll(/<script\b(?![^>]*\bsrc=)[^>]*>([\s\S]*?)<\/script>/gi)];
     expect(inlineScripts).toHaveLength(1);
+    expect(integrationScripts).toHaveLength(1);
     const scriptHash = createHash('sha256').update(inlineScripts[0]?.[1] ?? '').digest('base64');
+    const integrationScriptHash = createHash('sha256').update(integrationScripts[0]?.[1] ?? '').digest('base64');
+    expect(integrationScriptHash).not.toBe(scriptHash);
 
-    const block = getLocationBlock('= /docs');
-    expect(block).not.toBe('');
-    const contentSecurityPolicy = block.match(/add_header Content-Security-Policy "([^"]+)"/)?.[1] ?? '';
-    expect(contentSecurityPolicy).toContain(`script-src 'self' 'sha256-${scriptHash}'`);
-    expect(contentSecurityPolicy).not.toMatch(/script-src[^;]*'unsafe-inline'/);
-    for (const header of [
-      'X-Content-Type-Options',
-      'X-Frame-Options',
-      'Referrer-Policy',
-      'Permissions-Policy',
-    ]) {
-      expect(block).toContain(`add_header ${header} `);
+    for (const [location, expectedHash] of [['= /docs', scriptHash], ['= /integrations/docs', integrationScriptHash]] as const) {
+      const block = getLocationBlock(location);
+      expect(block).not.toBe('');
+      const contentSecurityPolicy = block.match(/add_header Content-Security-Policy "([^"]+)"/)?.[1] ?? '';
+      expect(contentSecurityPolicy).toContain(`script-src 'self' 'sha256-${expectedHash}'`);
+      expect(contentSecurityPolicy).not.toMatch(/script-src[^;]*'unsafe-inline'/);
+      for (const header of ['X-Content-Type-Options', 'X-Frame-Options', 'Referrer-Policy', 'Permissions-Policy']) expect(block).toContain(`add_header ${header} `);
+      expect(block).toContain('camera=(), microphone=(), geolocation=(self)');
     }
-    expect(block).toContain('camera=(), microphone=(), geolocation=(self)');
   });
 });

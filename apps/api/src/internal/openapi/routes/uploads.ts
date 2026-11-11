@@ -7,6 +7,7 @@ export const uploadsRoutes: RouteDoc[] = [
     tag: 'Uploads',
     summary: 'Upload data file',
     auth: 'session',
+    apiKeyScope: 'uploads:write',
     status: 201,
     multipart: true,
   },
@@ -16,6 +17,7 @@ export const uploadsRoutes: RouteDoc[] = [
     tag: 'Uploads',
     summary: 'List data uploads',
     auth: 'session',
+    apiKeyScope: 'uploads:read',
     status: 200,
   },
   {
@@ -24,6 +26,7 @@ export const uploadsRoutes: RouteDoc[] = [
     tag: 'Uploads',
     summary: 'Get data upload metadata and preview',
     auth: 'session',
+    apiKeyScope: 'uploads:read',
     status: 200,
   },
   {
@@ -32,6 +35,7 @@ export const uploadsRoutes: RouteDoc[] = [
     tag: 'Uploads',
     summary: 'Delete data upload',
     auth: 'session',
+    apiKeyScope: 'uploads:write',
     status: 200,
   },
 ];

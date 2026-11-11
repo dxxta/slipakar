@@ -17,6 +17,14 @@ describe('feature-flags service', () => {
     expect(repository.getSystemConfigRepository).toHaveBeenCalledWith({ filter: { key: 'scalar_docs' } });
   });
 
+  it('defaults API access to disabled when no runtime row exists', async () => {
+    const repository = { getSystemConfigRepository: vi.fn().mockResolvedValue({ data: null }) } as unknown as SystemConfigRepositoryInterface;
+    const publisher = { publish: vi.fn() } as unknown as RedisPubSubClient;
+    const subscriber = { subscribe: vi.fn(), unsubscribe: vi.fn(), on: vi.fn() } as unknown as RedisPubSubClient;
+    const flags = buildFeatureFlags({ repository, publisher, subscriber });
+    expect(await flags.isEnabled('api_access_enabled')).toBe(false);
+  });
+
   it('ttl expiry re-reads the repository (inject now)', async () => {
     let mockNow = 1000;
     const getSystemConfigRepository = vi

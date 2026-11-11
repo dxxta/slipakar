@@ -40,6 +40,19 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
     @if (loading()) { <p role="status">Loading integration settings…</p> }
     @if (setup.view(); as state) {
       <div class="grid grid-cols-1 gap-4" data-testid="setup-integration-rows">
+        @if (setup.apiAccess(); as apiAccess) {
+          <article class="rounded-ui-lg border border-border bg-card p-card">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div class="min-w-0"><div class="flex flex-wrap items-center gap-2"><h2 class="text-lg font-semibold">API access</h2><span class="rounded-full border border-border px-2.5 py-1 text-xs">{{ apiAccess.environmentEnabled && apiAccess.runtimeEnabled ? 'Enabled' : 'Disabled' }}</span></div>
+                <p class="mt-1 text-sm text-muted-foreground">Allowed by the server environment: {{ apiAccess.environmentEnabled ? 'yes' : 'no' }}</p>
+                <p class="mt-1 break-all text-xs text-muted-foreground">Allowed origins: {{ apiAccess.allowedOrigins.length ? apiAccess.allowedOrigins.join(', ') : 'None' }}</p>
+                <a class="mt-2 inline-flex text-sm underline underline-offset-4" href="/integrations/docs">Integrator documentation</a>
+                @if (!apiAccess.environmentEnabled) { <p class="mt-2 text-xs text-muted-foreground">Enable API_ACCESS_ENABLED in the server environment to use API keys.</p> }
+              </div>
+              <label class="inline-flex min-h-11 items-center gap-3 text-sm font-medium"><input type="checkbox" role="switch" aria-label="Enable API keys" [checked]="apiAccess.runtimeEnabled" [disabled]="!apiAccess.environmentEnabled || busy()" (change)="toggleApiAccess($event)" />Enable API keys</label>
+            </div>
+          </article>
+        }
         @for (integration of state.integrations; track integration.key) {
           <article appPressed class="flex w-full min-w-0 flex-col rounded-ui-lg border border-border bg-card p-card" [attr.data-testid]="'setup-row-' + integration.key">
             <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-6">
@@ -202,6 +215,8 @@ export class SetupPage implements OnInit {
   protected toggleHelp(key: IntegrationKey): void {
     this.expandedHelp.update((current) => ({ ...current, [key]: !current[key] }));
   }
+
+  protected async toggleApiAccess(event: Event): Promise<void> { const input = event.target; if (!(input instanceof HTMLInputElement)) return; this.busy.set(true); this.error.set(''); try { await this.setup.setApiAccess(input.checked); } catch (error: unknown) { this.error.set(this.errorMessage(error)); await this.setup.load().catch(() => undefined); } finally { this.busy.set(false); } }
 
   protected async load(): Promise<void> {
     this.loading.set(true); this.error.set('');

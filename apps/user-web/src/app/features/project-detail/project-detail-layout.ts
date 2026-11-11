@@ -1,10 +1,11 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { filter, map } from 'rxjs';
+import { filter, firstValueFrom, map } from 'rxjs';
 import { SegmentedTabs } from '../../ui/shared/segmented-tabs';
 import type { TabItem } from '../../ui/shared/tabs';
 import { Ripple } from '../../ui/shared/ripple';
+import { ApiClient } from '../../core/api-client';
 
 @Component({
   imports: [Ripple, RouterLink, RouterOutlet, SegmentedTabs],
@@ -21,7 +22,7 @@ import { Ripple } from '../../ui/shared/ripple';
         <div class="min-w-0 max-w-full overflow-x-auto">
           <app-segmented-tabs
             ariaLabel="Project sections"
-            [items]="projectTabs"
+            [items]="projectTabs()"
             [selected]="activeTab()"
             (selectedChange)="onTabSelect($event)"
           />
@@ -34,10 +35,13 @@ import { Ripple } from '../../ui/shared/ripple';
     </section>
   `,
 })
-export class ProjectDetailLayout {
+export class ProjectDetailLayout implements OnInit {
   private readonly router = inject(Router);
+  private readonly api = inject(ApiClient);
+  readonly apiAccessActive = signal(false);
+  ngOnInit(): void { void firstValueFrom(this.api.get<{ active: boolean }>('/me/api-access')).then((result) => this.apiAccessActive.set(result.active)).catch(() => this.apiAccessActive.set(false)); }
 
-  readonly projectTabs: TabItem[] = [
+  readonly baseProjectTabs: TabItem[] = [
     { id: 'overview', label: 'Overview' },
     { id: 'smtp', label: 'SMTP' },
     { id: 'templates', label: 'Templates' },
@@ -45,6 +49,8 @@ export class ProjectDetailLayout {
     { id: 'campaigns', label: 'Campaigns' },
     { id: 'pdf-templates', label: 'PDF Templates' },
   ];
+
+  readonly projectTabs = computed(() => this.apiAccessActive() ? [...this.baseProjectTabs, { id: 'api-keys', label: 'API keys' }] : this.baseProjectTabs);
 
   private readonly urlSignal = toSignal(
     this.router.events.pipe(
@@ -58,7 +64,7 @@ export class ProjectDetailLayout {
     const url = this.urlSignal();
     const match = url.match(/\/projects\/[^/]+\/([^/?#]+)/);
     const section = match ? match[1] : 'overview';
-    const found = this.projectTabs.find((t) => t.id === section);
+    const found = this.projectTabs().find((t) => t.id === section);
     return found ? found.id : 'overview';
   });
 

@@ -4,6 +4,8 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AdminSetupService, type AdminSetupView } from './admin-setup.service';
 
+const apiAccessView = { environmentEnabled: true, allowedOrigins: ['https://app.example.test'], runtimeEnabled: false };
+
 const setupView: AdminSetupView = {
   complete: false,
   integrations: [
@@ -28,8 +30,17 @@ describe('AdminSetupService', () => {
   it('loads the real setup envelope and keeps source metadata', async () => {
     const result = service.load();
     http.expectOne('/admin/setup').flush({ message: 'ok', data: setupView, success: true });
+    http.expectOne('/admin/api-access').flush({ message: 'ok', data: apiAccessView, success: true });
     await expect(result).resolves.toEqual(setupView);
     expect(service.view()).toEqual(setupView);
+    expect(service.apiAccess()).toEqual(apiAccessView);
+  });
+
+  it('updates the runtime flag then refreshes effective API access settings', async () => {
+    const result = service.setApiAccess(true);
+    http.expectOne({ method: 'PUT', url: '/admin/config/api_access_enabled' }).flush({ message: 'ok', data: { key: 'api_access_enabled', value: true }, success: true });
+    http.expectOne('/admin/api-access').flush({ message: 'ok', data: { ...apiAccessView, runtimeEnabled: true }, success: true });
+    await expect(result).resolves.toMatchObject({ runtimeEnabled: true });
   });
 
   it('saves a mail configuration without sending an empty write-only password', async () => {

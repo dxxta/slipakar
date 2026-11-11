@@ -8,6 +8,7 @@ export type SessionLookup = (headers: Headers) => Promise<{ user: AuthUser } | n
 export function createRequireAuth(getSession: SessionLookup): RequestHandler {
   return async (request, response, next): Promise<void> => {
     try {
+      if (request.apiKey) { next(); return; }
       const session = await getSession(fromNodeHeaders(request.headers));
       if (!session) {
         throw new AppError(401, 'UNAUTHENTICATED', 'Authentication required');

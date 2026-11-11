@@ -218,6 +218,7 @@ export function buildOpenApiDocument(
     if (route.auth !== 'public') {
       operation.security = [{ sessionCookie: [] }];
     }
+    if (route.apiKeyScope) operation['x-required-scope'] = route.apiKeyScope;
 
     paths[openApiPath][route.method.toLowerCase()] = operation;
   }
@@ -255,4 +256,14 @@ export function buildOpenApiDocument(
       },
     },
   };
+}
+
+
+export function buildIntegrationOpenApiDocument(routes: RouteDoc[], info: { title: string; version: string }): OpenApiDocument {
+  const document = buildOpenApiDocument(routes.filter((route) => route.apiKeyScope), info);
+  document.components = { ...document.components, securitySchemes: { bearerApiKey: { type: 'http', scheme: 'bearer', bearerFormat: 'slp_*' } } };
+  for (const operations of Object.values(document.paths)) for (const operation of Object.values(operations)) {
+    if (operation && typeof operation === 'object') (operation as Record<string, unknown>).security = [{ bearerApiKey: [] }];
+  }
+  return document;
 }

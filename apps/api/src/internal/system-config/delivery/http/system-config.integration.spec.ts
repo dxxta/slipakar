@@ -142,7 +142,7 @@ describe('system config integration', () => {
     expect(instanceAValue).toBe(false);
   });
 
-  it('GET /admin/config returns three flags, non-admin gets 403 on PUT, and audit rows exist for update', async () => {
+  it('GET /admin/config returns four flags, non-admin gets 403 on PUT, and audit rows exist for update', async () => {
     // GET /admin/config over HTTP
     const getRes = await request(app).get('/admin/config').set('x-test-email', adminEmail);
     expect(getRes.status).toBe(200);
@@ -153,6 +153,7 @@ describe('system config integration', () => {
         { key: 'scalar_docs', value: false },
         { key: 'pdf_builder', value: true },
         { key: 'self_signup', value: true },
+        { key: 'api_access_enabled', value: false },
       ],
     });
 

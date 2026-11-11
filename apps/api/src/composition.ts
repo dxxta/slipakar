@@ -1,6 +1,7 @@
 import type { PrismaClient } from '@prisma/client';
-import type { Express, RequestHandler } from 'express';
+import type { Express, Request, RequestHandler, Response } from 'express';
 import { Redis } from 'ioredis';
+import { fromNodeHeaders } from 'better-auth/node';
 import { Client as MinioClient } from 'minio';
 import { Router } from 'express';
 import { createApp } from './app.js';
@@ -41,7 +42,7 @@ import { BroadcastUseCase } from './internal/broadcasts/usecase/broadcasts.js';
 import { createUserNoticesRouter } from './internal/user-notices/delivery/http/user-notices.js';
 import { UserNoticesRepository } from './internal/user-notices/repository/user-notices.js';
 import { UserNoticesUseCase } from './internal/user-notices/usecase/user-notices.js';
-import { buildOpenApiDocument } from './internal/openapi/document.js';
+import { buildIntegrationOpenApiDocument, buildOpenApiDocument } from './internal/openapi/document.js';
 import { createOpenApiRouter } from './internal/openapi/delivery/http/openapi.js';
 import { allRouteDocs } from './internal/openapi/routes/index.js';
 import { buildRateLimiter } from './internal/sending/rate-limiter.js';
@@ -100,6 +101,12 @@ import { fileParser } from './internal/uploads/parser/file-parser.js';
 import { buildUploadsRepository } from './internal/uploads/repository/uploads.js';
 import { buildUploadsUseCase } from './internal/uploads/usecase/uploads.js';
 import { createCryptoService } from './services/crypto.js';
+import { buildApiKeysRepository } from './internal/apikeys/repository/api-keys.js';
+import { buildApiKeysUseCase } from './internal/apikeys/usecase/api-keys.js';
+import { createApiKeysRouter } from './internal/apikeys/delivery/http/api-keys.js';
+import { createApiAccessRouter } from './internal/apikeys/delivery/http/api-access.js';
+import { createApiAccessCheck } from './internal/apikeys/service/api-access.js';
+import { createApiKeyMiddleware } from './internal/apikeys/auth/api-key-middleware.js';
 
 export type CompositionDeps = {
   env: Env;
@@ -217,6 +224,15 @@ export function buildApplication({
       };
     });
   const guards = [requireAuth];
+  // Whether the request carries a valid session (used by /openapi.json to choose between the full and the scoped document).
+  const hasSession = async (request: Request): Promise<boolean> => {
+    if (requireAuthOverride) {
+      return new Promise<boolean>((resolve) => {
+        void Promise.resolve(requireAuthOverride(request, { locals: {} } as unknown as Response, (error?: unknown) => resolve(!error))).catch(() => resolve(false));
+      });
+    }
+    return Boolean(await auth.api.getSession({ headers: fromNodeHeaders(request.headers) }));
+  };
 
   const projectsRepository = buildProjectsRepository({
     prisma,
@@ -392,7 +408,13 @@ export function buildApplication({
     prisma,
     flags,
     notifyChanged: (key) => flags.notifyChanged(key),
+    apiAccessEnvEnabled: env.API_ACCESS_ENABLED,
   });
+  const isApiAccessActive = createApiAccessCheck({ environmentEnabled: env.API_ACCESS_ENABLED, flags });
+  const apiKeysRepository = buildApiKeysRepository({ prisma, auditRepository });
+  const apiKeysUseCase = buildApiKeysUseCase({ repository: apiKeysRepository, prisma, projectLookup: ownsProject, isActive: isApiAccessActive });
+  const apiKeyRedis = new Redis(env.REDIS_URL, { lazyConnect: true });
+  const apiKeyMiddleware = createApiKeyMiddleware({ repository: apiKeysRepository, isActive: isApiAccessActive, rateLimiter: buildRateLimiter({ redis: apiKeyRedis }), allowedOrigins: env.API_ALLOWED_ORIGINS });
 
   const metrics = metricsOverride ?? buildMetrics();
   const queue = queueOverride ?? buildQueue({ url: env.RABBITMQ_URL, metrics, errorReporter });
@@ -514,25 +536,21 @@ export function buildApplication({
 
   // Order matters: the auth router must be mounted before routers whose guards
   // apply requireAuth to every path.
-  const openApiDocument = buildOpenApiDocument(allRouteDocs, {
-    title: 'Slipakar API',
-    version: '1.0.0',
-  });
+  const openApiDocument = buildOpenApiDocument(allRouteDocs, { title: 'Slipakar API', version: '1.0.0' });
+  const integrationOpenApiDocument = buildIntegrationOpenApiDocument(allRouteDocs, { title: 'Slipakar Integrations API', version: '1.0.0' });
   const app = createApp({
     trustProxy: env.TRUST_PROXY,
     errorReporter,
-    middleware: [requestMetrics(metrics)],
+    middleware: [requestMetrics(metrics), apiKeyMiddleware],
     routers: [
       createAuthRouter(auth),
+      createApiAccessRouter({ userGuards: guards, adminGuards: [...guards, requireAdmin(env.ADMIN_EMAILS)], isActive: isApiAccessActive, envEnabled: env.API_ACCESS_ENABLED, allowedOrigins: env.API_ALLOWED_ORIGINS, flags }),
+      createApiKeysRouter({ guards, useCase: apiKeysUseCase }),
       // /metrics has its own bearer-token check (METRICS_TOKEN), so it is mounted before the session guards.
       createMetricsRouter({ metrics, token: env.METRICS_TOKEN }),
       // API docs: sign-in required, and hidden (404) while the scalar_docs flag is off.
-      Router().use(
-        ['/docs', '/openapi.json'],
-        ...guards,
-        requireFeature(flags, 'scalar_docs'),
-      ),
-      createOpenApiRouter({ document: openApiDocument }),
+      Router().get('/docs', ...guards, requireFeature(flags, 'scalar_docs'), (_request, _response, next) => next()),
+      createOpenApiRouter({ document: openApiDocument, integrationDocument: integrationOpenApiDocument, integrationEnabled: isApiAccessActive, getSession: hasSession, fullDocsEnabled: () => flags.isEnabled('scalar_docs') }),
       createPreferencesRouter({ guards, preferencesUseCase }),
       createLoginActivityRouter({
         userGuards: guards,
@@ -627,6 +645,7 @@ export function buildApplication({
       await flags.stop();
       await errorLogSink.stop();
       loginContextRedis.disconnect();
+      apiKeyRedis.disconnect();
     },
   };
 }

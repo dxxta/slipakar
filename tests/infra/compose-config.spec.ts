@@ -38,6 +38,8 @@ describe('docker-compose.yml configuration', () => {
       'BETTER_AUTH_SECRET=fake-better-auth-secret-123456',
       'BETTER_AUTH_URL=http://localhost:8080',
       'TRUSTED_ORIGINS=http://localhost:8080',
+      'API_ACCESS_ENABLED=false',
+      'API_ALLOWED_ORIGINS=',
       'GOOGLE_CLIENT_ID=fake-google-client-id',
       'GOOGLE_CLIENT_SECRET=fake-google-client-secret',
       'METRICS_TOKEN=fake-metrics-token-16-chars-min',
@@ -133,6 +135,8 @@ describe('docker-compose.yml configuration', () => {
     expect(config.services.web.depends_on.api.condition).toBe('service_healthy');
     expect(config.services.web.restart).toBe('unless-stopped');
     expect(config.services.api.environment.TRUSTED_ORIGINS).toBe('http://localhost:8080');
+    expect(config.services.api.environment.API_ACCESS_ENABLED).toBe('false');
+    expect(config.services.api.environment.API_ALLOWED_ORIGINS).toBe('');
     expect(config.services.postgres.environment.POSTGRES_USER).toBe('slipakar');
     expect(config.services.postgres.environment.POSTGRES_DB).toBe('slipakar');
     expect(config.services.rabbitmq.environment.RABBITMQ_DEFAULT_USER).toBe('slipakar');

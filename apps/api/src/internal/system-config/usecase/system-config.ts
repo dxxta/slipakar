@@ -14,6 +14,7 @@ export function buildSystemConfigUseCase(deps: {
   prisma: PrismaClient;
   flags?: FeatureFlagsInterface;
   notifyChanged: (key: SystemConfigKey) => Promise<void>;
+  apiAccessEnvEnabled?: boolean;
 }): SystemConfigUseCaseInterface {
   const { repository, prisma, notifyChanged } = deps;
   void deps.flags;
@@ -30,12 +31,12 @@ export function buildSystemConfigUseCase(deps: {
 
       const items: SystemConfigItem[] = SYSTEM_CONFIG_KEYS.map((k) => ({
         key: k,
-        value: map.has(k) ? (map.get(k) as boolean) : true,
+        value: map.has(k) ? (map.get(k) as boolean) : k !== 'api_access_enabled',
       }));
 
       return {
         message: 'System config retrieved successfully',
-        data: items,
+        data: items.map((item) => item.key === 'api_access_enabled' && !deps.apiAccessEnvEnabled ? { ...item, value: false } : item),
         success: true,
       };
     },

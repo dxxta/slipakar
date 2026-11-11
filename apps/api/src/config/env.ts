@@ -12,7 +12,9 @@ export const envSchema = z.object({
     .default('')
     .transform((value) => value.split(',').map((origin) => origin.trim()).filter(Boolean))
     .pipe(z.array(z.string().url()))
-    .transform((origins) => origins.map((origin) => origin.replace(/\/+$/, ''))),
+    .transform((origins) => origins.map((origin) => new URL(origin).origin)),
+  API_ACCESS_ENABLED: z.enum(['true', 'false']).default('false').transform((value) => value === 'true'),
+  API_ALLOWED_ORIGINS: z.string().default('').transform((value) => value.split(',').map((origin) => origin.trim()).filter(Boolean)).pipe(z.array(z.string().url().refine((value) => { const url = new URL(value); return ['http:', 'https:'].includes(url.protocol) && Boolean(url.hostname) && !url.username && !url.password && url.pathname === '/' && !url.search && !url.hash; }, 'API_ALLOWED_ORIGINS entries must be absolute origins'))).transform((origins) => origins.map((origin) => new URL(origin).origin)),
   // Any S3-compatible store (Garage by default, MinIO also works with S3_PATH_STYLE=true).
   S3_ENDPOINT: z.string().min(1),
   S3_PORT: z.coerce.number().int().min(1).max(65535).default(3900),
@@ -94,7 +96,7 @@ export const envSchema = z.object({
 export type Env = z.infer<typeof envSchema>;
 
 // docker-compose passes unset optional variables as empty strings; treat those as absent.
-const optionalWhenEmpty = ['APP_URL', 'AUTH_SMTP_HOST', 'AUTH_SMTP_PORT', 'AUTH_SMTP_SECURE', 'AUTH_SMTP_USER', 'AUTH_SMTP_PASS', 'AUTH_MAIL_FROM', 'LOGIN_EVENT_RETENTION_DAYS', 'TRUST_PROXY', 'SEED_DEMO_PROJECT', 'SETUP_GRAFANA_URL', 'SETUP_UPTIME_URL', 'SETUP_UPTIME_USERNAME', 'SETUP_UPTIME_PASSWORD', 'SETUP_GRAFANA_API_TOKEN'];
+const optionalWhenEmpty = ['APP_URL', 'AUTH_SMTP_HOST', 'AUTH_SMTP_PORT', 'AUTH_SMTP_SECURE', 'AUTH_SMTP_USER', 'AUTH_SMTP_PASS', 'AUTH_MAIL_FROM', 'LOGIN_EVENT_RETENTION_DAYS', 'TRUST_PROXY', 'SEED_DEMO_PROJECT', 'SETUP_GRAFANA_URL', 'SETUP_UPTIME_URL', 'SETUP_UPTIME_USERNAME', 'SETUP_UPTIME_PASSWORD', 'SETUP_GRAFANA_API_TOKEN', 'API_ALLOWED_ORIGINS'];
 
 export function loadEnv(source: Record<string, string | undefined>): Env {
   const cleaned = { ...source };

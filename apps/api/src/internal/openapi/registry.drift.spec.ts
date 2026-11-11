@@ -3,7 +3,7 @@ import type { PrismaClient } from '@prisma/client';
 import { buildApp } from '../../composition.js';
 import { allRouteDocs } from './routes/index.js';
 
-const ignoredPaths = ['/health', '/docs', '/openapi.json', '/metrics'];
+const ignoredPaths = ['/health', '/docs', '/openapi.json', '/integrations/docs', '/integrations/openapi.json', '/metrics'];
 
 const env = {
   DATABASE_URL: 'postgresql://localhost/db',
@@ -12,6 +12,8 @@ const env = {
   GOOGLE_CLIENT_SECRET: 'google-secret',
   BETTER_AUTH_SECRET: 'auth-secret',
   BETTER_AUTH_URL: 'http://localhost:3000',
+  API_ACCESS_ENABLED: false,
+  API_ALLOWED_ORIGINS: [],
   S3_ENDPOINT: 'localhost',
   S3_PORT: 3900,
   S3_USE_SSL: false,
