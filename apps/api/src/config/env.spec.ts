@@ -63,6 +63,7 @@ describe('loadEnv', () => {
       TRUSTED_ORIGINS: [],
       API_ACCESS_ENABLED: false,
       API_ALLOWED_ORIGINS: [],
+      EMBED_ALLOWED_ORIGINS: [],
       AUTH_SMTP_PORT: 587,
       AUTH_SMTP_SECURE: false,
     });
@@ -81,6 +82,15 @@ describe('loadEnv', () => {
     expect(loadEnv({ ...valid, API_ALLOWED_ORIGINS: 'https://app.example.com:443/' }).API_ALLOWED_ORIGINS).toEqual(['https://app.example.com']);
     expect(() => loadEnv({ ...valid, API_ALLOWED_ORIGINS: 'https://app.example.com/path' })).toThrow();
     expect(() => loadEnv({ ...valid, API_ALLOWED_ORIGINS: 'https://user:pass@app.example.com' })).toThrow();
+  });
+
+  it('validates embed origins as HTTPS or localhost and defaults embedding off', () => {
+    expect(loadEnv(valid).EMBED_ALLOWED_ORIGINS).toEqual([]);
+    expect(loadEnv({ ...valid, EMBED_ALLOWED_ORIGINS: 'https://host.example, http://localhost:4300/' }).EMBED_ALLOWED_ORIGINS).toEqual(['https://host.example', 'http://localhost:4300']);
+    expect(() => loadEnv({ ...valid, EMBED_ALLOWED_ORIGINS: 'http://host.example' })).toThrow();
+    expect(() => loadEnv({ ...valid, EMBED_ALLOWED_ORIGINS: 'https://host.example/path' })).toThrow();
+    expect(() => loadEnv({ ...valid, EMBED_ALLOWED_ORIGINS: 'https://*.example.com' })).toThrow();
+    expect(() => loadEnv({ ...valid, EMBED_ALLOWED_ORIGINS: 'http://127.0.0.1:4300' })).toThrow();
   });
 
   it('parses ADMIN_EMAILS into trimmed lowercase emails and ignores blanks', () => {

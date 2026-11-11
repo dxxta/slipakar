@@ -38,6 +38,7 @@ services:
       TRUSTED_ORIGINS: "${TRUSTED_ORIGINS:-http://localhost:8080}"
       API_ACCESS_ENABLED: "${API_ACCESS_ENABLED:-false}"
       API_ALLOWED_ORIGINS: "${API_ALLOWED_ORIGINS:-}"
+      EMBED_ALLOWED_ORIGINS: "${EMBED_ALLOWED_ORIGINS:-}"
       GOOGLE_CLIENT_ID: "${GOOGLE_CLIENT_ID:?GOOGLE_CLIENT_ID is required}"
       GOOGLE_CLIENT_SECRET: "${GOOGLE_CLIENT_SECRET:?GOOGLE_CLIENT_SECRET is required}"
       ADMIN_EMAILS: "${ADMIN_EMAILS:-}"
@@ -75,6 +76,7 @@ services:
     environment:
       PORT: 8080
       API_UPSTREAM: "${API_UPSTREAM:-api:3000}"
+      EMBED_ALLOWED_ORIGINS: "${EMBED_ALLOWED_ORIGINS:-}"
     healthcheck:
       test: ["CMD", "busybox", "wget", "-q", "-O", "-", "http://127.0.0.1:8080/healthz"]
       interval: 30s

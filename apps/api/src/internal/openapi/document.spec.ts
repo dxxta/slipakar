@@ -266,6 +266,14 @@ describe('buildOpenApiDocument', () => {
 });
 
 describe('buildIntegrationOpenApiDocument', () => {
+  it('keeps integration-only routes out of the signed-in full document', () => {
+    const routes: RouteDoc[] = [
+      { method: 'post', path: '/projects/:projectId/embed-tokens', tag: 'Embedding', summary: 'Mint', auth: 'public', status: 201, apiKeyScope: 'embed:create', integrationOnly: true },
+    ];
+    const doc = buildOpenApiDocument(routes, { title: 'Slipakar API', version: '1.0.0' });
+    expect(doc.paths).toEqual({});
+  });
+
   it('includes only explicitly scoped operations and documents bearer auth plus scope', async () => {
     const { buildIntegrationOpenApiDocument } = await import('./document.js');
     const routes: RouteDoc[] = [

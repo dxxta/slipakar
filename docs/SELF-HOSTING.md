@@ -52,6 +52,7 @@ Before starting, ensure the host machine has the following tools installed:
    - **`TRUSTED_ORIGINS`**: Comma-separated absolute browser origins accepted by Better Auth. Compose defaults to `http://localhost:8080`; the user and admin apps share this origin.
    - **`API_ACCESS_ENABLED`**: Self-hosted bearer API master switch (default `false`); must be enabled alongside the runtime switch in Admin Setup. Hosted cloud keeps it disabled.
    - **`API_ALLOWED_ORIGINS`**: Optional comma-separated absolute origins allowed for browser CORS with API keys (default empty; no wildcard or credentials). See [API integrations](INTEGRATIONS.md).
+   - **`EMBED_ALLOWED_ORIGINS`**: Optional comma-separated absolute HTTPS origins allowed to frame the embed app (only `http://localhost[:port]` is accepted for development). Empty disables embedding. Embedding also requires active API access and the Admin Setup Embedding switch; hosted cloud keeps it disabled. See [API integrations](INTEGRATIONS.md#embedding-a-project).
    - **`GOOGLE_CLIENT_ID`** & **`GOOGLE_CLIENT_SECRET`**: OAuth credentials from the Google Cloud Console.
    - **`METRICS_TOKEN`**: High-entropy secret token (at least 16 characters) used by Prometheus to scrape `/metrics`.
    - **`GRAFANA_ADMIN_PASSWORD`**: Password for the Grafana admin account (`admin`).
@@ -65,6 +66,16 @@ Before starting, ensure the host machine has the following tools installed:
    - **`APP_URL`**: Optional frontend application URL used for callback redirection in email verification links (defaults to the first origin in `TRUSTED_ORIGINS`).
    - **`LOGIN_EVENT_RETENTION_DAYS`**: Number of days to retain user login events (default: 90 days, range: 1..3650 days). Expired records are pruned at API boot and every 24 hours.
    - **`TRUST_PROXY`**: Trust proxy setting for Express. Values: `false` (default for bare API), a hop count like `1` (compose default behind nginx reverse proxy), or a comma-separated list of CIDRs. Ensures client IP is accurately resolved from `X-Forwarded-For`.
+
+   Embedding is available only when all three gates are enabled:
+
+   | Gate | Default | Purpose |
+   |---|---|---|
+   | `EMBED_ALLOWED_ORIGINS` | Empty | Parent-site origins permitted by the web frame policy and API. |
+   | `API_ACCESS_ENABLED` + Admin Setup → API access | Environment `false`, runtime `false` | Required because an API key mints each one-use launch token. |
+   | Admin Setup → Embedding (`embed_enabled`) | `false` | Runtime switch for token minting and exchange. |
+
+   The hosted cloud deployment keeps embedding disabled. See [API integrations](INTEGRATIONS.md#embedding-a-project) for token flow, scopes, and browser integration.
 
 ---
 

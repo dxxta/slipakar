@@ -1,6 +1,7 @@
 import type { RouteDoc } from '../../../domain/openapi/interface.js';
 import { adminSetupRoutes } from './admin-setup.js';
 import { apiAccessRoutes, apiKeysRoutes } from './api-keys.js';
+import { embedRoutes } from './embed.js';
 import { adminUsersRoutes } from './admin-users.js';
 import { attachmentsRoutes } from './attachments.js';
 import { avatarRoutes } from './avatar.js';
@@ -23,6 +24,7 @@ export const allRouteDocs: RouteDoc[] = [
   ...loginActivityRoutes,
   ...apiKeysRoutes,
   ...apiAccessRoutes,
+  ...embedRoutes,
   ...preferencesRoutes,
   ...userNoticeRoutes,
   ...avatarRoutes,

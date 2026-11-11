@@ -44,7 +44,7 @@ export function buildFeatureFlags({
       }
 
       const { data } = await repository.getSystemConfigRepository({ filter: { key } });
-      const value = typeof data?.value === 'boolean' ? data.value : key !== 'api_access_enabled';
+      const value = typeof data?.value === 'boolean' ? data.value : !['api_access_enabled', 'embed_enabled'].includes(key);
 
       cache.set(key, {
         value,

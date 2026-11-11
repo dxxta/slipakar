@@ -154,6 +154,7 @@ describe('system config integration', () => {
         { key: 'pdf_builder', value: true },
         { key: 'self_signup', value: true },
         { key: 'api_access_enabled', value: false },
+        { key: 'embed_enabled', value: false },
       ],
     });
 

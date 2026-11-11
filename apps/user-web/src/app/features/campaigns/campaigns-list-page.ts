@@ -12,6 +12,7 @@ import { PageHeader } from '../../ui/shared/page-header';
 import { Pagination } from '../../ui/shared/pagination';
 import { RowActions, RowActionItem } from '../../ui/shared/row-actions';
 import { type PageMetadata } from '../../core/api-client';
+import { EmbedSessionService } from '../../core/embed-session.service';
 import {
   type CampaignDetail,
   type CampaignItem,
@@ -29,7 +30,7 @@ import { Ripple } from '../../ui/shared/ripple';
   template: `
     <div class="app-list-layout">
       <app-page-header title="Campaigns" description="Manage and track bulk personalized email campaigns." [topLevel]="false">
-        <button
+        @if (!embed.isEmbedMode()) { <button
           page-actions
           hlmBtn
           type="button"
@@ -40,7 +41,7 @@ import { Ripple } from '../../ui/shared/ripple';
           <ng-icon name="tablerPlus" aria-hidden="true" class="size-[1.1rem]" />
           New campaign
         </button>
-        <app-row-actions page-actions class="md:hidden" [solid]="true" label="Page actions" [items]="pageActions" (actionSelect)="navigateToCreate()" />
+        <app-row-actions page-actions class="md:hidden" [solid]="true" label="Page actions" [items]="pageActions" (actionSelect)="navigateToCreate()" /> }
       </app-page-header>
       <app-data-table-controls [query]="query()" searchPlaceholder="Search campaigns..." (queryChange)="search($event)"><div table-filters><label class="grid min-w-40 gap-1 text-xs font-medium text-muted-foreground">Sort campaigns
         <select appSelect aria-label="Sort campaigns" class="h-control-9 rounded-ui-md border border-input bg-background px-3 text-sm" [value]="sortBy()" (change)="sort($event)"><option value="createdAt">Created</option><option value="updatedAt">Updated</option><option value="status">Status</option></select>
@@ -104,7 +105,7 @@ import { Ripple } from '../../ui/shared/ripple';
             </tbody>
           </table>
         </div>
-        <button empty-action hlmBtn class="mt-5" type="button" data-testid="empty-create-button" (click)="navigateToCreate()">Create your first campaign</button>
+        @if (!embed.isEmbedMode()) { <button empty-action hlmBtn class="mt-5" type="button" data-testid="empty-create-button" (click)="navigateToCreate()">Create your first campaign</button> }
       </app-list-body>
       <app-pagination [metadata]="metadata()" (pageChange)="setPage($event)" />
     </div>
@@ -116,6 +117,7 @@ export class CampaignsListPage implements OnInit {
   private readonly campaignsService = inject(CampaignsService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  protected readonly embed = inject(EmbedSessionService);
 
   readonly projectId = signal<string>('');
   readonly campaigns = signal<CampaignItem[]>([]);

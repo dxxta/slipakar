@@ -107,6 +107,8 @@ import { createApiKeysRouter } from './internal/apikeys/delivery/http/api-keys.j
 import { createApiAccessRouter } from './internal/apikeys/delivery/http/api-access.js';
 import { createApiAccessCheck } from './internal/apikeys/service/api-access.js';
 import { createApiKeyMiddleware } from './internal/apikeys/auth/api-key-middleware.js';
+import { buildEmbedTokenService } from './internal/embed/service/embed-token-service.js';
+import { createEmbedRouter } from './internal/embed/delivery/http/embed.js';
 
 export type CompositionDeps = {
   env: Env;
@@ -414,7 +416,10 @@ export function buildApplication({
   const apiKeysRepository = buildApiKeysRepository({ prisma, auditRepository });
   const apiKeysUseCase = buildApiKeysUseCase({ repository: apiKeysRepository, prisma, projectLookup: ownsProject, isActive: isApiAccessActive });
   const apiKeyRedis = new Redis(env.REDIS_URL, { lazyConnect: true });
-  const apiKeyMiddleware = createApiKeyMiddleware({ repository: apiKeysRepository, isActive: isApiAccessActive, rateLimiter: buildRateLimiter({ redis: apiKeyRedis }), allowedOrigins: env.API_ALLOWED_ORIGINS });
+  const isEmbedActive = async (): Promise<boolean> => Boolean(env.EMBED_ALLOWED_ORIGINS.length) && await flags.isEnabled('embed_enabled') && await isApiAccessActive();
+  const apiKeyRateLimiter = buildRateLimiter({ redis: apiKeyRedis });
+  const embedTokenUseCase = buildEmbedTokenService({ redis: apiKeyRedis, keyRepository: apiKeysRepository, rateLimiter: apiKeyRateLimiter, isActive: isEmbedActive, allowedOrigins: env.EMBED_ALLOWED_ORIGINS, publicBaseUrl: env.BETTER_AUTH_URL });
+  const apiKeyMiddleware = createApiKeyMiddleware({ repository: apiKeysRepository, isActive: isApiAccessActive, isEmbedActive, rateLimiter: apiKeyRateLimiter, allowedOrigins: env.API_ALLOWED_ORIGINS, embedRedis: apiKeyRedis });
 
   const metrics = metricsOverride ?? buildMetrics();
   const queue = queueOverride ?? buildQueue({ url: env.RABBITMQ_URL, metrics, errorReporter });
@@ -544,8 +549,9 @@ export function buildApplication({
     middleware: [requestMetrics(metrics), apiKeyMiddleware],
     routers: [
       createAuthRouter(auth),
-      createApiAccessRouter({ userGuards: guards, adminGuards: [...guards, requireAdmin(env.ADMIN_EMAILS)], isActive: isApiAccessActive, envEnabled: env.API_ACCESS_ENABLED, allowedOrigins: env.API_ALLOWED_ORIGINS, flags }),
+      createApiAccessRouter({ userGuards: guards, adminGuards: [...guards, requireAdmin(env.ADMIN_EMAILS)], isActive: isApiAccessActive, envEnabled: env.API_ACCESS_ENABLED, allowedOrigins: env.API_ALLOWED_ORIGINS, embedAllowedOrigins: env.EMBED_ALLOWED_ORIGINS, flags }),
       createApiKeysRouter({ guards, useCase: apiKeysUseCase }),
+      createEmbedRouter({ useCase: embedTokenUseCase, isActive: isEmbedActive }),
       // /metrics has its own bearer-token check (METRICS_TOKEN), so it is mounted before the session guards.
       createMetricsRouter({ metrics, token: env.METRICS_TOKEN }),
       // API docs: sign-in required, and hidden (404) while the scalar_docs flag is off.

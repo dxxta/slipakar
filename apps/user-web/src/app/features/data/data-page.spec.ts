@@ -3,6 +3,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { type ComponentFixture, TestBed } from '@angular/core/testing';
 import { ActivatedRoute } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { EmbedSessionService } from '../../core/embed-session.service';
 import { DataPage } from './data-page';
 import type { UploadItem, UploadPreview } from './data.service';
 
@@ -95,6 +96,40 @@ describe('DataPage', () => {
     expect(fixture.nativeElement.textContent).toContain('recipients.csv');
     expect(fixture.nativeElement.textContent).toContain('Alice Johnson');
     expect(fixture.nativeElement.textContent).toContain('bob@example.com');
+  });
+
+  it('hides write controls when an embed session has read-only scopes', () => {
+    const embed = TestBed.inject(EmbedSessionService);
+    embed.enableMode();
+    embed.session.set({
+      token: `slpe_${'x'.repeat(43)}`,
+      projectId: 'p-1',
+      scopes: ['uploads:read', 'mappings:read', 'templates:read'],
+      theme: null,
+      expiresAt: new Date(Date.now() + 60_000).toISOString(),
+      parentOrigin: 'https://host.example',
+    });
+    embed.state.set('ready');
+
+    const fixture = TestBed.createComponent(DataPage);
+    fixture.detectChanges();
+    http.expectOne('/projects/p-1/uploads').flush({ message: 'ok', data: [mockUpload], success: true });
+    http.expectOne('/projects/p-1/templates?page=1&limit=100&sortBy=createdAt&sortDir=desc')
+      .flush({ message: 'ok', data: mockTemplates, metadata: { page: 1, limit: 100, total: 1 }, success: true });
+    http.expectOne('/projects/p-1/pdf-templates?page=1&limit=100&sortBy=createdAt&sortDir=desc')
+      .flush({ message: 'ok', data: [], metadata: { page: 1, limit: 100, total: 0 }, success: true });
+    http.expectOne('/projects/p-1/uploads/up-1').flush({ message: 'ok', data: mockPreview, success: true });
+    fixture.componentInstance.selectedTemplateId.set('tpl-1');
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-testid="file-dropzone"]')).toBeNull();
+    const actionsTrigger = fixture.nativeElement.querySelector('[data-testid="upload-actions-up-1"] button') as HTMLButtonElement;
+    actionsTrigger.click();
+    fixture.detectChanges();
+    expect([...fixture.nativeElement.querySelectorAll('[role="menuitem"]')].map((item: Element) => item.textContent?.trim())).toEqual(['Detail']);
+    expect(fixture.nativeElement.querySelector('[data-testid="auto-suggest-button"]')).toBeNull();
+    expect(fixture.nativeElement.querySelector('[data-testid="save-mapping-button"]')).toBeNull();
+    expect((fixture.nativeElement.querySelector('[data-testid="mapping-select-fullName"]') as HTMLSelectElement).disabled).toBe(true);
   });
 
   it('keeps the upload filter mounted and shows a search-empty result', () => {

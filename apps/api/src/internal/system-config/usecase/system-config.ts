@@ -31,7 +31,7 @@ export function buildSystemConfigUseCase(deps: {
 
       const items: SystemConfigItem[] = SYSTEM_CONFIG_KEYS.map((k) => ({
         key: k,
-        value: map.has(k) ? (map.get(k) as boolean) : k !== 'api_access_enabled',
+        value: map.has(k) ? (map.get(k) as boolean) : !['api_access_enabled', 'embed_enabled'].includes(k),
       }));
 
       return {

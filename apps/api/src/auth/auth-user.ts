@@ -1,3 +1,5 @@
+import type { EmbedTheme } from '../domain/embed/dto.js';
+
 export type AuthUser = {
   id: string;
   email: string;
@@ -9,6 +11,6 @@ export type AuthUser = {
 declare module 'express-serve-static-core' {
   interface Request {
     user?: AuthUser;
-    apiKey?: { id: string; projectId: string; scopes: string[] };
+    apiKey?: { id: string; projectId: string; scopes: string[]; embed?: boolean; parentOrigin?: string; theme?: EmbedTheme | null };
   }
 }

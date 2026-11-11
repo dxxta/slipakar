@@ -11,6 +11,7 @@ import { describe, expect, it } from 'vitest';
 const infraDir = path.join(process.cwd(), 'infra', 'web');
 const nginxConfig = fs.readFileSync(path.join(infraDir, 'nginx.conf'), 'utf8');
 const securityHeadersPath = path.join(infraDir, 'security-headers.conf');
+const embedFrameAncestorsScript = fs.readFileSync(path.join(infraDir, 'entrypoint', '20-embed-frame-ancestors.envsh'), 'utf8');
 const securityHeaders = fs.existsSync(securityHeadersPath)
   ? fs.readFileSync(securityHeadersPath, 'utf8')
   : '';
@@ -56,11 +57,33 @@ describe('production web Nginx cache behavior', () => {
     expect(nginxConfig.match(/\bserver\s*\{/g)).toHaveLength(1);
     expect(nginxConfig).toContain('listen ${PORT};');
     expect(nginxConfig).toContain('server ${API_UPSTREAM};');
+    expect(fs.readFileSync(path.join(infraDir, 'Dockerfile'), 'utf8')).toContain('EMBED_FRAME_ANCESTORS');
+    expect(embedFrameAncestorsScript).toContain('IFS=,');
+    expect(embedFrameAncestorsScript).toContain('export EMBED_FRAME_ANCESTORS=$frame_ancestors');
+    expect(embedFrameAncestorsScript).toContain('*[!A-Za-z0-9.:-]*');
+    expect(nginxConfig).toContain('location = /embed {');
+    expect(nginxConfig).toContain('location @embed_app {');
+    expect(nginxConfig).toContain('location ^~ /embed/ {');
+    expect(nginxConfig).toContain('location = /embed/exchange { proxy_pass http://api; }');
     expect(nginxConfig).toContain('location ^~ /console/ {');
     expect(nginxConfig).toContain('root /usr/share/nginx/html;');
     expect(nginxConfig).toContain('try_files $uri $uri/ /console/index.html;');
     expect(nginxConfig).toContain('location ^~ /admin/ { proxy_pass http://api; }');
     expect(nginxConfig).not.toContain('listen 8081;');
+  });
+
+
+  it('allows configured frame ancestors only on embed documents and keeps the global denial', () => {
+    for (const location of ['= /embed', '^~ /embed/', '@embed_app']) {
+      const block = getLocationBlock(location);
+      expect(block).toContain('frame-ancestors ${EMBED_FRAME_ANCESTORS}');
+      expect(block).not.toContain('X-Frame-Options');
+      expect(block).toContain("script-src 'self'");
+      expect(block).toContain("style-src 'self' 'unsafe-inline' https://fonts.googleapis.com");
+      expect(block).toContain("font-src 'self' data: https://fonts.gstatic.com");
+    }
+    expect(securityHeaders).toContain("frame-ancestors 'none'");
+    expect(securityHeaders).toContain('X-Frame-Options "DENY"');
   });
 
   it('emits the no-index header even in locations that override add_header inheritance', () => {
@@ -107,7 +130,8 @@ describe('production web Nginx cache behavior', () => {
         '--publish=127.0.0.1:18080:8080',
         '-e', 'PORT=8080',
         '-e', `API_UPSTREAM=host.docker.internal:${upstreamAddress.port}`,
-        '-e', 'NGINX_ENVSUBST_FILTER=^(PORT|API_UPSTREAM)$',
+        '-e', 'NGINX_ENVSUBST_FILTER=^(PORT|API_UPSTREAM|EMBED_FRAME_ANCESTORS)$',
+        '-e', 'EMBED_FRAME_ANCESTORS=https://host.example http://localhost:4300',
         `--volume=${configPath}:/etc/nginx/templates/default.conf.template:ro`,
         `--volume=${securityHeadersPath}:/etc/nginx/security-headers.conf:ro`,
         `--volume=${path.join(infraDir, 'robots-header.conf')}:/etc/nginx/robots-header.conf:ro`,

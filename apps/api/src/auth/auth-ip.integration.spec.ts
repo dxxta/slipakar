@@ -41,6 +41,7 @@ describe('Auth & Login Activity IP resolution', () => {
         TRUSTED_ORIGINS: [trustedOrigin],
         API_ACCESS_ENABLED: false,
         API_ALLOWED_ORIGINS: [],
+        EMBED_ALLOWED_ORIGINS: [],
         S3_ENDPOINT: 'localhost',
         S3_PORT: 3900,
         S3_USE_SSL: false,

@@ -1,6 +1,7 @@
 import { DOCUMENT } from '@angular/common';
 import { Injectable, inject, signal } from '@angular/core';
 import { ApiClient } from './api-client';
+import type { EmbedTheme } from './embed-types';
 import {
   ACCENT_PRESET_COLORS,
   applyThemePreference,
@@ -45,6 +46,20 @@ export class ThemePreferencesService {
       },
       error: () => undefined,
     });
+  }
+
+  applyEmbedTheme(theme: EmbedTheme | null): void {
+    this.watchSystemPreference();
+    const preference: ThemePreference = { themeMode: theme?.mode ?? 'system', themeAccent: 'slate' };
+    const defaults = defaultThemeColors('slate');
+    const colors: ThemeColors = {
+      light: { ...defaults.light, ...(theme?.accent ? { accent: theme.accent } : {}), ...(theme?.secondary ? { secondary: theme.secondary } : {}), ...(theme?.third ? { third: theme.third } : {}) },
+      dark: { ...defaults.dark, ...(theme?.accent ? { accent: theme.accent } : {}), ...(theme?.secondary ? { secondary: theme.secondary } : {}), ...(theme?.third ? { third: theme.third } : {}) },
+    };
+    this.preference.set(preference);
+    this.themeColors.set(colors);
+    this.appearanceStyle.set(theme?.style ?? 'styled');
+    this.apply(preference);
   }
 
   setPreference(preference: ThemePreference): void {

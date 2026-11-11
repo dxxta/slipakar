@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { tablerAlertTriangle, tablerPlus } from '@ng-icons/tabler-icons';
 import { ApiError } from '../../core/api-error';
+import { EmbedSessionService } from '../../core/embed-session.service';
 import { HlmButton } from '../../ui/button/src';
 import { DataTableControls } from '../../ui/shared/data-table-controls';
 import { ListBody } from '../../ui/shared/list-body';
@@ -27,7 +28,7 @@ import { Ripple } from '../../ui/shared/ripple';
   template: `
     <div class="app-list-layout">
       <app-page-header title="PDF Templates" description="Design pixel-perfect PDF attachments and documents using the visual builder." [topLevel]="false">
-        @if (!featureDisabled()) {
+        @if (!featureDisabled() && canEdit()) {
           <div page-actions class="flex items-center gap-2">
 <button
             hlmBtn
@@ -82,14 +83,14 @@ import { Ripple } from '../../ui/shared/ripple';
                     <td data-label="Node Count" class="px-6 py-4 text-muted-foreground tabular-nums">{{ nodeCount(template) }} {{ nodeCount(template) === 1 ? 'node' : 'nodes' }}</td>
                     <td data-label="Last Updated" class="px-6 py-4 text-muted-foreground tabular-nums"><time [attr.datetime]="template.updatedAt" [attr.title]="template.updatedAt">{{ formatDate(template.updatedAt) }}</time></td>
                     <td data-label="Actions" class="px-6 py-4 text-right">
-                      <app-row-actions [attr.data-testid]="'pdf-template-actions-' + template.id" [label]="'Actions for ' + template.name" [items]="templateActions" (actionSelect)="handleTemplateAction($event, template)" />
+                      <app-row-actions [attr.data-testid]="'pdf-template-actions-' + template.id" [label]="'Actions for ' + template.name" [items]="templateActions()" (actionSelect)="handleTemplateAction($event, template)" />
                     </td>
                   </tr>
                 }
               </tbody>
             </table>
           </div>
-          <button empty-action hlmBtn class="mt-5" type="button" data-testid="empty-create-button" (click)="navigateToCreate()">Create your first PDF template</button>
+          @if (canEdit()) { <button empty-action hlmBtn class="mt-5" type="button" data-testid="empty-create-button" (click)="navigateToCreate()">Create your first PDF template</button> }
         </app-list-body>
         <app-pagination [metadata]="metadata()" (pageChange)="setPage($event)" />
       }
@@ -125,11 +126,14 @@ export class PdfTemplatesListPage implements OnInit {
   private readonly service = inject(PdfTemplatesService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly embed = inject(EmbedSessionService);
 
   readonly templates = signal<PdfTemplateItem[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly featureDisabled = signal(false);
+  readonly canWrite = computed(() => !this.embed.isEmbedMode() || this.embed.hasScope('templates:write'));
+  readonly canEdit = computed(() => !this.embed.isEmbedMode() || this.embed.hasScopes(['templates:read', 'templates:write', 'uploads:read', 'uploads:write']));
   protected readonly pageActions: RowActionItem[] = [{ id: 'new', label: 'New PDF template', icon: 'plus' }];
   readonly confirmingDeleteId = signal<string | null>(null);
   protected readonly pendingDelete = computed(() => this.templates().find((template) => template.id === this.confirmingDeleteId()) ?? null);
@@ -139,10 +143,11 @@ export class PdfTemplatesListPage implements OnInit {
   readonly metadata = signal<PageMetadata>({ page: 1, limit: 20, total: 0 });
   readonly sortBy = signal<'name' | 'createdAt' | 'updatedAt'>('createdAt');
   readonly sortDir = signal<'asc' | 'desc'>('desc');
-  readonly templateActions: RowActionItem[] = [
-    { id: 'edit', label: 'Edit', icon: 'pencil' },
-    { id: 'delete', label: 'Delete', icon: 'trash', destructive: true },
-  ];
+  readonly templateActions = computed<RowActionItem[]>(() => [
+    { id: 'detail', label: 'Detail', icon: 'eye' },
+    ...(this.canEdit() ? [{ id: 'edit', label: 'Edit', icon: 'pencil' } as RowActionItem] : []),
+    ...(this.canWrite() ? [{ id: 'delete', label: 'Delete', icon: 'trash', destructive: true } as RowActionItem] : []),
+  ]);
 
   get projectId(): () => string {
     return () =>

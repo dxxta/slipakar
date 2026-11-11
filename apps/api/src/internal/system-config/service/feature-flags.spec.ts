@@ -23,6 +23,7 @@ describe('feature-flags service', () => {
     const subscriber = { subscribe: vi.fn(), unsubscribe: vi.fn(), on: vi.fn() } as unknown as RedisPubSubClient;
     const flags = buildFeatureFlags({ repository, publisher, subscriber });
     expect(await flags.isEnabled('api_access_enabled')).toBe(false);
+    expect(await flags.isEnabled('embed_enabled')).toBe(false);
   });
 
   it('ttl expiry re-reads the repository (inject now)', async () => {

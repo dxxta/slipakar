@@ -4,6 +4,7 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import { tablerPlus } from '@ng-icons/tabler-icons';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiError } from '../../core/api-error';
+import { EmbedSessionService } from '../../core/embed-session.service';
 import { HlmAlert, HlmAlertDescription, HlmAlertTitle } from '../../ui/alert/src';
 import { HlmBadge } from '../../ui/badge/src';
 import { HlmButton } from '../../ui/button/src';
@@ -19,7 +20,7 @@ import { Ripple } from '../../ui/shared/ripple';
   template: `
     <div class="app-list-layout">
       <app-page-header title="Email Templates" description="Manage personalized email templates and placeholder bindings." [topLevel]="false">
-        <button page-actions hlmBtn type="button" class="max-md:hidden" data-testid="add-template-button" (click)="openAddForm()"><ng-icon name="tablerPlus" aria-hidden="true" class="size-[1.1rem]" />New template</button><app-row-actions page-actions class="md:hidden" [solid]="true" label="Page actions" [items]="pageActions" (actionSelect)="openAddForm()" />
+        @if (canWrite()) { <button page-actions hlmBtn type="button" class="max-md:hidden" data-testid="add-template-button" (click)="openAddForm()"><ng-icon name="tablerPlus" aria-hidden="true" class="size-[1.1rem]" />New template</button><app-row-actions page-actions class="md:hidden" [solid]="true" label="Page actions" [items]="pageActions" (actionSelect)="openAddForm()" /> }
       </app-page-header>
       @if (actionError()) { <div aria-live="polite" role="alert"><div hlmAlert variant="destructive"><h2 hlmAlertTitle>Error</h2><p hlmAlertDescription>{{ actionError() }}</p></div></div> }
       @if (actionSuccess()) { <div aria-live="polite" role="status"><div hlmAlert class="border-emerald-500/25 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200"><h2 hlmAlertTitle>Success</h2><p hlmAlertDescription>{{ actionSuccess() }}</p></div></div> }
@@ -32,13 +33,13 @@ import { Ripple } from '../../ui/shared/ripple';
               @for (template of templates(); track template.id) {
                 <tr [attr.data-testid]="'template-row-' + template.id" class="hover:bg-muted/30">
                   <th data-label="Template name" scope="row" class="px-4 py-3 font-medium text-foreground">{{ template.name }}</th><td data-label="Subject" class="max-w-md truncate px-4 py-3 text-muted-foreground">{{ template.subject }}</td><td data-label="Last updated" class="px-4 py-3 text-muted-foreground tabular-nums">{{ (template.updatedAt || template.createdAt) | date: 'mediumDate' }}</td>
-                  <td data-label="Actions" class="px-4 py-2 text-right"><app-row-actions [attr.data-testid]="'template-actions-' + template.id" [label]="'Actions for ' + template.name" [items]="templateActions" (actionSelect)="handleTemplateAction($event, template)" /></td>
+                  <td data-label="Actions" class="px-4 py-2 text-right"><app-row-actions [attr.data-testid]="'template-actions-' + template.id" [label]="'Actions for ' + template.name" [items]="templateActions()" (actionSelect)="handleTemplateAction($event, template)" /></td>
                 </tr>
               }
             </tbody>
           </table>
         </div>
-        <button empty-action hlmBtn class="mt-4" type="button" data-testid="empty-add-template-button" (click)="openAddForm()">Create your first template</button>
+        @if (canWrite()) { <button empty-action hlmBtn class="mt-4" type="button" data-testid="empty-add-template-button" (click)="openAddForm()">Create your first template</button> }
       </app-list-body>
       <app-pagination [metadata]="listMetadata()" (pageChange)="changeListPage($event)" />
       <app-drawer [open]="detailTemplate() !== null" title="Email template details" (closed)="detailTemplate.set(null)">
@@ -60,6 +61,7 @@ export class TemplatesPage implements OnInit {
   private readonly service = inject(TemplatesService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly embed = inject(EmbedSessionService);
   projectId = '';
   readonly templates = signal<EmailTemplate[]>([]);
   readonly loading = signal(true);
@@ -70,7 +72,10 @@ export class TemplatesPage implements OnInit {
   readonly sortDir = signal<'asc' | 'desc'>('desc');
   readonly detailTemplate = signal<EmailTemplate | null>(null);
   readonly listState = computed(() => this.loading() ? 'loading' as const : this.loadError() ? 'error' as const : 'ready' as const);
-  readonly templateActions: RowActionItem[] = [{ id: 'detail', label: 'Detail', icon: 'eye' }, { id: 'edit', label: 'Edit', icon: 'pencil' }, { id: 'delete', label: 'Delete', icon: 'trash', destructive: true }];
+  readonly canWrite = computed(() => !this.embed.isEmbedMode() || this.embed.hasScope('templates:write'));
+  readonly templateActions = computed<RowActionItem[]>(() => this.canWrite()
+    ? [{ id: 'detail', label: 'Detail', icon: 'eye' }, { id: 'edit', label: 'Edit', icon: 'pencil' }, { id: 'delete', label: 'Delete', icon: 'trash', destructive: true }]
+    : [{ id: 'detail', label: 'Detail', icon: 'eye' }]);
   protected readonly pageActions: RowActionItem[] = [{ id: 'new', label: 'New template', icon: 'plus' }];
   readonly confirmingDeleteId = signal<string | null>(null);
   protected readonly pendingDelete = computed(() => this.templates().find((template) => template.id === this.confirmingDeleteId()) ?? null);

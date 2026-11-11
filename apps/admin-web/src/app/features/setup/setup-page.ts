@@ -52,6 +52,17 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
               <label class="inline-flex min-h-11 items-center gap-3 text-sm font-medium"><input type="checkbox" role="switch" aria-label="Enable API keys" [checked]="apiAccess.runtimeEnabled" [disabled]="!apiAccess.environmentEnabled || busy()" (change)="toggleApiAccess($event)" />Enable API keys</label>
             </div>
           </article>
+          <article class="rounded-ui-lg border border-border bg-card p-card">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div class="min-w-0"><div class="flex flex-wrap items-center gap-2"><h3 class="text-base font-semibold">Embedding</h3><span class="rounded-full border border-border px-2.5 py-1 text-xs">{{ apiAccess.embed.environmentEnabled && apiAccess.embed.apiAccessActive && apiAccess.embed.runtimeEnabled ? 'Enabled' : 'Disabled' }}</span></div>
+                <p class="mt-1 text-sm text-muted-foreground">Allowed by the server environment: {{ apiAccess.embed.environmentEnabled ? 'yes' : 'no' }}</p>
+                <p class="mt-1 break-all text-xs text-muted-foreground">Allowed origins: {{ apiAccess.embed.allowedOrigins.length ? apiAccess.embed.allowedOrigins.join(', ') : 'None' }}</p>
+                @if (!apiAccess.embed.environmentEnabled) { <p class="mt-2 text-xs text-muted-foreground">Set EMBED_ALLOWED_ORIGINS to one or more trusted origins to enable embedding.</p> }
+                @else if (!apiAccess.embed.apiAccessActive) { <p class="mt-2 text-xs text-muted-foreground">Enable API access in both environment and runtime settings before embedding.</p> }
+              </div>
+              <label class="inline-flex min-h-11 items-center gap-3 text-sm font-medium"><input type="checkbox" role="switch" aria-label="Enable embedding" [checked]="apiAccess.embed.runtimeEnabled" [disabled]="!apiAccess.embed.environmentEnabled || !apiAccess.embed.apiAccessActive || busy()" (change)="toggleEmbedAccess($event)" />Enable embedding</label>
+            </div>
+          </article>
         }
         @for (integration of state.integrations; track integration.key) {
           <article appPressed class="flex w-full min-w-0 flex-col rounded-ui-lg border border-border bg-card p-card" [attr.data-testid]="'setup-row-' + integration.key">
@@ -215,6 +226,8 @@ export class SetupPage implements OnInit {
   protected toggleHelp(key: IntegrationKey): void {
     this.expandedHelp.update((current) => ({ ...current, [key]: !current[key] }));
   }
+
+  protected async toggleEmbedAccess(event: Event): Promise<void> { const input = event.target; if (!(input instanceof HTMLInputElement)) return; this.busy.set(true); this.error.set(''); try { await this.setup.setEmbedAccess(input.checked); } catch (error: unknown) { this.error.set(this.errorMessage(error)); await this.setup.load().catch(() => undefined); } finally { this.busy.set(false); } }
 
   protected async toggleApiAccess(event: Event): Promise<void> { const input = event.target; if (!(input instanceof HTMLInputElement)) return; this.busy.set(true); this.error.set(''); try { await this.setup.setApiAccess(input.checked); } catch (error: unknown) { this.error.set(this.errorMessage(error)); await this.setup.load().catch(() => undefined); } finally { this.busy.set(false); } }
 

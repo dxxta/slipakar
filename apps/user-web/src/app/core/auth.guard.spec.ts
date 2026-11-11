@@ -5,6 +5,7 @@ import { provideRouter, Router, UrlTree } from '@angular/router';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { authGuard } from './auth.guard';
 import { SessionService } from './session.service';
+import { EmbedSessionService } from './embed-session.service';
 
 describe('authGuard', () => {
   let http: HttpTestingController;
@@ -47,6 +48,15 @@ describe('authGuard', () => {
     const result = TestBed.runInInjectionContext(() => authGuard({} as never, {} as never));
     http.expectOne('/api/auth/get-session').flush({ user: { id: 'u1', email: 'person@example.com', role: 'user' }, session: {} });
     await expect(result).resolves.toBe(true);
+  });
+
+
+  it('keeps absolute project navigation inside the embed route without loading cookie auth', async () => {
+    TestBed.inject(EmbedSessionService).enableMode();
+    const outcome = await TestBed.runInInjectionContext(() => authGuard({} as never, { url: '/projects/project-1/templates' } as never));
+    expect(outcome).toBeInstanceOf(UrlTree);
+    if (outcome instanceof UrlTree) expect(router.serializeUrl(outcome)).toBe('/embed/projects/project-1/templates');
+    http.expectNone('/api/auth/get-session');
   });
 
   it('directs disabled accounts to an explicit access-disabled page', async () => {

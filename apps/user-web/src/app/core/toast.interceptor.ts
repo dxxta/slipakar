@@ -1,6 +1,8 @@
 import { HttpErrorResponse, HttpEventType, type HttpInterceptorFn } from '@angular/common/http';
 import { toast } from '@spartan-ng/brain/sonner';
 import { tap } from 'rxjs';
+import { inject } from '@angular/core';
+import { EmbedSessionService } from './embed-session.service';
 
 // Requests that are not form submissions the user needs confirmation for (queries sent as POST, auto-saves, auth).
 const SILENT_SUCCESS = /\/(test|preview|read|read-all|mark-all-read)(\/|\?|$)|\/api\/auth\/(sign-in|sign-out|get-session|two-factor\/(enable|disable|generate-backup-codes|verify-(totp|backup-code)))|\/me\/login-context(?:\?|$)/;
@@ -23,6 +25,7 @@ function errorMessage(error: HttpErrorResponse): string {
 
 /** Shows a top-right toast when a form submission (POST, PUT, PATCH, DELETE) succeeds or fails. */
 export const toastInterceptor: HttpInterceptorFn = (request, next) => {
+  if (inject(EmbedSessionService).isEmbedMode()) return next(request);
   if (request.method === 'GET' || request.method === 'HEAD' || request.method === 'OPTIONS') return next(request);
   return next(request).pipe(
     tap({

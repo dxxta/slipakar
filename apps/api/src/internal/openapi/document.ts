@@ -44,11 +44,13 @@ function toOperationId(method: string, path: string): string {
 export function buildOpenApiDocument(
   routes: RouteDoc[],
   info: { title: string; version: string },
+  options: { includeIntegrationOnly?: boolean } = {},
 ): OpenApiDocument {
   const paths: Record<string, Record<string, unknown>> = {};
   const usedOperationIds = new Set<string>();
 
   for (const route of routes) {
+    if (route.integrationOnly && !options.includeIntegrationOnly) continue;
     const { openApiPath, pathParams } = convertPath(route.path);
     if (!paths[openApiPath]) {
       paths[openApiPath] = {};
@@ -260,7 +262,7 @@ export function buildOpenApiDocument(
 
 
 export function buildIntegrationOpenApiDocument(routes: RouteDoc[], info: { title: string; version: string }): OpenApiDocument {
-  const document = buildOpenApiDocument(routes.filter((route) => route.apiKeyScope), info);
+  const document = buildOpenApiDocument(routes.filter((route) => route.apiKeyScope), info, { includeIntegrationOnly: true });
   document.components = { ...document.components, securitySchemes: { bearerApiKey: { type: 'http', scheme: 'bearer', bearerFormat: 'slp_*' } } };
   for (const operations of Object.values(document.paths)) for (const operation of Object.values(operations)) {
     if (operation && typeof operation === 'object') (operation as Record<string, unknown>).security = [{ bearerApiKey: [] }];

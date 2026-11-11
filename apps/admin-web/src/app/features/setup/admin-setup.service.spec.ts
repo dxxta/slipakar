@@ -4,7 +4,7 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { AdminSetupService, type AdminSetupView } from './admin-setup.service';
 
-const apiAccessView = { environmentEnabled: true, allowedOrigins: ['https://app.example.test'], runtimeEnabled: false };
+const apiAccessView = { environmentEnabled: true, allowedOrigins: ['https://app.example.test'], runtimeEnabled: false, embed: { environmentEnabled: false, allowedOrigins: [], runtimeEnabled: false, apiAccessActive: false } };
 
 const setupView: AdminSetupView = {
   complete: false,
@@ -34,6 +34,13 @@ describe('AdminSetupService', () => {
     await expect(result).resolves.toEqual(setupView);
     expect(service.view()).toEqual(setupView);
     expect(service.apiAccess()).toEqual(apiAccessView);
+  });
+
+  it('updates the embedding runtime flag and refreshes the environment status', async () => {
+    const result = service.setEmbedAccess(true);
+    http.expectOne({ method: 'PUT', url: '/admin/config/embed_enabled' }).flush({ message: 'ok', data: { key: 'embed_enabled', value: true }, success: true });
+    http.expectOne('/admin/api-access').flush({ message: 'ok', data: { ...apiAccessView, embed: { environmentEnabled: true, allowedOrigins: ['https://host.example'], runtimeEnabled: true, apiAccessActive: true } }, success: true });
+    await expect(result).resolves.toMatchObject({ embed: { runtimeEnabled: true, apiAccessActive: true } });
   });
 
   it('updates the runtime flag then refreshes effective API access settings', async () => {

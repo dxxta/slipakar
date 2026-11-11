@@ -1,0 +1,28 @@
+# Sourced by the official Nginx entrypoint in its parent shell before envsubst.
+set -f
+old_ifs=$IFS
+IFS=,
+set -- ${EMBED_ALLOWED_ORIGINS:-}
+IFS=$old_ifs
+set +f
+frame_ancestors=
+for origin in "$@"; do
+  origin=$(printf '%s' "$origin" | tr -d '[:space:]')
+  [ -n "$origin" ] || continue
+  case "$origin" in
+    https://*) host=${origin#https://} ;;
+    http://localhost|http://localhost:[0-9]*) host=${origin#http://} ;;
+    *) frame_ancestors="'none'"; break ;;
+  esac
+  case "$host" in
+    ''|*[!A-Za-z0-9.:-]*|*..*|.*|*.) frame_ancestors="'none'"; break ;;
+  esac
+  if [ -n "$frame_ancestors" ]; then
+    frame_ancestors="$frame_ancestors $origin"
+  else
+    frame_ancestors=$origin
+  fi
+done
+[ -n "$frame_ancestors" ] || frame_ancestors="'none'"
+export EMBED_FRAME_ANCESTORS=$frame_ancestors
+unset old_ifs frame_ancestors host origin

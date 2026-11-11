@@ -15,6 +15,7 @@ export type RouteDoc = {
   body?: ZodType;
   multipart?: boolean;
   apiKeyScope?: string;
+  integrationOnly?: boolean;
   data?: ZodType; // Schema of data in { message, data, success: true }, omit for null
 };
 

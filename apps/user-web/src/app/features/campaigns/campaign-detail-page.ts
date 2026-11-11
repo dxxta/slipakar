@@ -9,6 +9,7 @@ import {
   signal, computed } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiError } from '../../core/api-error';
+import { EmbedSessionService } from '../../core/embed-session.service';
 import { HlmAlert, HlmAlertDescription, HlmAlertTitle } from '../../ui/alert/src';
 import { HlmBadge } from '../../ui/badge/src';
 import { HlmButton } from '../../ui/button/src';
@@ -65,7 +66,7 @@ import { Ripple } from '../../ui/shared/ripple';
 
       <header class="flex flex-wrap items-start gap-3">
         <div class="min-w-0 flex-1"><div class="flex items-center gap-3"><h1 class="text-3xl font-semibold tracking-tight">{{ 'Campaign #' + campaignId().slice(0, 8) }}</h1>@if (campaign(); as camp) { <span hlmBadge [variant]="badgeVariant(camp.status)" data-testid="campaign-status-badge">{{ statusLabel(camp.status) }}</span> }</div><p class="mt-2 text-sm text-muted-foreground">View real-time delivery status and recipient list.</p></div>
-        <div class="ml-auto flex shrink-0 items-center gap-2"><app-back-button class="max-md:hidden" [link]="['/projects', projectId(), 'campaigns']" label="Back to campaigns" /><app-row-actions class="md:hidden" [solid]="true" label="Campaign actions" [items]="mobileActions()" (actionSelect)="onMobileAction($event)" />@if (campaign()?.status === 'draft') { <button hlmBtn type="button" class="max-md:hidden" data-testid="send-campaign-button" (click)="openSendConfirm()">Send campaign</button> }</div>
+        <div class="ml-auto flex shrink-0 items-center gap-2"><app-back-button class="max-md:hidden" [link]="['/projects', projectId(), 'campaigns']" label="Back to campaigns" /><app-row-actions class="md:hidden" [solid]="true" label="Campaign actions" [items]="mobileActions()" (actionSelect)="onMobileAction($event)" />@if (campaign()?.status === 'draft' && (!embed.isEmbedMode() || embed.hasScope('campaigns:send'))) { <button hlmBtn type="button" class="max-md:hidden" data-testid="send-campaign-button" (click)="openSendConfirm()">Send campaign</button> }</div>
       </header>
 
       @if (actionError()) {
@@ -172,7 +173,7 @@ import { Ripple } from '../../ui/shared/ripple';
                           }
                         </td>
                         <td data-label="Actions" class="px-6 py-3 text-right">
-                          @if (rec.status === 'failed') {
+                          @if (rec.status === 'failed' && !embed.isEmbedMode()) {
                             <app-row-actions [attr.data-testid]="'recipient-actions-' + rec.id" [label]="'Actions for ' + rec.email" [items]="recipientActions(rec.id)" (actionSelect)="retryRecipient(rec.id)" />
                           }
                         </td>
@@ -193,6 +194,7 @@ export class CampaignDetailPage implements OnInit, OnDestroy {
   private readonly campaignsService = inject(CampaignsService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  protected readonly embed = inject(EmbedSessionService);
 
   readonly projectId = signal<string>('');
   readonly campaignId = signal<string>('');
@@ -222,7 +224,7 @@ export class CampaignDetailPage implements OnInit, OnDestroy {
 
   protected readonly mobileActions = computed<RowActionItem[]>(() => [
     { id: 'back', label: 'Back to campaigns', icon: 'back' },
-    ...(this.campaign()?.status === 'draft' ? [{ id: 'send', label: 'Send campaign', icon: 'send' } as RowActionItem] : []),
+    ...(this.campaign()?.status === 'draft' && (!this.embed.isEmbedMode() || this.embed.hasScope('campaigns:send')) ? [{ id: 'send', label: 'Send campaign', icon: 'send' } as RowActionItem] : []),
   ]);
   protected onMobileAction(action: RowActionItem): void {
     if (action.id === 'send') this.openSendConfirm();

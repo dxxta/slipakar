@@ -6,6 +6,7 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import { tablerCloudUpload } from '@ng-icons/tabler-icons';
 import { PLACEHOLDER_REGEX } from '@slipakar/shared';
 import { ApiError } from '../../core/api-error';
+import { EmbedSessionService } from '../../core/embed-session.service';
 import { HlmAlert, HlmAlertDescription, HlmAlertTitle } from '../../ui/alert/src';
 import { HlmBadge } from '../../ui/badge/src';
 import { HlmButton } from '../../ui/button/src';
@@ -88,44 +89,48 @@ function extractPlaceholders(text: string): string[] {
         </h3>
 
         <!-- Drag & Drop / File Picker Area -->
-        <div
-          data-testid="file-dropzone"
-          tabindex="0"
-          role="button"
-          aria-label="Upload recipient data file. Drop a file here or press Enter to browse"
-          class="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border p-8 text-center transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          [class.border-primary]="isDragging()"
-          [class.bg-primary/5]="isDragging()"
-          (dragover)="onDragOver($event)"
-          (dragleave)="onDragLeave($event)"
-          (drop)="onFileDrop($event)"
-          (keydown.enter)="fileInput.click()"
-          (keydown.space)="$event.preventDefault(); fileInput.click()"
-        >
-          <ng-icon name="tablerCloudUpload" class="h-10 w-10 text-muted-foreground mb-3" aria-hidden="true" />
-          <p class="text-sm font-medium">Drag and drop your data file here, or click to browse</p>
-          <p class="mt-1 text-xs text-muted-foreground">Supported formats: CSV, XLSX, JSON (Max 50MB)</p>
-          <input
-            #fileInput
-            data-testid="file-input"
-            aria-label="Upload recipient data file"
-            type="file"
-            accept=".csv, .xlsx, .json, text/csv, application/json, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            class="hidden"
-            (change)="onFileInputChange($event)"
-          />
-          <button
-            hlmBtn
-            variant="outline"
-            size="sm"
-            type="button"
-            class="mt-4"
-            [disabled]="isUploading()"
-            (click)="$event.stopPropagation(); fileInput.click()"
+        @if (canUpload()) {
+          <div
+            data-testid="file-dropzone"
+            tabindex="0"
+            role="button"
+            aria-label="Upload recipient data file. Drop a file here or press Enter to browse"
+            class="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border p-8 text-center transition-colors hover:border-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            [class.border-primary]="isDragging()"
+            [class.bg-primary/5]="isDragging()"
+            (dragover)="onDragOver($event)"
+            (dragleave)="onDragLeave($event)"
+            (drop)="onFileDrop($event)"
+            (keydown.enter)="fileInput.click()"
+            (keydown.space)="$event.preventDefault(); fileInput.click()"
           >
-            {{ isUploading() ? 'Uploading…' : 'Choose file' }}
-          </button>
-        </div>
+            <ng-icon name="tablerCloudUpload" class="h-10 w-10 text-muted-foreground mb-3" aria-hidden="true" />
+            <p class="text-sm font-medium">Drag and drop your data file here, or click to browse</p>
+            <p class="mt-1 text-xs text-muted-foreground">Supported formats: CSV, XLSX, JSON (Max 50MB)</p>
+            <input
+              #fileInput
+              data-testid="file-input"
+              aria-label="Upload recipient data file"
+              type="file"
+              accept=".csv, .xlsx, .json, text/csv, application/json, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+              class="hidden"
+              (change)="onFileInputChange($event)"
+            />
+            <button
+              hlmBtn
+              variant="outline"
+              size="sm"
+              type="button"
+              class="mt-4"
+              [disabled]="isUploading()"
+              (click)="$event.stopPropagation(); fileInput.click()"
+            >
+              {{ isUploading() ? 'Uploading…' : 'Choose file' }}
+            </button>
+          </div>
+        } @else {
+          <p class="rounded-lg border border-border bg-muted/30 p-4 text-sm text-muted-foreground" role="status">This embedded view is read-only. Upload permission was not granted.</p>
+        }
 
         @if (uploadError()) {
           <div aria-live="polite" role="alert">
@@ -171,7 +176,7 @@ function extractPlaceholders(text: string): string[] {
                     <td data-label="Columns" class="align-middle px-4 py-3 text-muted-foreground text-xs font-mono tabular-nums">{{ file.columns.length }} cols</td>
                     <td data-label="Uploaded" class="align-middle px-4 py-3 text-muted-foreground text-xs tabular-nums">{{ file.createdAt | date: 'short' }}</td>
                     <td data-label="Actions" class="align-middle px-4 py-2 text-right" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
-                      <app-row-actions [attr.data-testid]="'upload-actions-' + file.id" [label]="'Actions for ' + file.fileName" [items]="uploadActions" (actionSelect)="handleUploadAction($event, file)" />
+                      <app-row-actions [attr.data-testid]="'upload-actions-' + file.id" [label]="'Actions for ' + file.fileName" [items]="uploadActions()" (actionSelect)="handleUploadAction($event, file)" />
                     </td>
                   </tr>
                 }
@@ -347,16 +352,18 @@ function extractPlaceholders(text: string): string[] {
               <div class="space-y-3">
                 <div class="flex items-center justify-between">
                   <h5 class="text-sm font-semibold">Placeholder Mappings</h5>
-                  <button
-                    hlmBtn
-                    variant="ghost"
-                    size="sm"
-                    type="button"
-                    data-testid="auto-suggest-button"
-                    (click)="autoSuggestMappings()"
-                  >
-                    Auto-suggest matches
-                  </button>
+                  @if (canWriteMapping()) {
+                    <button
+                      hlmBtn
+                      variant="ghost"
+                      size="sm"
+                      type="button"
+                      data-testid="auto-suggest-button"
+                      (click)="autoSuggestMappings()"
+                    >
+                      Auto-suggest matches
+                    </button>
+                  }
                 </div>
 
                 <div class="overflow-x-auto rounded-lg border border-border">
@@ -380,6 +387,7 @@ function extractPlaceholders(text: string): string[] {
                               [attr.data-testid]="'mapping-select-' + p"
                               class="h-8 w-full max-w-xs rounded-md border border-input bg-background px-2 text-xs outline-none focus-visible:ring-2 focus-visible:ring-ring"
                               [value]="currentMapping()[p] ?? ''"
+                              [disabled]="!canWriteMapping()"
                               (change)="onMappingChange(p, $any($event.target).value)"
                             >
                               <option value="">-- Choose column --</option>
@@ -403,28 +411,29 @@ function extractPlaceholders(text: string): string[] {
               </div>
 
               <!-- Save Mapping Action -->
-              <div class="flex items-center justify-between pt-4 border-t">
-                <div class="text-xs text-muted-foreground">
-                  @if (!isMappingComplete()) {
-                    <span class="text-destructive font-medium">
-                      All placeholders and recipient email column must be assigned to save.
-                    </span>
-                  } @else {
-                    <span class="text-green-700 dark:text-green-300 font-medium">
-                      Ready to save mapping.
-                    </span>
-                  }
+              @if (canWriteMapping()) {
+                <div class="flex items-center justify-between pt-4 border-t">
+                  <div class="text-xs text-muted-foreground">
+                    @if (!isMappingComplete()) {
+                      <span class="text-destructive font-medium">
+                        All placeholders and recipient email column must be assigned to save.
+                      </span>
+                    } @else {
+                      <span class="text-green-700 dark:text-green-300 font-medium">
+                        Ready to save mapping.
+                      </span>
+                    }
+                  <button
+                    hlmBtn
+                    type="button"
+                    data-testid="save-mapping-button"
+                    [disabled]="!isMappingComplete() || isSavingMapping()"
+                    (click)="saveMapping()"
+                  >
+                    {{ isSavingMapping() ? 'Saving…' : 'Save mapping' }}
+                  </button>
                 </div>
-                <button
-                  hlmBtn
-                  type="button"
-                  data-testid="save-mapping-button"
-                  [disabled]="!isMappingComplete() || isSavingMapping()"
-                  (click)="saveMapping()"
-                >
-                  {{ isSavingMapping() ? 'Saving…' : 'Save mapping' }}
-                </button>
-              </div>
+              }
             }
           </div>
         </div>
@@ -444,6 +453,10 @@ function extractPlaceholders(text: string): string[] {
 export class DataPage implements OnInit {
   private readonly dataService = inject(DataService);
   private readonly route = inject(ActivatedRoute);
+  private readonly embed = inject(EmbedSessionService);
+
+  readonly canUpload = computed(() => !this.embed.isEmbedMode() || this.embed.hasScope('uploads:write'));
+  readonly canWriteMapping = computed(() => !this.embed.isEmbedMode() || this.embed.hasScope('mappings:write'));
 
   projectId = '';
 
@@ -461,10 +474,10 @@ export class DataPage implements OnInit {
     return this.filteredUploads().slice(start, start + 5);
   });
   readonly uploadMetadata = computed(() => ({ page: this.uploadPage(), limit: 5, total: this.filteredUploads().length }));
-  readonly uploadActions: RowActionItem[] = [
+  readonly uploadActions = computed<RowActionItem[]>(() => [
     { id: 'detail', label: 'Detail', icon: 'eye' },
-    { id: 'delete', label: 'Delete', icon: 'trash', destructive: true },
-  ];
+    ...(this.canUpload() ? [{ id: 'delete', label: 'Delete', icon: 'trash', destructive: true } as RowActionItem] : []),
+  ]);
   readonly loadingUploads = signal(true);
   readonly loadUploadsError = signal<string | null>(null);
 
@@ -648,6 +661,7 @@ export class DataPage implements OnInit {
   }
 
   private handleFile(file: File): void {
+    if (!this.canUpload()) return;
     this.uploadError.set(null);
     this.actionError.set(null);
     this.actionSuccess.set(null);
@@ -684,6 +698,7 @@ export class DataPage implements OnInit {
   }
 
   deleteUpload(id: string): void {
+    if (!this.canUpload()) return;
     this.actionError.set(null);
     this.actionSuccess.set(null);
     this.isDeletingUploadId.set(id);
@@ -738,6 +753,7 @@ export class DataPage implements OnInit {
   }
 
   autoSuggestMappings(): void {
+    if (!this.canWriteMapping()) return;
     const columns = this.detectedColumns();
     const placeholders = this.templatePlaceholders();
     const nextMapping: Record<string, string> = { ...this.currentMapping() };
@@ -763,6 +779,7 @@ export class DataPage implements OnInit {
   }
 
   onMappingChange(placeholder: string, column: string): void {
+    if (!this.canWriteMapping()) return;
     this.currentMapping.update((map) => ({
       ...map,
       [placeholder]: column,
@@ -770,6 +787,7 @@ export class DataPage implements OnInit {
   }
 
   saveMapping(): void {
+    if (!this.canWriteMapping()) return;
     const uploadId = this.selectedUploadId();
     const templateId = this.selectedTemplateId();
     if (!uploadId || !templateId || !this.isMappingComplete()) return;

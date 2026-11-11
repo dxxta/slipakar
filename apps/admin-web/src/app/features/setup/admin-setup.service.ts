@@ -17,7 +17,8 @@ export type IntegrationItem = {
   lastError: string | null;
 };
 export type AdminSetupView = { complete: boolean; integrations: IntegrationItem[] };
-export type ApiAccessSettings = { environmentEnabled: boolean; allowedOrigins: string[]; runtimeEnabled: boolean };
+export type EmbedAccessSettings = { environmentEnabled: boolean; allowedOrigins: string[]; runtimeEnabled: boolean; apiAccessActive: boolean };
+export type ApiAccessSettings = { environmentEnabled: boolean; allowedOrigins: string[]; runtimeEnabled: boolean; embed: EmbedAccessSettings };
 export type IntegrationUpdate = Record<string, string | number | boolean | undefined>;
 
 @Injectable({ providedIn: 'root' })
@@ -31,6 +32,12 @@ export class AdminSetupService {
     this.view.set(result);
     try { this.apiAccess.set(await firstValueFrom(this.api.get<ApiAccessSettings>('/admin/api-access'))); } catch { this.apiAccess.set(null); }
     return result;
+  }
+
+  async setEmbedAccess(enabled: boolean): Promise<ApiAccessSettings> {
+    await firstValueFrom(this.api.put<{ key: string; value: boolean }, { value: boolean }>('/admin/config/embed_enabled', { value: enabled }));
+    const result = await firstValueFrom(this.api.get<ApiAccessSettings>('/admin/api-access'));
+    this.apiAccess.set(result); return result;
   }
 
   async setApiAccess(enabled: boolean): Promise<ApiAccessSettings> {

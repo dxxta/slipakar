@@ -20,7 +20,7 @@ describe('SetupPage', () => {
   it('renders all three integration cards, status and source without exposing saved credentials', async () => {
     const load = vi.fn().mockResolvedValue(incomplete);
     await TestBed.configureTestingModule({
-      imports: [SetupPage], providers: [provideRouter([]), { provide: AdminSetupService, useValue: { view: () => incomplete, apiAccess: () => ({ environmentEnabled: true, allowedOrigins: ['https://app.example.test'], runtimeEnabled: false }), load, save: vi.fn(), test: vi.fn(), clear: vi.fn() } }],
+      imports: [SetupPage], providers: [provideRouter([]), { provide: AdminSetupService, useValue: { view: () => incomplete, apiAccess: () => ({ environmentEnabled: true, allowedOrigins: ['https://app.example.test'], runtimeEnabled: false, embed: { environmentEnabled: false, allowedOrigins: [], runtimeEnabled: false, apiAccessActive: false } }), load, save: vi.fn(), test: vi.fn(), clear: vi.fn() } }],
     }).compileComponents();
     fixture = TestBed.createComponent(SetupPage);
     fixture.detectChanges();
@@ -45,7 +45,7 @@ describe('SetupPage', () => {
       ],
     };
     await TestBed.configureTestingModule({
-      imports: [SetupPage], providers: [provideRouter([]), { provide: AdminSetupService, useValue: { view: () => envView, apiAccess: () => ({ environmentEnabled: false, allowedOrigins: [], runtimeEnabled: false }), load: vi.fn().mockResolvedValue(envView), save: vi.fn(), test: vi.fn(), clear: vi.fn() } }],
+      imports: [SetupPage], providers: [provideRouter([]), { provide: AdminSetupService, useValue: { view: () => envView, apiAccess: () => ({ environmentEnabled: false, allowedOrigins: [], runtimeEnabled: false, embed: { environmentEnabled: false, allowedOrigins: [], runtimeEnabled: false, apiAccessActive: false } }), load: vi.fn().mockResolvedValue(envView), save: vi.fn(), test: vi.fn(), clear: vi.fn() } }],
     }).compileComponents();
     fixture = TestBed.createComponent(SetupPage);
     fixture.detectChanges();
@@ -66,7 +66,7 @@ describe('SetupPage', () => {
   it('opens mail settings and offers a test connection action', async () => {
     const test = vi.fn().mockReturnValue(of(incomplete.integrations[2]));
     await TestBed.configureTestingModule({
-      imports: [SetupPage], providers: [provideRouter([]), { provide: AdminSetupService, useValue: { view: () => incomplete, apiAccess: () => ({ environmentEnabled: true, allowedOrigins: [], runtimeEnabled: false }), load: vi.fn().mockResolvedValue(incomplete), save: vi.fn().mockResolvedValue(incomplete.integrations[2]), test, clear: vi.fn() } }],
+      imports: [SetupPage], providers: [provideRouter([]), { provide: AdminSetupService, useValue: { view: () => incomplete, apiAccess: () => ({ environmentEnabled: true, allowedOrigins: [], runtimeEnabled: false, embed: { environmentEnabled: false, allowedOrigins: [], runtimeEnabled: false, apiAccessActive: false } }), load: vi.fn().mockResolvedValue(incomplete), save: vi.fn().mockResolvedValue(incomplete.integrations[2]), test, clear: vi.fn() } }],
     }).compileComponents();
     fixture = TestBed.createComponent(SetupPage);
     fixture.detectChanges();
@@ -88,7 +88,7 @@ describe('SetupPage', () => {
           provide: AdminSetupService,
           useValue: {
             view: () => incomplete,
-            apiAccess: () => ({ environmentEnabled: true, allowedOrigins: [], runtimeEnabled: false }),
+            apiAccess: () => ({ environmentEnabled: true, allowedOrigins: [], runtimeEnabled: false, embed: { environmentEnabled: false, allowedOrigins: [], runtimeEnabled: false, apiAccessActive: false } }),
             load: vi.fn().mockResolvedValue(incomplete),
             save: vi.fn().mockResolvedValue(incomplete.integrations[0]),
             test: vi.fn(),
