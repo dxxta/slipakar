@@ -14,7 +14,10 @@ describe('SessionService', () => {
     http = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => http.verify());
+  afterEach(() => {
+    http.verify();
+    service.clearReturnUrl();
+  });
 
   it('loads a signed-in user into signals', async () => {
     const loaded = service.loadSession();
@@ -33,5 +36,22 @@ describe('SessionService', () => {
     http.expectOne('/api/auth/sign-out').flush({ success: true });
     await signedOut;
     expect(service.user()).toBeNull();
+  });
+
+  it('uses only a safe same-origin return URL as the Google callback', async () => {
+    const signingIn = service.signIn('/notifications?unread=true#announcements');
+    const request = http.expectOne('/api/auth/sign-in/social');
+    expect(request.request.body).toEqual({
+      provider: 'google',
+      callbackURL: `${window.location.origin}/notifications?unread=true#announcements`,
+    });
+    request.flush({});
+    await signingIn;
+
+    const rejected = service.signIn('https://outside.example/');
+    const safeRequest = http.expectOne('/api/auth/sign-in/social');
+    expect(safeRequest.request.body).toEqual({ provider: 'google', callbackURL: `${window.location.origin}/` });
+    safeRequest.flush({});
+    await rejected;
   });
 });

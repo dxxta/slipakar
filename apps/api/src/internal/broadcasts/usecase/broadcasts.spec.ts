@@ -35,7 +35,28 @@ describe('BroadcastUseCase', () => {
     });
 
     const useCase = new BroadcastUseCase(mockRepo, mockAuditRepo);
-    await expect(useCase.previewBroadcast('bc-corrupt')).rejects.toThrow();
+    await expect(useCase.previewBroadcast('bc-corrupt', 'admin-1')).rejects.toThrow();
+  });
+
+  it('masks preview recipients while leaving the signed-in admin email readable', async () => {
+    mockRepo.findById = vi.fn().mockResolvedValue({
+      id: 'bc-preview',
+      subject: 'Update',
+      bodyText: 'Hello',
+      audience: 'all',
+      audienceFilter: null,
+      status: 'draft',
+      sentAt: null,
+      createdBy: 'admin-1',
+      counts: { total: 2, sent: 0, failed: 0 },
+    });
+    mockRepo.resolveRecipients = vi.fn().mockResolvedValue([
+      { id: 'admin-1', email: 'admin@example.com', name: 'Admin' },
+      { id: 'user-2', email: 'person@example.com', name: 'Person' },
+    ]);
+
+    const result = await new BroadcastUseCase(mockRepo, mockAuditRepo).previewBroadcast('bc-preview', 'admin-1');
+    expect(result.sampleEmails).toEqual(['admin@example.com', '*****@example.com']);
   });
 
   it('throws 400 when sending broadcast with corrupt or missing audienceFilter', async () => {
@@ -61,6 +82,7 @@ describe('BroadcastUseCase', () => {
       subject: 'Draft BC',
       bodyText: 'Hello all',
       audience: 'all',
+      channel: 'app_email',
       status: 'draft',
       sentAt: null,
       createdBy: 'admin-1',
@@ -87,6 +109,45 @@ describe('BroadcastUseCase', () => {
       expect.objectContaining({ emailSkipped: true }),
     );
     expect(result.status).toBe('sent');
+  });
+
+  it('creates in-app notices without email or emailSkipped for the app-only channel', async () => {
+    mockRepo.findById = vi.fn().mockResolvedValue({
+      id: 'bc-app-only',
+      subject: 'In-app only',
+      bodyText: 'Hello all',
+      audience: 'all',
+      audienceFilter: null,
+      channel: 'app',
+      status: 'draft',
+      sentAt: null,
+      createdBy: 'admin-1',
+      counts: { total: 0, sent: 0, failed: 0 },
+    });
+    mockRepo.resolveRecipients = vi.fn().mockResolvedValue([
+      { id: 'u-1', email: 'alice@example.com', name: 'Alice' },
+    ]);
+    mockRepo.createNoticesForBroadcast = vi.fn().mockResolvedValue(1);
+    mockRepo.updateStatus = vi.fn().mockResolvedValue({
+      id: 'bc-app-only',
+      status: 'sent',
+      channel: 'app',
+      counts: { total: 1, sent: 1, failed: 0 },
+    });
+    const mailer = { sendMail: vi.fn() };
+
+    const useCase = new BroadcastUseCase(mockRepo, mockAuditRepo, mailer as never);
+    const result = await useCase.sendBroadcast('bc-app-only');
+
+    expect(mockRepo.createNoticesForBroadcast).toHaveBeenCalledOnce();
+    expect(mailer.sendMail).not.toHaveBeenCalled();
+    expect(result.counts).not.toHaveProperty('emailSkipped');
+    expect(mockRepo.updateStatus).toHaveBeenCalledWith(
+      'bc-app-only',
+      'sent',
+      expect.any(Date),
+      { total: 1, sent: 1, failed: 0 },
+    );
   });
 
   it('normalizes audienceFilter to undefined when audience is all on create and update', async () => {

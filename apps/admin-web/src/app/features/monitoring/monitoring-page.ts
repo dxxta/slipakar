@@ -95,19 +95,20 @@ export type HealthStatus = 'loading' | 'healthy' | 'unreachable';
               <span aria-live="polite">
                 @switch (healthStatus()) {
                   @case ('healthy') {
-                    <span hlmBadge class="bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/20" data-testid="health-badge">
-                      <span class="mr-1.5 inline-block size-2 rounded-full bg-emerald-500" aria-hidden="true"></span>
+                    <span hlmBadge class="border-primary/40 bg-primary/10 text-foreground" data-testid="health-badge">
+                      <span class="mr-1.5 inline-block size-1.5 rounded-full bg-primary" aria-hidden="true"></span>
                       Healthy
                     </span>
                   }
                   @case ('unreachable') {
-                    <span hlmBadge variant="destructive" data-testid="health-badge">
-                      <span class="mr-1.5 inline-block size-2 rounded-full bg-destructive" aria-hidden="true"></span>
+                    <span hlmBadge class="border-[#E5484D]/40 bg-[#E5484D]/10 text-[#E5484D]" data-testid="health-badge">
+                      <span class="mr-1.5 inline-block size-1.5 rounded-full bg-[#E5484D]" aria-hidden="true"></span>
                       Unreachable
                     </span>
                   }
                   @case ('loading') {
                     <span hlmBadge variant="secondary" data-testid="health-badge">
+                      <span class="mr-1.5 inline-block size-1.5 rounded-full bg-muted-foreground" aria-hidden="true"></span>
                       Checking...
                     </span>
                   }

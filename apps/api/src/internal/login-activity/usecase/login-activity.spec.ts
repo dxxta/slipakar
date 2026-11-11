@@ -3,6 +3,35 @@ import { LoginActivityUseCase } from './login-activity.js';
 import type { LoginActivityRepositoryInterface } from '../../../domain/login-activity/interface.js';
 
 describe('LoginActivityUseCase', () => {
+  it('masks other users emails in admin activity but leaves the signed-in admin visible', async () => {
+    const mockRepo: LoginActivityRepositoryInterface = {
+      create: vi.fn(),
+      findUserEvents: vi.fn(),
+      findAllEvents: vi.fn().mockResolvedValue({
+        data: [
+          {
+            id: 'own', userId: 'admin-1', ip: null, proxy: false, browser: null, os: null,
+            deviceType: null, country: null, region: null, city: null, latitude: null,
+            longitude: null, createdAt: new Date().toISOString(), userEmail: 'admin@example.com',
+          },
+          {
+            id: 'other', userId: 'user-2', ip: null, proxy: false, browser: null, os: null,
+            deviceType: null, country: null, region: null, city: null, latitude: null,
+            longitude: null, createdAt: new Date().toISOString(), userEmail: 'person@example.com',
+          },
+        ],
+        total: 2,
+      }),
+      purgeExpired: vi.fn(),
+    };
+
+    const result = await new LoginActivityUseCase(mockRepo).getAdminActivity({}, 'admin-1');
+    expect(result.data.map((event) => event.userEmail)).toEqual([
+      'admin@example.com',
+      '*****@example.com',
+    ]);
+  });
+
   it('records login event with parsed ua, proxy and geoip info', async () => {
     const mockRepo: LoginActivityRepositoryInterface = {
       create: vi.fn().mockImplementation((data) =>

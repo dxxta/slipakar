@@ -29,7 +29,7 @@ describe('Broadcasts HTTP router', () => {
     deleteBroadcast: vi.fn().mockResolvedValue(undefined),
     previewBroadcast: vi.fn().mockResolvedValue({
       recipientCount: 10,
-      sampleEmails: ['a***e@example.com'],
+      sampleEmails: ['*****@example.com'],
       renderedSubject: 'Subject',
       renderedBodyText: 'Body',
     }),

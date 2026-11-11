@@ -11,7 +11,7 @@ describe('LoginActivity HTTP router', () => {
       metadata: { page: 1, limit: 20, total: 1 },
     }),
     getAdminActivity: vi.fn().mockResolvedValue({
-      data: [{ id: 'evt-2', ip: '1.1.1.1', userEmail: 'user@example.com' }],
+      data: [{ id: 'evt-2', userId: 'user-2', ip: '1.1.1.1', userEmail: '*****@example.com' }],
       metadata: { page: 1, limit: 20, total: 1 },
     }),
     recordLogin: vi.fn(),
@@ -45,10 +45,11 @@ describe('LoginActivity HTTP router', () => {
 
   it('GET /admin/login-activity returns paginated admin events', async () => {
     const res = await request(app).get('/admin/login-activity');
+    expect(mockUseCase.getAdminActivity).toHaveBeenCalledWith({}, 'user-123');
     expect(res.status).toBe(200);
     expect(res.body).toEqual({
       message: 'All login activity retrieved',
-      data: [{ id: 'evt-2', ip: '1.1.1.1', userEmail: 'user@example.com' }],
+      data: [{ id: 'evt-2', userId: 'user-2', ip: '1.1.1.1', userEmail: '*****@example.com' }],
       metadata: { page: 1, limit: 20, total: 1 },
       success: true,
     });

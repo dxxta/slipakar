@@ -62,6 +62,5 @@ export const adminUserViewSchema = z.object({
   emailVerified: z.boolean(),
   createdAt: z.string().datetime(),
   disabledAt: z.string().datetime().nullable(),
-  projectCount: z.number().int().nonnegative(),
 });
 export type AdminUserView = z.infer<typeof adminUserViewSchema>;

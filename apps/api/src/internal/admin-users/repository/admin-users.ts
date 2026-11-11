@@ -1,7 +1,6 @@
-import type { Prisma, PrismaClient } from '@prisma/client';
+import type { Prisma, PrismaClient, User } from '@prisma/client';
 import type {
   AdminUsersRepositoryInterface,
-  UserWithCount,
 } from '../../../domain/admin-users/interface.js';
 import type { AuditRepositoryInterface } from '../../../domain/audit/interface.js';
 import type {
@@ -30,13 +29,11 @@ export function buildAdminUsersRepository({
       q?: string;
       sortBy: ListAdminUsersSortBy;
       sortDir: 'asc' | 'desc';
-    }): Promise<RepositoryResponse<UserWithCount[]>> {
+      }): Promise<RepositoryResponse<User[]>> {
       const where: Prisma.UserWhereInput = { role: { not: 'system' } };
       if (q) {
-        where.OR = [
-          { name: { contains: q, mode: 'insensitive' } },
-          { email: { contains: q, mode: 'insensitive' } },
-        ];
+        // Email is masked for admins, so it must not be searchable either (it would reveal masked addresses).
+        where.name = { contains: q, mode: 'insensitive' };
       }
 
       let orderBy: Prisma.UserOrderByWithRelationInput;
@@ -53,11 +50,6 @@ export function buildAdminUsersRepository({
           orderBy,
           skip: (page - 1) * limit,
           take: limit,
-          include: {
-            _count: {
-              select: { projects: true },
-            },
-          },
         }),
         prisma.user.count({ where }),
       ]);
@@ -68,14 +60,9 @@ export function buildAdminUsersRepository({
       };
     },
 
-    async findById(id: string): Promise<UserWithCount | null> {
+    async findById(id: string): Promise<User | null> {
       return prisma.user.findUnique({
         where: { id, role: { not: 'system' } },
-        include: {
-          _count: {
-            select: { projects: true },
-          },
-        },
       });
     },
 
@@ -106,18 +93,13 @@ export function buildAdminUsersRepository({
       payload: UpdateAdminUserPayload;
       auditUserId: string;
       tx?: Prisma.TransactionClient;
-    }): Promise<UserWithCount> {
+    }): Promise<User> {
       const client = tx ?? prisma;
       const updated = await client.user.update({
         where: { id },
         data: {
           ...(payload.name !== undefined ? { name: payload.name } : {}),
           ...(payload.image !== undefined ? { image: payload.image } : {}),
-        },
-        include: {
-          _count: {
-            select: { projects: true },
-          },
         },
       });
 
@@ -150,7 +132,7 @@ export function buildAdminUsersRepository({
       reason?: string;
       auditUserId: string;
       tx?: Prisma.TransactionClient;
-    }): Promise<UserWithCount> {
+    }): Promise<User> {
       const client = tx ?? prisma;
       const now = new Date();
 
@@ -164,11 +146,6 @@ export function buildAdminUsersRepository({
         data: {
           disabledAt: now,
           disabledReason: reason ?? null,
-        },
-        include: {
-          _count: {
-            select: { projects: true },
-          },
         },
       });
 
@@ -195,18 +172,13 @@ export function buildAdminUsersRepository({
       id: string;
       auditUserId: string;
       tx?: Prisma.TransactionClient;
-    }): Promise<UserWithCount> {
+    }): Promise<User> {
       const client = tx ?? prisma;
       const updated = await client.user.update({
         where: { id },
         data: {
           disabledAt: null,
           disabledReason: null,
-        },
-        include: {
-          _count: {
-            select: { projects: true },
-          },
         },
       });
 

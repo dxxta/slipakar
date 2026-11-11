@@ -1,10 +1,13 @@
 import { z } from 'zod';
+export { maskEmail } from '../../lib/mask-email.js';
 
 export const BROADCAST_AUDIENCES = ['all', 'role', 'users'] as const;
 export type BroadcastAudience = (typeof BROADCAST_AUDIENCES)[number];
 
 export const BROADCAST_STATUSES = ['draft', 'sent'] as const;
 export type BroadcastStatus = (typeof BROADCAST_STATUSES)[number];
+export const BROADCAST_CHANNELS = ['app', 'app_email'] as const;
+export type BroadcastChannel = (typeof BROADCAST_CHANNELS)[number];
 
 export const BROADCAST_SORT_FIELDS = ['createdAt', 'subject', 'status', 'sentAt'] as const;
 
@@ -13,6 +16,7 @@ export const createBroadcastDto = z
     subject: z.string().trim().min(1).max(255),
     bodyText: z.string().trim().min(1).max(10000),
     audience: z.enum(BROADCAST_AUDIENCES).default('all'),
+    channel: z.enum(BROADCAST_CHANNELS).default('app_email'),
     audienceFilter: z.record(z.string(), z.unknown()).optional(),
   })
   .superRefine((data, ctx) => {
@@ -49,6 +53,7 @@ export const updateBroadcastDto = z
     subject: z.string().trim().min(1).max(255).optional(),
     bodyText: z.string().trim().min(1).max(10000).optional(),
     audience: z.enum(BROADCAST_AUDIENCES).optional(),
+    channel: z.enum(BROADCAST_CHANNELS).optional(),
     audienceFilter: z.record(z.string(), z.unknown()).optional(),
   })
   .refine(
@@ -56,6 +61,7 @@ export const updateBroadcastDto = z
       data.subject !== undefined ||
       data.bodyText !== undefined ||
       data.audience !== undefined ||
+      data.channel !== undefined ||
       data.audienceFilter !== undefined,
     {
       message: 'At least one field must be provided for update',
@@ -114,6 +120,7 @@ export const broadcastViewDto = z.strictObject({
   subject: z.string(),
   bodyText: z.string(),
   audience: z.string(),
+  channel: z.enum(BROADCAST_CHANNELS).default('app_email'),
   audienceFilter: z.record(z.string(), z.unknown()).nullable(),
   status: z.string(),
   sentAt: z.string().datetime().nullable(),
@@ -133,18 +140,3 @@ export const broadcastPreviewDto = z.strictObject({
 });
 
 export type BroadcastPreview = z.infer<typeof broadcastPreviewDto>;
-
-export function maskEmail(email: string): string {
-  const atIndex = email.indexOf('@');
-  if (atIndex <= 0) return email;
-  const name = email.slice(0, atIndex);
-  const domain = email.slice(atIndex);
-
-  if (name.length <= 1) {
-    return `${name}***${domain}`;
-  }
-  if (name.length === 2) {
-    return `${name[0]}*${name[1]}${domain}`;
-  }
-  return `${name[0]}***${name[name.length - 1]}${domain}`;
-}

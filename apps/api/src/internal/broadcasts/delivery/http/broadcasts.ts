@@ -84,7 +84,7 @@ export function createBroadcastsRouter({
   router.post('/admin/broadcasts/:id/preview', ...adminGuards, async (req, res, next) => {
     try {
       const id = Array.isArray(req.params.id) ? req.params.id[0] : req.params.id;
-      const data = await useCase.previewBroadcast(id);
+      const data = await useCase.previewBroadcast(id, userId(res));
       res.status(200).json({
         message: 'Broadcast preview generated',
         data,

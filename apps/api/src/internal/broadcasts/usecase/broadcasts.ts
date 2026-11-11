@@ -4,10 +4,10 @@ import {
   createBroadcastDto,
   updateBroadcastDto,
   listBroadcastsQueryDto,
-  maskEmail,
   type BroadcastView,
   type BroadcastPreview,
 } from '../../../domain/broadcasts/dto.js';
+import { maskEmail } from '../../../lib/mask-email.js';
 import type {
   BroadcastRepositoryInterface,
   BroadcastUseCaseInterface,
@@ -107,7 +107,7 @@ export class BroadcastUseCase implements BroadcastUseCaseInterface {
     await this.repository.delete(id);
   }
 
-  async previewBroadcast(id: string): Promise<BroadcastPreview> {
+  async previewBroadcast(id: string, adminUserId: string): Promise<BroadcastPreview> {
     const broadcast = await this.getBroadcast(id);
     validateAudienceFilter(broadcast.audience, broadcast.audienceFilter);
 
@@ -116,7 +116,7 @@ export class BroadcastUseCase implements BroadcastUseCaseInterface {
       broadcast.audienceFilter,
     );
 
-    const sampleEmails = recipients.slice(0, 5).map((r) => maskEmail(r.email));
+    const sampleEmails = recipients.slice(0, 5).map((recipient) => recipient.id === adminUserId ? recipient.email : maskEmail(recipient.email));
 
     return {
       recipientCount: recipients.length,
@@ -149,10 +149,11 @@ export class BroadcastUseCase implements BroadcastUseCaseInterface {
 
     let sent = 0;
     let failed = 0;
-    const emailSkipped = !this.platformMailer;
+    const channel = broadcast.channel ?? 'app_email';
+    const emailSkipped = channel === 'app_email' && !this.platformMailer;
 
     // 2. If platform mailer is configured, send email with bounded concurrency (concurrency = 5)
-    if (this.platformMailer) {
+    if (channel === 'app_email' && this.platformMailer) {
       const concurrency = 5;
       for (let i = 0; i < recipients.length; i += concurrency) {
         const chunk = recipients.slice(i, i + concurrency);

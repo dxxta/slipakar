@@ -3,6 +3,7 @@ import { type Observable } from 'rxjs';
 import { ApiClient, type PageMetadata, type PaginatedResponse } from '../../core/api-client';
 
 export type BroadcastAudience = 'all' | 'role' | 'users';
+export type BroadcastChannel = 'app' | 'app_email';
 export type BroadcastStatus = 'draft' | 'sent';
 export type BroadcastSort = 'createdAt' | 'subject' | 'status' | 'sentAt';
 export type BroadcastCounts = { total: number; sent: number; failed: number; emailSkipped?: boolean };
@@ -11,6 +12,7 @@ export type BroadcastItem = {
   subject: string;
   bodyText: string;
   audience: BroadcastAudience;
+  channel: BroadcastChannel;
   audienceFilter: Record<string, unknown> | null;
   status: BroadcastStatus;
   sentAt: string | null;
@@ -20,7 +22,7 @@ export type BroadcastItem = {
   updatedAt: string;
 };
 export type BroadcastPreview = { recipientCount: number; sampleEmails: string[]; renderedSubject: string; renderedBodyText: string };
-export type BroadcastPayload = { subject: string; bodyText: string; audience: BroadcastAudience; audienceFilter?: { role: string } | { userIds: string[] } };
+export type BroadcastPayload = { subject: string; bodyText: string; audience: BroadcastAudience; channel: BroadcastChannel; audienceFilter?: { role: string } | { userIds: string[] } };
 export type BroadcastPatch = Partial<BroadcastPayload>;
 
 @Injectable({ providedIn: 'root' })

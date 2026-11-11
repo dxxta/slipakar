@@ -90,7 +90,7 @@ describe('Admin Users Integration Tests', () => {
     });
     regularUserId = regular.id;
 
-    // Create a project for regular user to test projectCount
+    // Verify admin user views never expose project counts.
     await prisma.project.create({
       data: {
         name: 'Regular Project',
@@ -104,23 +104,26 @@ describe('Admin Users Integration Tests', () => {
     await pgContainer?.stop();
   });
 
-  it('GET /admin/users lists users with projectCount, search, pagination', async () => {
+  it('GET /admin/users masks other users emails and omits project counts', async () => {
     const res = await request(app).get('/admin/users?page=1&limit=10&sortBy=createdAt&sortDir=desc');
     expect(res.status).toBe(200);
     expect(res.body.success).toBe(true);
     expect(res.body.data.length).toBeGreaterThanOrEqual(3);
     const regularItem = res.body.data.find((u: { id: string }) => u.id === regularUserId);
     expect(regularItem).toBeDefined();
-    expect(regularItem.projectCount).toBe(1);
+    expect(regularItem.email).toBe('*****@example.com');
+    expect(regularItem).not.toHaveProperty('projectCount');
     expect(regularItem.disabledAt).toBeNull();
+    const ownAdmin = res.body.data.find((u: { id: string }) => u.id === adminId);
+    expect(ownAdmin.email).toBe(adminEmail);
   });
 
   it('GET /admin/users/:id returns user details', async () => {
     const res = await request(app).get(`/admin/users/${regularUserId}`);
     expect(res.status).toBe(200);
     expect(res.body.data.id).toBe(regularUserId);
-    expect(res.body.data.email).toBe('regular@example.com');
-    expect(res.body.data.projectCount).toBe(1);
+    expect(res.body.data.email).toBe('*****@example.com');
+    expect(res.body.data).not.toHaveProperty('projectCount');
   });
 
   it('PATCH /admin/users/:id updates name/image but rejects email', async () => {

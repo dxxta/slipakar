@@ -30,7 +30,7 @@ export function createLoginActivityRouter({
 
   router.get('/admin/login-activity', ...adminGuards, async (req, res, next) => {
     try {
-      const result = await useCase.getAdminActivity(req.query);
+      const result = await useCase.getAdminActivity(req.query, userId(res));
       res.status(200).json({
         message: 'All login activity retrieved',
         data: result.data,

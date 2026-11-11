@@ -35,15 +35,14 @@ import { Ripple } from '../../ui/shared/ripple';
       <div list-content class="overflow-x-auto rounded-ui-lg border border-border bg-card">
         <table data-responsive class="w-full text-left text-sm" aria-label="Users">
           <thead class="border-b border-border bg-muted/40 text-xs uppercase text-muted-foreground">
-            <tr><th class="px-4 py-3">User</th><th class="px-4 py-3">Role</th><th class="px-4 py-3">Projects</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-right">Actions</th></tr>
+            <tr><th class="px-4 py-3">User</th><th class="px-4 py-3">Role</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-right">Actions</th></tr>
           </thead>
           <tbody class="divide-y divide-border">
             @for (user of users(); track user.id) {
               <tr class="hover:bg-muted/40">
                 <td data-label="User" class="max-w-xs px-4 py-4"><p class="truncate font-medium">{{ user.name || 'Unnamed user' }}</p><p class="truncate text-xs text-muted-foreground">{{ user.email }}</p></td>
                 <td data-label="Role" class="px-4 py-4">{{ user.role }}</td>
-                <td data-label="Projects" class="px-4 py-4 tabular-nums">{{ user.projectCount }}</td>
-                <td data-label="Status" class="px-4 py-4">@if (user.disabledAt) { <span hlmBadge variant="destructive">Disabled</span> } @else { <span hlmBadge variant="secondary">Active</span> }</td>
+                <td data-label="Status" class="px-4 py-4">@if (user.disabledAt) { <span hlmBadge class="gap-1.5 border-[#E5484D]/40 bg-[#E5484D]/10 text-[#E5484D]"><span aria-hidden="true" class="size-1.5 rounded-full bg-[#E5484D]"></span>Disabled</span> } @else { <span hlmBadge class="gap-1.5 border-primary/40 bg-primary/10 text-foreground"><span aria-hidden="true" class="size-1.5 rounded-full bg-primary"></span>Active</span> }</td>
                 <td data-label="Actions" class="px-4 py-4 text-right">
                   <div class="flex justify-end">
                     <app-row-actions
@@ -74,7 +73,6 @@ import { Ripple } from '../../ui/shared/ripple';
             <div><dt class="text-muted-foreground">Email verified</dt><dd class="font-medium">{{ user.emailVerified ? 'Yes' : 'No' }}</dd></div>
             <div><dt class="text-muted-foreground">Created</dt><dd class="font-medium tabular-nums">{{ user.createdAt | date:'medium' }}</dd></div>
             <div><dt class="text-muted-foreground">Disabled at</dt><dd class="font-medium tabular-nums">{{ user.disabledAt ? (user.disabledAt | date:'medium') : '—' }}</dd></div>
-            <div><dt class="text-muted-foreground">Projects</dt><dd class="font-medium tabular-nums">{{ user.projectCount }}</dd></div>
           </dl>
         }
         @else {

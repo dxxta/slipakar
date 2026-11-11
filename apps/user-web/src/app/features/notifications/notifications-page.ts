@@ -396,7 +396,8 @@ export class NotificationsPage implements OnInit {
     this.actionError.set(null);
 
     this.userNoticesService.markRead(notice.id).subscribe({
-      next: () => {
+      next: (updated) => {
+        this.notices.update((items) => items.map((item) => item.id === updated.id ? updated : item));
         this.unreadNotificationsStore.refresh();
       },
       error: () => {
@@ -422,6 +423,7 @@ export class NotificationsPage implements OnInit {
     this.userNoticesService.markAllRead().subscribe({
       next: () => {
         this.unreadNotificationsStore.refresh();
+        this.loadNotices(this.noticeMetadata().page);
       },
       error: () => {
         this.notices.set(previous);
@@ -514,8 +516,10 @@ export class NotificationsPage implements OnInit {
     this.actionError.set(null);
 
     this.notificationsService.markRead(projId, item.id).subscribe({
-      next: () => {
+      next: (updated) => {
+        this.notifications.update((items) => items.map((current) => current.id === updated.id ? updated : current));
         this.unreadNotificationsStore.refresh();
+        if (this.unreadOnly()) this.loadNotifications();
       },
       error: () => {
         this.notifications.set(previous);
@@ -537,6 +541,7 @@ export class NotificationsPage implements OnInit {
     this.notificationsService.markAllRead(projId).subscribe({
       next: () => {
         this.unreadNotificationsStore.refresh();
+        this.loadNotifications();
       },
       error: () => {
         this.notifications.set(previous);

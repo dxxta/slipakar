@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { tablerBrandGoogle } from '@ng-icons/tabler-icons';
 import { HlmButton } from '../ui/button/src/lib/hlm-button';
@@ -18,7 +19,7 @@ import { Pressed } from '../ui/shared/pressed';
         </div>
         <h1 id="login-title" class="text-2xl font-semibold tracking-tight">Sign in to your workspace</h1>
         <p class="mt-2 text-sm text-muted-foreground">Use your Google account to continue to the admin console.</p>
-        <button hlmBtn class="mt-7 w-full" type="button" aria-label="Sign in with Google" (click)="session.signIn()">
+        <button hlmBtn class="mt-7 w-full" type="button" aria-label="Sign in with Google" (click)="signIn()">
           <ng-icon name="tablerBrandGoogle" class="mr-2 size-4" aria-hidden="true" />
           Continue with Google
         </button>
@@ -28,4 +29,9 @@ import { Pressed } from '../ui/shared/pressed';
 })
 export class LoginPage {
   protected readonly session = inject(SessionService);
+  private readonly route = inject(ActivatedRoute);
+
+  protected signIn(): Promise<void> {
+    return this.session.signIn(this.route.snapshot.queryParamMap.get('returnUrl') ?? undefined);
+  }
 }

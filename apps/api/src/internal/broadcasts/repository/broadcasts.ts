@@ -12,6 +12,28 @@ import type {
 } from '../../../domain/broadcasts/interface.js';
 import type { AuditRepositoryInterface } from '../../../domain/audit/interface.js';
 
+const deliveryChannelKey = '__slipakarDeliveryChannel';
+
+function channelFromJson(value: unknown): 'app' | 'app_email' {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return 'app_email';
+  const channel = (value as Record<string, unknown>)[deliveryChannelKey];
+  return channel === 'app' ? 'app' : 'app_email';
+}
+
+function audienceFilterFromJson(value: unknown): Record<string, unknown> | null {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) return null;
+  const filter = { ...(value as Record<string, unknown>) };
+  delete filter[deliveryChannelKey];
+  return Object.keys(filter).length > 0 ? filter : null;
+}
+
+function audienceFilterToJson(
+  filter: Record<string, unknown> | undefined,
+  channel: 'app' | 'app_email',
+): Prisma.InputJsonValue {
+  return { ...(filter ?? {}), [deliveryChannelKey]: channel } as Prisma.InputJsonValue;
+}
+
 export class BroadcastRepository implements BroadcastRepositoryInterface {
   constructor(
     private readonly prisma: PrismaClient,
@@ -37,7 +59,8 @@ export class BroadcastRepository implements BroadcastRepositoryInterface {
       subject: row.subject,
       bodyText: row.bodyText,
       audience: row.audience,
-      audienceFilter: row.audienceFilter as Record<string, unknown> | null,
+      audienceFilter: audienceFilterFromJson(row.audienceFilter),
+      channel: channelFromJson(row.audienceFilter),
       status: row.status,
       sentAt: row.sentAt ? row.sentAt.toISOString() : null,
       createdBy: row.createdBy,
@@ -58,7 +81,7 @@ export class BroadcastRepository implements BroadcastRepositoryInterface {
         subject: data.subject,
         bodyText: data.bodyText,
         audience: data.audience,
-        audienceFilter: (data.audienceFilter as Prisma.InputJsonValue) ?? Prisma.DbNull,
+        audienceFilter: audienceFilterToJson(data.audienceFilter, data.channel),
         createdBy,
         counts: { total: 0, sent: 0, failed: 0 },
       },
@@ -109,14 +132,23 @@ export class BroadcastRepository implements BroadcastRepositoryInterface {
   }
 
   async update(id: string, data: UpdateBroadcastDto): Promise<BroadcastView> {
+    const existing = await this.prisma.broadcast.findUnique({
+      where: { id },
+      select: { audienceFilter: true },
+    });
+    const channel = data.channel ?? channelFromJson(existing?.audienceFilter);
+    const audienceFilter = data.audience === 'all'
+      ? undefined
+      : data.audienceFilter ?? audienceFilterFromJson(existing?.audienceFilter) ?? undefined;
+    const shouldStoreDeliverySettings = data.channel !== undefined || data.audienceFilter !== undefined || data.audience === 'all';
     const row = await this.prisma.broadcast.update({
       where: { id },
       data: {
         ...(data.subject !== undefined && { subject: data.subject }),
         ...(data.bodyText !== undefined && { bodyText: data.bodyText }),
         ...(data.audience !== undefined && { audience: data.audience }),
-        ...(data.audienceFilter !== undefined && {
-          audienceFilter: (data.audienceFilter as Prisma.InputJsonValue) ?? Prisma.DbNull,
+        ...(shouldStoreDeliverySettings && {
+          audienceFilter: audienceFilterToJson(audienceFilter, channel),
         }),
       },
     });

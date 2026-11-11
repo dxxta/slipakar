@@ -2,6 +2,7 @@ import geoip from 'geoip-lite';
 import { validateAndThrow } from '../../../lib/validate-and-throw.js';
 import { parseUserAgent } from '../../../lib/user-agent-parser.js';
 import { isPrivateIp, resolveProxyFlag } from '../../../lib/ip-utils.js';
+import { maskEmail } from '../../../lib/mask-email.js';
 import {
   listLoginActivityQueryDto,
   listAdminLoginActivityQueryDto,
@@ -40,6 +41,7 @@ export class LoginActivityUseCase implements LoginActivityUseCaseInterface {
 
   async getAdminActivity(
     query: unknown,
+    adminUserId: string,
   ): Promise<{ data: LoginEventView[]; metadata: { page: number; limit: number; total: number } }> {
     const validated = validateAndThrow({
       schema: listAdminLoginActivityQueryDto,
@@ -48,7 +50,9 @@ export class LoginActivityUseCase implements LoginActivityUseCaseInterface {
 
     const result = await this.repository.findAllEvents(validated);
     return {
-      data: result.data,
+      data: result.data.map((event) => event.userId === adminUserId || !event.userEmail
+        ? event
+        : { ...event, userEmail: maskEmail(event.userEmail) }),
       metadata: {
         page: validated.page,
         limit: validated.limit,

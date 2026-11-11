@@ -50,14 +50,13 @@ describe('Admin Users Router', () => {
       message: 'User retrieved successfully',
       data: {
         id: 'usr-1',
-        email: 'alice@example.com',
+        email: '*****@example.com',
         name: 'Alice',
         image: null,
         role: 'user',
         emailVerified: true,
         createdAt: '2026-01-01T00:00:00.000Z',
         disabledAt: null,
-        projectCount: 0,
       },
       success: true,
     });
@@ -75,14 +74,13 @@ describe('Admin Users Router', () => {
       message: 'User updated successfully',
       data: {
         id: 'usr-1',
-        email: 'alice@example.com',
+        email: '*****@example.com',
         name: 'Alice Updated',
         image: null,
         role: 'user',
         emailVerified: true,
         createdAt: '2026-01-01T00:00:00.000Z',
         disabledAt: null,
-        projectCount: 0,
       },
       success: true,
     });
@@ -101,14 +99,13 @@ describe('Admin Users Router', () => {
       message: 'User disabled successfully',
       data: {
         id: 'usr-1',
-        email: 'alice@example.com',
+        email: '*****@example.com',
         name: 'Alice',
         image: null,
         role: 'user',
         emailVerified: true,
         createdAt: '2026-01-01T00:00:00.000Z',
         disabledAt: '2026-01-02T00:00:00.000Z',
-        projectCount: 0,
       },
       success: true,
     });
@@ -127,14 +124,13 @@ describe('Admin Users Router', () => {
       message: 'User enabled successfully',
       data: {
         id: 'usr-1',
-        email: 'alice@example.com',
+        email: '*****@example.com',
         name: 'Alice',
         image: null,
         role: 'user',
         emailVerified: true,
         createdAt: '2026-01-01T00:00:00.000Z',
         disabledAt: null,
-        projectCount: 0,
       },
       success: true,
     });

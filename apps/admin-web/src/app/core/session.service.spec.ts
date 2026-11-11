@@ -2,7 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { adminAuthCallbackUrl, SessionService } from './session.service';
+import { adminAuthCallbackUrl, adminRequestedReturnUrl, adminRouterUrl, safeAdminReturnUrl, SessionService } from './session.service';
 
 describe('SessionService', () => {
   let service: SessionService;
@@ -14,7 +14,10 @@ describe('SessionService', () => {
     http = TestBed.inject(HttpTestingController);
   });
 
-  afterEach(() => http.verify());
+  afterEach(() => {
+    http.verify();
+    service.clearReturnUrl();
+  });
 
   it('loads a signed-in user into signals', async () => {
     const loaded = service.loadSession();
@@ -35,11 +38,31 @@ describe('SessionService', () => {
     await signedOut;
     expect(service.user()).toBeNull();
   });
+
+  it('uses a safe stored return URL for Google sign-in', async () => {
+    const signingIn = service.signIn('/users?sortBy=email#row');
+    const request = http.expectOne('/api/auth/sign-in/social');
+    expect(request.request.body).toEqual({
+      provider: 'google',
+      callbackURL: `${window.location.origin}/users?sortBy=email#row`,
+    });
+    request.flush({});
+    await signingIn;
+  });
 });
 
 describe('adminAuthCallbackUrl', () => {
   it('uses the app base path in production and root in development', () => {
     expect(adminAuthCallbackUrl('https://slipakar.example', '/console/')).toBe('https://slipakar.example/console/');
     expect(adminAuthCallbackUrl('http://localhost:4301', '/')).toBe('http://localhost:4301/');
+  });
+
+  it('constrains production return paths to /console and converts them back to router paths', () => {
+    expect(adminRequestedReturnUrl('/users?sortBy=email#row', '/console/')).toBe('/console/users?sortBy=email#row');
+    expect(adminAuthCallbackUrl('https://slipakar.example', '/console/', '/console/users?sortBy=email#row'))
+      .toBe('https://slipakar.example/console/users?sortBy=email#row');
+    expect(safeAdminReturnUrl('https://outside.example/path', '/console/')).toBeNull();
+    expect(safeAdminReturnUrl('/console/../../outside', '/console/')).toBeNull();
+    expect(adminRouterUrl('/console/users?sortBy=email#row', '/console/')).toBe('/users?sortBy=email#row');
   });
 });

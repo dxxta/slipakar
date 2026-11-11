@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { BroadcastsPage } from './broadcasts-page';
 
-const draft = { id: 'b1', subject: 'Planned maintenance', bodyText: 'Hello {{name}}', audience: 'all', audienceFilter: null, status: 'draft', sentAt: null, createdBy: 'admin', counts: { total: 0, sent: 0, failed: 0 }, createdAt: '2026-11-09T00:00:00.000Z', updatedAt: '2026-11-09T00:00:00.000Z' };
+const draft = { id: 'b1', subject: 'Planned maintenance', bodyText: 'Hello {{name}}', audience: 'all', channel: 'app_email', audienceFilter: null, status: 'draft', sentAt: null, createdBy: 'admin', counts: { total: 0, sent: 0, failed: 0 }, createdAt: '2026-11-09T00:00:00.000Z', updatedAt: '2026-11-09T00:00:00.000Z' };
 const sent = { ...draft, id: 'b2', subject: 'Sent update', status: 'sent', sentAt: '2026-11-09T01:00:00.000Z', counts: { total: 4, sent: 4, failed: 0 } };
 
 describe('BroadcastsPage', () => {
@@ -25,8 +25,13 @@ describe('BroadcastsPage', () => {
     expect(fixture.nativeElement.textContent).toContain('Sent');
     expect(fixture.nativeElement.textContent).toContain('4 sent');
     expect(fixture.nativeElement.querySelector('[aria-label="Actions for Planned maintenance"]')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('[aria-label="Actions for Sent update"]')).toBeNull();
-    expect(fixture.nativeElement.querySelector('[aria-label="View Sent update"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[aria-label="Actions for Sent update"]')).not.toBeNull();
+    expect(fixture.nativeElement.querySelector('[aria-label="View Sent update"]')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Notification and email');
+    (fixture.nativeElement.querySelector('[aria-label="Actions for Sent update"]') as HTMLButtonElement).click();
+    fixture.detectChanges();
+    const menuItems = Array.from(fixture.nativeElement.querySelectorAll('[role="menuitem"]') as NodeListOf<HTMLButtonElement>);
+    expect(menuItems.map((item) => item.textContent?.trim())).toEqual(['Detail']);
   });
 
   it('creates a draft, previews it, and sends only after confirmation', () => {
@@ -43,12 +48,14 @@ describe('BroadcastsPage', () => {
     fixture.detectChanges();
     (fixture.nativeElement.querySelector('[aria-label="Preview broadcast"]') as HTMLButtonElement).click();
     const create = http.expectOne('/admin/broadcasts');
-    expect(create.request.body).toEqual({ subject: 'Welcome', bodyText: 'Hello all', audience: 'all' });
-    create.flush({ message: 'created', data: { ...draft, subject: 'Welcome', bodyText: 'Hello all' }, success: true });
+    expect(create.request.body).toEqual({ subject: 'Welcome', bodyText: 'Hello all', audience: 'all', channel: 'app_email' });
+    create.flush({ message: 'created', data: { ...draft, subject: 'Welcome', bodyText: 'Hello all', channel: 'app_email' }, success: true });
+    http.expectOne('/admin/broadcasts?page=1&limit=20&sortBy=createdAt&sortDir=desc').flush({ message: 'ok', data: [{ ...draft, subject: 'Welcome', bodyText: 'Hello all' }], metadata: { page: 1, limit: 20, total: 1 }, success: true });
     const preview = http.expectOne('/admin/broadcasts/b1/preview');
     preview.flush({ message: 'ok', data: { recipientCount: 3, sampleEmails: ['a***@example.test'], renderedSubject: 'Welcome', renderedBodyText: 'Hello all' }, success: true });
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('3 recipients');
+    expect(fixture.nativeElement.textContent).toContain('Notification and email');
     (fixture.nativeElement.querySelector('[aria-label="Send broadcast"]') as HTMLButtonElement).click();
     fixture.detectChanges();
     expect(fixture.nativeElement.querySelector('[role="dialog"]')).not.toBeNull();
@@ -56,6 +63,7 @@ describe('BroadcastsPage', () => {
     const send = http.expectOne('/admin/broadcasts/b1/send');
     expect(send.request.body).toBeNull();
     send.flush({ message: 'sent', data: { ...draft, subject: 'Welcome', bodyText: 'Hello all', status: 'sent', counts: { total: 3, sent: 3, failed: 0 } }, success: true });
+    http.expectOne('/admin/broadcasts?page=1&limit=20&sortBy=createdAt&sortDir=desc').flush({ message: 'ok', data: [{ ...draft, subject: 'Welcome', bodyText: 'Hello all', status: 'sent', counts: { total: 3, sent: 3, failed: 0 } }], metadata: { page: 1, limit: 20, total: 1 }, success: true });
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('Broadcast sent');
   });

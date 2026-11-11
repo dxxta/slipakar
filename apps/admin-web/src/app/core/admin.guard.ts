@@ -5,6 +5,7 @@ import { ApiClient } from './api-client';
 import { ApiError } from './api-error';
 import { SessionService } from './session.service';
 import { AdminSetupService } from '../features/setup/admin-setup.service';
+import { adminRequestedReturnUrl, adminRouterUrl } from './session.service';
 
 export const adminGuard: CanActivateFn = async (_route, state) => {
   const session = inject(SessionService);
@@ -12,11 +13,17 @@ export const adminGuard: CanActivateFn = async (_route, state) => {
   const router = inject(Router);
   const setup = inject(AdminSetupService);
 
-  if (!(await session.loadSession())) return router.createUrlTree(['/login']);
+  if (!(await session.loadSession())) {
+    const returnUrl = session.rememberReturnUrl(adminRequestedReturnUrl(state.url, session.baseHref()));
+    return router.createUrlTree(['/login'], returnUrl ? { queryParams: { returnUrl } } : undefined);
+  }
   try {
     await firstValueFrom(api.get<unknown>('/admin/config'));
   } catch (error) {
-    if (error instanceof ApiError && error.status === 403) return router.createUrlTree(['/forbidden']);
+    if (error instanceof ApiError && error.status === 403) {
+      session.clearReturnUrl();
+      return router.createUrlTree(['/forbidden']);
+    }
     throw error;
   }
 
@@ -27,5 +34,11 @@ export const adminGuard: CanActivateFn = async (_route, state) => {
     return state.url === '/setup' ? true : router.createUrlTree(['/setup']);
   }
   if (!setupView.complete && state.url !== '/setup') return router.createUrlTree(['/setup']);
+  const storedReturnUrl = session.storedReturnUrl();
+  if (storedReturnUrl && setupView.complete) {
+    const target = adminRouterUrl(storedReturnUrl, session.baseHref());
+    session.clearReturnUrl();
+    if (target && target !== state.url) return router.parseUrl(target);
+  }
   return true;
 };

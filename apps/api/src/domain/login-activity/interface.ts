@@ -37,6 +37,7 @@ export interface LoginActivityUseCaseInterface {
   ): Promise<{ data: LoginEventView[]; metadata: { page: number; limit: number; total: number } }>;
   getAdminActivity(
     query: unknown,
+    adminUserId: string,
   ): Promise<{ data: LoginEventView[]; metadata: { page: number; limit: number; total: number } }>;
   recordLogin(data: {
     userId: string;

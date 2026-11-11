@@ -1,8 +1,7 @@
-import type { PrismaClient } from '@prisma/client';
+import type { PrismaClient, User } from '@prisma/client';
 import type {
   AdminUsersRepositoryInterface,
   AdminUsersUseCaseInterface,
-  UserWithCount,
 } from '../../../domain/admin-users/interface.js';
 import type { AdminUserView } from '../../../domain/admin-users/dto.js';
 import {
@@ -12,22 +11,22 @@ import {
 } from '../../../domain/admin-users/dto.js';
 import { validateAndThrow } from '../../../lib/validate-and-throw.js';
 import { AppError } from '../../../lib/app-error.js';
+import { maskEmail } from '../../../lib/mask-email.js';
 import type {
   ResponseTypeWithMetadata,
   ResponseTypeWithoutMetadata,
 } from '../../../lib/types.js';
 
-function toAdminUserView(user: UserWithCount): AdminUserView {
+function toAdminUserView(user: User, viewerId: string): AdminUserView {
   return {
     id: user.id,
-    email: user.email,
+    email: user.id === viewerId ? user.email : maskEmail(user.email),
     name: user.name,
     image: user.image,
     role: user.role,
     emailVerified: user.emailVerified,
     createdAt: user.createdAt.toISOString(),
     disabledAt: user.disabledAt ? user.disabledAt.toISOString() : null,
-    projectCount: user._count?.projects ?? 0,
   };
 }
 
@@ -45,6 +44,7 @@ export function buildAdminUsersUseCase({
   return {
     async listUsers({
       query,
+      auditUserId,
     }: {
       query: unknown;
       auditUserId: string;
@@ -53,7 +53,7 @@ export function buildAdminUsersUseCase({
       const result = await repository.listUsers(parsed);
       return {
         message: 'Users retrieved successfully',
-        data: result.data.map(toAdminUserView),
+        data: result.data.map((user) => toAdminUserView(user, auditUserId)),
         metadata: result.metadata ?? { page: parsed.page, limit: parsed.limit, total: result.data.length },
         success: true,
       };
@@ -61,6 +61,7 @@ export function buildAdminUsersUseCase({
 
     async getUser({
       id,
+      auditUserId,
     }: {
       id: string;
       auditUserId: string;
@@ -71,7 +72,7 @@ export function buildAdminUsersUseCase({
       }
       return {
         message: 'User retrieved successfully',
-        data: toAdminUserView(user),
+        data: toAdminUserView(user, auditUserId),
         success: true,
       };
     },
@@ -101,7 +102,7 @@ export function buildAdminUsersUseCase({
 
       return {
         message: 'User updated successfully',
-        data: toAdminUserView(updated),
+        data: toAdminUserView(updated, auditUserId),
         success: true,
       };
     },
@@ -146,7 +147,7 @@ export function buildAdminUsersUseCase({
 
       return {
         message: 'User disabled successfully',
-        data: toAdminUserView(updated),
+        data: toAdminUserView(updated, auditUserId),
         success: true,
       };
     },
@@ -173,7 +174,7 @@ export function buildAdminUsersUseCase({
 
       return {
         message: 'User enabled successfully',
-        data: toAdminUserView(updated),
+        data: toAdminUserView(updated, auditUserId),
         success: true,
       };
     },

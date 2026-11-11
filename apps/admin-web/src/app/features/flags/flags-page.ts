@@ -68,7 +68,8 @@ import { Ripple } from '../../ui/shared/ripple';
               <div class="flex items-center justify-between">
                 <h3 hlmCardTitle class="text-base font-medium">{{ flag.label }}</h3>
                 @if (savedState()[flag.key]) {
-                  <span hlmBadge variant="outline" class="text-xs text-emerald-700 dark:text-emerald-300 border-emerald-500/25 bg-emerald-500/10">
+                  <span hlmBadge variant="outline" class="gap-1.5 border-primary/40 bg-primary/10 text-foreground text-xs">
+                    <span class="size-1.5 rounded-full bg-primary" aria-hidden="true"></span>
                     Saved
                   </span>
                 }

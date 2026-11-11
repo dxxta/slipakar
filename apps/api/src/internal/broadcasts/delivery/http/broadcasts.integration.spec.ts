@@ -76,6 +76,7 @@ describe('Broadcasts HTTP integration', () => {
     expect(createRes.status).toBe(201);
     const broadcastId = createRes.body.data.id;
     expect(createRes.body.data.status).toBe('draft');
+    expect(createRes.body.data.channel).toBe('app_email');
 
     // 2. Preview
     const previewRes = await request(app).post(`/admin/broadcasts/${broadcastId}/preview`);

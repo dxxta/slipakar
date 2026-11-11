@@ -39,7 +39,6 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
     @if (error()) { <p role="alert" class="rounded-ui-md border border-[#E5484D]/30 bg-[#E5484D]/10 p-3 text-sm text-[#E5484D]">{{ error() }}</p> }
     @if (loading()) { <p role="status">Loading integration settings…</p> }
     @if (setup.view(); as state) {
-      @if (state.complete) { <div class="flex flex-wrap items-center justify-between gap-3 rounded-ui-md border border-emerald-500/30 bg-emerald-500/10 p-4"><p class="text-sm">All integrations are configured and passing their connection tests.</p><a routerLink="/flags" class="inline-flex min-h-10 items-center rounded-ui-md bg-primary px-4 py-2 text-sm text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Continue to admin</a></div> }
       <div class="grid grid-cols-1 gap-4" data-testid="setup-integration-rows">
         @for (integration of state.integrations; track integration.key) {
           <article appPressed class="flex w-full min-w-0 flex-col rounded-ui-lg border border-border bg-card p-card" [attr.data-testid]="'setup-row-' + integration.key">
@@ -47,7 +46,7 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
               <div class="min-w-0 flex-1">
                 <div class="flex flex-wrap items-center gap-2.5">
                   <h2 class="text-lg font-semibold">{{ integration.key === 'mail' ? 'Mail' : integration.label }}</h2>
-                  <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium" [ngClass]="statusClass(integration)">@if (testStatus()[integration.key]) { <span aria-hidden="true" class="size-1.5 rounded-full" [ngClass]="testStatus()[integration.key] === 'ok' ? 'bg-primary' : 'bg-[#E5484D]'"></span> }{{ statusLabel(integration) }}</span>
+                  <span class="inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium" [ngClass]="statusClass(integration)"><span aria-hidden="true" class="size-1.5 rounded-full" [ngClass]="statusDotClass(integration)"></span>{{ statusLabel(integration) }}</span>
                 </div>
                 <p class="mt-1 text-sm text-muted-foreground">{{ description(integration.key) }}</p>
                 @if (integration.source || (integration.baseUrl && integration.key !== 'mail') || integration.credentialHint) {
@@ -223,6 +222,10 @@ export class SetupPage implements OnInit {
     return tested === 'ok' ? 'border-primary/40 bg-primary/10 text-foreground'
       : tested === 'failed' ? 'border-[#E5484D]/40 bg-[#E5484D]/10 text-[#E5484D]'
       : 'border-border bg-muted text-muted-foreground';
+  }
+  protected statusDotClass(item: IntegrationItem): string {
+    const tested = this.testStatus()[item.key];
+    return tested === 'ok' ? 'bg-primary' : tested === 'failed' ? 'bg-[#E5484D]' : 'bg-muted-foreground';
   }
   protected drawerTitle(): string { const item = this.editing(); return item ? `Configure ${item.key === 'mail' ? 'Mail' : item.label}` : 'Configure integration'; }
 

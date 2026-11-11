@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { UsersPage } from './users-page';
 
-const user = { id: 'u-1', email: 'member@example.test', name: 'Member', image: null, role: 'user', emailVerified: true, createdAt: '2026-10-01T00:00:00.000Z', disabledAt: null, projectCount: 2 };
+const user = { id: 'u-1', email: '*****@example.test', name: 'Member', image: null, role: 'user', emailVerified: true, createdAt: '2026-10-01T00:00:00.000Z', disabledAt: null };
 
 describe('UsersPage', () => {
   let http: HttpTestingController;
@@ -20,8 +20,8 @@ describe('UsersPage', () => {
     fixture.detectChanges();
     http.expectOne('/admin/users?page=1&limit=20&sortBy=createdAt&sortDir=desc').flush({ message: 'ok', data: [user], metadata: { page: 1, limit: 20, total: 1 }, success: true });
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('member@example.test');
-    expect(fixture.nativeElement.textContent).toContain('2');
+    expect(fixture.nativeElement.textContent).toContain('*****@example.test');
+    expect(fixture.nativeElement.textContent).not.toContain('Projects');
     const search = fixture.nativeElement.querySelector('input[type="search"]') as HTMLInputElement;
     search.value = 'member';
     search.dispatchEvent(new Event('input'));
@@ -47,7 +47,7 @@ describe('UsersPage', () => {
 
     http.expectOne('/admin/users/u-1').flush({ message: 'ok', data: user, success: true });
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('[role="dialog"]')?.textContent).toContain('member@example.test');
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')?.textContent).toContain('*****@example.test');
 
     // Close detail drawer
     const closeBtn = Array.from(fixture.nativeElement.querySelectorAll('button') as NodeListOf<HTMLButtonElement>)

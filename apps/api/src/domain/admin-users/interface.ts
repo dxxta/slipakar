@@ -6,8 +6,6 @@ import type {
   UpdateAdminUserPayload,
 } from './dto.js';
 
-export type UserWithCount = User & { _count?: { projects: number } };
-
 export interface AdminUsersRepositoryInterface {
   listUsers(args: {
     page: number;
@@ -15,9 +13,9 @@ export interface AdminUsersRepositoryInterface {
     q?: string;
     sortBy: ListAdminUsersSortBy;
     sortDir: 'asc' | 'desc';
-  }): Promise<RepositoryResponse<UserWithCount[]>>;
+  }): Promise<RepositoryResponse<User[]>>;
 
-  findById(id: string): Promise<UserWithCount | null>;
+  findById(id: string): Promise<User | null>;
 
   findByEmail(email: string): Promise<User | null>;
 
@@ -26,20 +24,20 @@ export interface AdminUsersRepositoryInterface {
     payload: UpdateAdminUserPayload;
     auditUserId: string;
     tx?: Prisma.TransactionClient;
-  }): Promise<UserWithCount>;
+  }): Promise<User>;
 
   disableUser(args: {
     id: string;
     reason?: string;
     auditUserId: string;
     tx?: Prisma.TransactionClient;
-  }): Promise<UserWithCount>;
+  }): Promise<User>;
 
   enableUser(args: {
     id: string;
     auditUserId: string;
     tx?: Prisma.TransactionClient;
-  }): Promise<UserWithCount>;
+  }): Promise<User>;
 
   countActiveAdmins(adminEmails: string[]): Promise<number>;
 }

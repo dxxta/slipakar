@@ -26,6 +26,24 @@ describe('Admin Users UseCase', () => {
     adminEmails,
   });
 
+  it('masks other list entries while retaining the signed-in admin email and omitting projects', async () => {
+    const createdAt = new Date();
+    vi.mocked(mockRepository.listUsers).mockResolvedValueOnce({
+      data: [
+        { id: 'admin-1', email: 'admin@example.com', name: 'Admin', image: null, role: 'admin', emailVerified: true, createdAt, updatedAt: createdAt, disabledAt: null, disabledReason: null },
+        { id: 'user-2', email: 'person@example.com', name: 'Person', image: null, role: 'user', emailVerified: false, createdAt, updatedAt: createdAt, disabledAt: null, disabledReason: null },
+      ],
+      metadata: { page: 1, limit: 20, total: 2 },
+    });
+
+    const result = await useCase.listUsers({ query: {}, auditUserId: 'admin-1' });
+    expect(result.data.map((user) => user.email)).toEqual([
+      'admin@example.com',
+      '*****@example.com',
+    ]);
+    expect(result.data[1]).not.toHaveProperty('projectCount');
+  });
+
   it('rejects when an admin tries to disable themselves', async () => {
     vi.mocked(mockRepository.findById).mockResolvedValueOnce({
       id: 'admin-1',
@@ -104,7 +122,6 @@ describe('Admin Users UseCase', () => {
       updatedAt: new Date(),
       disabledAt: disabledDate,
       disabledReason: 'spam',
-      _count: { projects: 1 },
     });
 
     const result = await useCase.disableUser({
@@ -114,7 +131,8 @@ describe('Admin Users UseCase', () => {
     });
 
     expect(result.data.disabledAt).toBe(disabledDate.toISOString());
-    expect(result.data.projectCount).toBe(1);
+    expect(result.data).not.toHaveProperty('projectCount');
+    expect(result.data.email).toBe('*****@example.com');
     expect(mockRepository.disableUser).toHaveBeenCalledWith({
       id: 'user-2',
       reason: 'spam',
@@ -135,7 +153,6 @@ describe('Admin Users UseCase', () => {
       updatedAt: new Date(),
       disabledAt: null,
       disabledReason: null,
-      _count: { projects: 1 },
     };
 
     it('accepts null, absolute https URLs, and own avatar path /me/avatar/<id>?v=<hex>', async () => {

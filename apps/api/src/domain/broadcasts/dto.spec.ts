@@ -12,6 +12,7 @@ describe('Broadcast DTO', () => {
       bodyText: 'We will have maintenance tonight.',
     });
     expect(valid.audience).toBe('all');
+    expect(valid.channel).toBe('app_email');
     expect(valid.subject).toBe('System Maintenance');
   });
 
@@ -80,11 +81,13 @@ describe('Broadcast DTO', () => {
     });
     expect(valid.subject).toBe('Updated Subject');
     expect(() => updateBroadcastDto.parse({})).toThrow();
+    expect(updateBroadcastDto.parse({ channel: 'app' }).channel).toBe('app');
+    expect(() => createBroadcastDto.parse({ subject: 'Subject', bodyText: 'Body', channel: 'invalid' })).toThrow();
   });
 
   it('masks emails properly', () => {
-    expect(maskEmail('alice@example.com')).toBe('a***e@example.com');
-    expect(maskEmail('me@example.com')).toBe('m*e@example.com');
-    expect(maskEmail('a@b.com')).toBe('a***@b.com');
+    expect(maskEmail('alice@example.com')).toBe('*****@example.com');
+    expect(maskEmail('me@example.com')).toBe('*****@example.com');
+    expect(maskEmail('a@b.com')).toBe('*****@b.com');
   });
 });

@@ -45,6 +45,6 @@ export interface BroadcastUseCaseInterface {
   ): Promise<{ data: BroadcastView[]; metadata: { page: number; limit: number; total: number } }>;
   updateBroadcast(id: string, payload: unknown): Promise<BroadcastView>;
   deleteBroadcast(id: string): Promise<void>;
-  previewBroadcast(id: string): Promise<BroadcastPreview>;
+  previewBroadcast(id: string, adminUserId: string): Promise<BroadcastPreview>;
   sendBroadcast(id: string): Promise<BroadcastView>;
 }

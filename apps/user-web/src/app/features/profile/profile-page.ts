@@ -204,7 +204,7 @@ import { Ripple } from '../../ui/shared/ripple';
                   <span class="text-xs text-destructive">Enter a color in #RRGGBB format.</span>
                 }
                 @if (field.key === 'accent') {
-                  <span role="group" class="flex flex-wrap gap-2 pt-1" aria-label="Accent presets">
+                  <span role="group" class="accent-swatch-row flex flex-wrap gap-2" aria-label="Accent presets">
                     @for (accent of accents; track accent) {
                       <button
                         type="button"

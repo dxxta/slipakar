@@ -448,5 +448,11 @@ describe('NotificationsPage', () => {
     });
     http.expectOne('/notifications/unread-count').flush({ message: 'ok', data: { count: 0 }, success: true });
     http.expectOne('/me/notices/unread-count').flush({ message: 'ok', data: { unreadCount: 0 }, success: true });
+    http.expectOne('/projects/proj-1/notifications?page=1&limit=20&sortBy=createdAt&sortDir=desc').flush({
+      message: 'ok',
+      data: mockNotifications.map((item) => ({ ...item, readAt: item.readAt ?? '2026-11-09T10:00:00.000Z' })),
+      metadata: { page: 1, limit: 20, total: 3 },
+      success: true,
+    });
   });
 });

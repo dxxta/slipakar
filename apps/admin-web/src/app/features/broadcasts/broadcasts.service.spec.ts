@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { BroadcastsService, type BroadcastItem } from './broadcasts.service';
 
 const broadcast: BroadcastItem = {
-  id: 'broadcast-1', subject: 'Service update', bodyText: 'Hello {{name}}', audience: 'all',
+  id: 'broadcast-1', subject: 'Service update', bodyText: 'Hello {{name}}', audience: 'all', channel: 'app_email',
   audienceFilter: null, status: 'draft', sentAt: null, createdBy: 'admin-1',
   counts: { total: 0, sent: 0, failed: 0 }, createdAt: '2026-11-09T00:00:00.000Z', updatedAt: '2026-11-09T00:00:00.000Z',
 };
@@ -31,10 +31,10 @@ describe('BroadcastsService', () => {
   });
 
   it('creates with only the strict API fields, previews, and sends without a body', () => {
-    service.create({ subject: 'Service update', bodyText: 'Hello', audience: 'all' }).subscribe();
+    service.create({ subject: 'Service update', bodyText: 'Hello', audience: 'all', channel: 'app_email' }).subscribe();
     const create = http.expectOne('/admin/broadcasts');
     expect(create.request.method).toBe('POST');
-    expect(create.request.body).toEqual({ subject: 'Service update', bodyText: 'Hello', audience: 'all' });
+    expect(create.request.body).toEqual({ subject: 'Service update', bodyText: 'Hello', audience: 'all', channel: 'app_email' });
     create.flush({ message: 'created', data: broadcast, success: true });
 
     service.preview(broadcast.id).subscribe();

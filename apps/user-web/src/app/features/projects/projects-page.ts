@@ -411,11 +411,10 @@ export class ProjectsPage {
     if (editing) {
       this.api.patch<Project, { name: string }>(`/projects/${editing.id}`, { name }).subscribe({
         next: (updated) => {
-          this.projects.update((items) =>
-            items.map((item) => (item.id === updated.id ? updated : item))
-          );
           this.saving.set(false);
           this.closeForm();
+          // The update can change the server's updatedAt sort position.
+          this.loadProjects();
         },
         error: () => {
           this.mutationError.set('Could not rename the project. Please try again.');
@@ -425,11 +424,11 @@ export class ProjectsPage {
       return;
     }
     this.api.post<Project, { name: string }>('/projects', { name }).subscribe({
-      next: (created) => {
-        this.projects.update((items) => [created, ...items]);
-        this.metadata.update((current) => ({ ...current, total: current.total + 1 }));
+      next: () => {
         this.saving.set(false);
         this.closeForm();
+        // Keep ordering and pagination metadata aligned with the server.
+        this.loadProjects();
       },
       error: () => {
         this.mutationError.set('Could not create the project. Please try again.');

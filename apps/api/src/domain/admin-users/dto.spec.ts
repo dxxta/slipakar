@@ -44,7 +44,6 @@ describe('Admin Users DTOs', () => {
       emailVerified: true,
       createdAt: new Date().toISOString(),
       disabledAt: null,
-      projectCount: 3,
     };
     expect(adminUserViewSchema.parse(valid)).toEqual(valid);
   });

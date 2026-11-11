@@ -13,7 +13,6 @@ export type AdminUser = {
   emailVerified: boolean;
   createdAt: string;
   disabledAt: string | null;
-  projectCount: number;
 };
 type Envelope<T> = { message: string; data: T; success: true };
 type PageEnvelope<T> = Envelope<T[]> & { metadata: { page: number; limit: number; total: number } };

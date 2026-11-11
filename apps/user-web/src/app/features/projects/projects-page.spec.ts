@@ -70,6 +70,10 @@ describe('ProjectsPage', () => {
       data: { ...project, id: 'p-2', name: 'Receipts' },
       success: true,
     });
+    http.expectOne('/projects?page=1&limit=20&sortBy=createdAt&sortDir=desc').flush(pageEnvelope([
+      { ...project, id: 'p-2', name: 'Receipts' },
+      project,
+    ]));
   });
 
   it('navigates to the project overview from the Detail row action', () => {
@@ -119,6 +123,9 @@ describe('ProjectsPage', () => {
       data: { ...project, name: 'Payroll 2026' },
       success: true,
     });
+    http.expectOne('/projects?page=1&limit=20&sortBy=createdAt&sortDir=desc').flush(pageEnvelope([
+      { ...project, name: 'Payroll 2026' },
+    ]));
   });
 
   it('asks for confirmation before deleting a project via row action', () => {
