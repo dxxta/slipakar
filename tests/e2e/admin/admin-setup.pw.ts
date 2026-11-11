@@ -19,8 +19,6 @@ test.describe('Admin setup gate', () => {
     await expect(page.getByLabel('From address')).toHaveValue('notices@example.test');
     await expect(page.getByLabel('Password (write only)')).toHaveValue('');
     await page.getByRole('button', { name: 'Close panel' }).click();
-    const uptimeCard = page.locator('article').filter({ has: page.getByRole('heading', { name: 'Uptime Kuma' }) });
-    await expect(uptimeCard).toContainText('Not configured');
     await page.getByRole('link', { name: 'Feature flags' }).first().click();
     await expect(page).toHaveURL(/\/setup$/);
     await expect(page.getByRole('heading', { level: 1, name: 'Setup' })).toBeVisible();

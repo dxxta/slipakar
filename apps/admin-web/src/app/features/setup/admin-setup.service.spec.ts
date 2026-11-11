@@ -9,7 +9,6 @@ const apiAccessView = { environmentEnabled: true, allowedOrigins: ['https://app.
 const setupView: AdminSetupView = {
   complete: false,
   integrations: [
-    { key: 'uptime', label: 'Uptime Kuma', configured: false, source: null, baseUrl: null, hasCredentials: false, credentialHint: null, settings: null, lastStatus: null, lastTestedAt: null, lastError: null },
     { key: 'grafana', label: 'Grafana', configured: false, source: null, baseUrl: null, hasCredentials: false, credentialHint: null, settings: null, lastStatus: null, lastTestedAt: null, lastError: null },
     { key: 'mail', label: 'Platform Mailer', configured: true, source: 'env', baseUrl: 'smtp.example.test', hasCredentials: true, credentialHint: '••••word', settings: { host: 'smtp.example.test', port: 587, secure: false, username: 'service', fromAddress: 'no-reply@example.test' }, lastStatus: 'ok', lastTestedAt: null, lastError: null },
   ],

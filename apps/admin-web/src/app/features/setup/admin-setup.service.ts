@@ -2,7 +2,7 @@ import { Injectable, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { ApiClient } from '../../core/api-client';
 
-export type IntegrationKey = 'uptime' | 'grafana' | 'mail';
+export type IntegrationKey = 'grafana' | 'mail';
 export type IntegrationItem = {
   key: IntegrationKey;
   label: string;
@@ -29,6 +29,8 @@ export class AdminSetupService {
 
   async load(): Promise<AdminSetupView> {
     const result = await firstValueFrom(this.api.get<AdminSetupView>('/admin/setup'));
+    // The API may still list integrations this app no longer manages; show only the ones it supports.
+    result.integrations = result.integrations.filter((item) => (['grafana', 'mail'] as string[]).includes(item.key));
     this.view.set(result);
     try { this.apiAccess.set(await firstValueFrom(this.api.get<ApiAccessSettings>('/admin/api-access'))); } catch { this.apiAccess.set(null); }
     return result;

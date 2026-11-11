@@ -48,12 +48,6 @@ describe('MonitoringPage', () => {
     expect(grafanaLink?.rel).toContain('noopener');
     expect(grafanaLink?.rel).toContain('noreferrer');
 
-    // Check Uptime Kuma link
-    const kumaLink = linkData.find((l) => l.href === environment.uptimeKumaUrl);
-    expect(kumaLink).toBeDefined();
-    expect(kumaLink?.target).toBe('_blank');
-    expect(kumaLink?.rel).toContain('noopener');
-    expect(kumaLink?.rel).toContain('noreferrer');
 
     // Check API reference (/docs)
     const docsLink = linkData.find((l) => l.href === '/docs');

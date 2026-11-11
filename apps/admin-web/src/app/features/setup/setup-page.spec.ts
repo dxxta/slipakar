@@ -8,7 +8,6 @@ import { SetupPage } from './setup-page';
 const incomplete: AdminSetupView = {
   complete: false,
   integrations: [
-    { key: 'uptime', label: 'Uptime Kuma', configured: false, source: null, baseUrl: null, hasCredentials: false, credentialHint: null, settings: null, lastStatus: null, lastTestedAt: null, lastError: null },
     { key: 'grafana', label: 'Grafana', configured: true, source: 'database', baseUrl: 'https://grafana.example.test', hasCredentials: true, credentialHint: '••••1234', settings: null, lastStatus: 'failed', lastTestedAt: null, lastError: 'Connection refused' },
     { key: 'mail', label: 'Mail', configured: true, source: 'env', baseUrl: 'smtp.example.test', hasCredentials: true, credentialHint: '••••word', settings: { host: 'smtp.example.test', port: 587, secure: false, username: 'mailer', fromAddress: 'mailer@example.test' }, lastStatus: 'ok', lastTestedAt: null, lastError: null },
   ],
@@ -26,7 +25,6 @@ describe('SetupPage', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).not.toContain('Uptime Kuma');
     expect(fixture.nativeElement.textContent).toContain('Grafana');
     expect(fixture.nativeElement.textContent).toContain('Mail');
     expect(fixture.nativeElement.textContent).toContain('Environment');
@@ -39,7 +37,6 @@ describe('SetupPage', () => {
     const envView: AdminSetupView = {
       complete: false,
       integrations: [
-        { key: 'uptime', label: 'Uptime Kuma', configured: true, source: 'env', baseUrl: 'http://uptime-kuma:3001', hasCredentials: true, credentialHint: null, settings: null, lastStatus: 'ok', lastTestedAt: null, lastError: null },
         { key: 'grafana', label: 'Grafana', configured: true, source: 'env', baseUrl: 'http://grafana:3000', hasCredentials: false, credentialHint: null, settings: null, lastStatus: 'ok', lastTestedAt: null, lastError: null },
         { key: 'mail', label: 'Mail', configured: false, source: null, baseUrl: null, hasCredentials: false, credentialHint: null, settings: null, lastStatus: null, lastTestedAt: null, lastError: null },
       ],
@@ -52,10 +49,8 @@ describe('SetupPage', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     const grafana = fixture.nativeElement.querySelector('[data-testid="setup-row-grafana"]') as HTMLElement;
-    const uptime = fixture.nativeElement.querySelector('[data-testid="setup-row-uptime"]') as HTMLElement;
     const mail = fixture.nativeElement.querySelector('[data-testid="setup-row-mail"]') as HTMLElement;
     expect(grafana.textContent).toContain('Configured by the Docker environment');
-    expect(uptime).toBeNull();
     expect(grafana.textContent).not.toContain('Edit settings');
     expect(mail.textContent).toContain('Configure');
     expect(mail.textContent).toContain('Not configured');
@@ -101,7 +96,6 @@ describe('SetupPage', () => {
     await fixture.whenStable();
     fixture.detectChanges();
 
-    const uptimeToggle = fixture.nativeElement.querySelector('[data-testid="help-toggle-uptime"]') as HTMLButtonElement;
     const grafanaToggle = fixture.nativeElement.querySelector('[data-testid="help-toggle-grafana"]') as HTMLButtonElement;
     const mailToggle = fixture.nativeElement.querySelector('[data-testid="help-toggle-mail"]') as HTMLButtonElement;
     const rowsContainer = fixture.nativeElement.querySelector('[data-testid="setup-integration-rows"]') as HTMLElement;
@@ -109,10 +103,8 @@ describe('SetupPage', () => {
     expect(rowsContainer).not.toBeNull();
     expect(rowsContainer.classList.contains('grid-cols-1')).toBe(true);
     expect(rowsContainer.classList.contains('md:grid-cols-3')).toBe(false);
-    expect(uptimeToggle).toBeNull();
     expect(grafanaToggle).not.toBeNull();
     expect(mailToggle).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('[data-testid="card-help-uptime"]')).toBeNull();
 
     // Expand Grafana and Mail help on cards
     grafanaToggle.click();

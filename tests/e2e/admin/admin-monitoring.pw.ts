@@ -2,13 +2,12 @@ import { expect, test } from '@playwright/test';
 import { setupAdminApiMock } from './admin-helpers';
 
 test.describe('Admin monitoring', () => {
-  test('shows the four monitoring links with safe new-tab attributes', async ({ page }) => {
+  test('shows the three monitoring links with safe new-tab attributes', async ({ page }) => {
     await setupAdminApiMock(page);
     await page.goto('/console/monitoring');
 
     const links = [
       { name: 'Open Grafana', href: 'http://localhost:3001' },
-      { name: 'Open Uptime Kuma', href: 'http://localhost:3002' },
       { name: 'Open API reference', href: '/docs' },
       { name: 'Open OpenAPI JSON', href: '/openapi.json' },
     ];

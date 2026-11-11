@@ -64,7 +64,7 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
             </div>
           </article>
         }
-        @for (integration of visibleIntegrations(state.integrations); track integration.key) {
+        @for (integration of state.integrations; track integration.key) {
           <article appPressed class="flex w-full min-w-0 flex-col rounded-ui-lg border border-border bg-card p-card" [attr.data-testid]="'setup-row-' + integration.key">
             <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between md:gap-6">
               <div class="min-w-0 flex-1">
@@ -143,14 +143,8 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
           <ng-container *ngTemplateOutlet="helpSteps; context: { $implicit: item.key }" />
         </div>
         <form id="integration-form" class="grid gap-4" (ngSubmit)="saveSettings()">
-          @if (item.key === 'uptime' || item.key === 'grafana') {
+          @if (item.key === 'grafana') {
             <label class="grid gap-1.5 text-sm font-medium" for="integration-url">Base URL<input id="integration-url" name="baseUrl" type="url" required [(ngModel)]="form().baseUrl" placeholder="https://example.com" class="h-control-9 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
-          }
-          @if (item.key === 'uptime') {
-            <p class="text-xs text-muted-foreground">Use either an API key or a username and password. Leave saved secret fields blank to keep the current credential.</p>
-            <label class="grid gap-1.5 text-sm font-medium" for="uptime-api-key">API key<input id="uptime-api-key" name="apiKey" type="password" autocomplete="new-password" [(ngModel)]="form().apiKey" placeholder="Enter password" class="h-control-9 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
-            <label class="grid gap-1.5 text-sm font-medium" for="uptime-username">Username<input id="uptime-username" name="username" [(ngModel)]="form().username" placeholder="Username" class="h-control-9 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
-            <label class="grid gap-1.5 text-sm font-medium" for="uptime-password">Password<input id="uptime-password" name="password" type="password" autocomplete="new-password" [(ngModel)]="form().password" placeholder="Enter password" class="h-control-9 rounded-ui-md border border-input bg-background px-3 font-normal outline-none focus-visible:ring-2 focus-visible:ring-ring" /></label>
           }
           @if (item.key === 'grafana') {
             <p class="text-xs text-muted-foreground">Leave the token blank to keep the saved credential. Tokens are never shown again.</p>
@@ -172,15 +166,7 @@ const emptyForm = (): IntegrationForm => ({ baseUrl: '', username: '', password:
       }
     </app-drawer>
     <ng-template #helpSteps let-key>
-      @if (key === 'uptime') {
-        <ol class="list-decimal space-y-1.5 pl-4 text-xs leading-relaxed text-muted-foreground break-words">
-          <li>Set <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">SETUP_UPTIME_URL</code> to the private Kuma admin URL that the API can reach. For local development this is usually <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">http://localhost:3012</code>. Do not use the public read-only status gateway for this connection test.</li>
-          <li>Production Uptime Kuma runs separately through <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">docker-compose.status.yml</code>. Its admin dashboard is loopback-only by default at <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">http://127.0.0.1:3002</code>; its public gateway serves read-only status pages.</li>
-          <li>Use <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">UPTIME_KUMA_ADMIN_USER</code> (default <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">admin</code>) and <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">UPTIME_KUMA_ADMIN_PASSWORD</code> for the standalone stack. Its initializer creates monitors only when their corresponding <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">KUMA_MONITOR_*_URL</code> values are set.</li>
-          <li>When the integration source is Environment, update its settings in Docker Compose environment values and recreate the API service. Database-saved settings take priority.</li>
-          <li>Save. Saved secrets are never shown again; leave a secret blank later to keep it.</li>
-        </ol>
-      } @else if (key === 'grafana') {
+      @if (key === 'grafana') {
         <ol class="list-decimal space-y-1.5 pl-4 text-xs leading-relaxed text-muted-foreground break-words">
           <li>Base URL is the address the API server uses to reach Grafana. Docker Compose stack: <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">http://grafana:3000</code>. API on your own machine: <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">http://localhost:3001</code>.</li>
           <li>Open Grafana (default <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">http://127.0.0.1:3001</code>) and sign in as <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">admin</code> with the <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">GRAFANA_ADMIN_PASSWORD</code> from your <code class="rounded bg-muted px-1 py-0.5 font-mono text-[11px] text-foreground">.env</code> file.</li>
@@ -212,13 +198,9 @@ export class SetupPage implements OnInit {
   protected readonly clearing = signal<IntegrationKey | null>(null);
   protected readonly form = signal<IntegrationForm>(emptyForm());
   protected readonly expandedHelp = signal<Record<IntegrationKey, boolean>>({
-    uptime: false,
     grafana: false,
     mail: false,
   });
-
-  // Uptime Kuma runs as a separate status deployment, so it is not configured from this page.
-  protected visibleIntegrations(items: readonly IntegrationItem[]): IntegrationItem[] { return items.filter((item) => item.key !== 'uptime'); }
 
   ngOnInit(): void { void this.load(); }
 
@@ -241,7 +223,7 @@ export class SetupPage implements OnInit {
   }
 
   protected description(key: IntegrationKey): string {
-    return key === 'uptime' ? 'Connect Uptime Kuma for service health monitoring.' : key === 'grafana' ? 'Connect Grafana to open monitoring dashboards.' : 'Configure the SMTP server used for platform email.';
+    return key === 'grafana' ? 'Connect Grafana to open monitoring dashboards.' : 'Configure the SMTP server used for platform email.';
   }
 
   protected statusLabel(item: IntegrationItem): string {
@@ -279,9 +261,7 @@ export class SetupPage implements OnInit {
     this.busy.set(true); this.actionError.set('');
     try {
       const fields = this.form();
-      const payload: IntegrationUpdate = item.key === 'uptime'
-        ? { baseUrl: fields.baseUrl, username: fields.username || undefined, password: fields.password || undefined, apiKey: fields.apiKey || undefined }
-        : item.key === 'grafana'
+      const payload: IntegrationUpdate = item.key === 'grafana'
           ? { baseUrl: fields.baseUrl, apiToken: fields.apiToken || undefined }
           : { host: fields.host, port: Number(fields.port), secure: fields.secure, username: fields.username || undefined, password: fields.password || undefined, fromAddress: fields.fromAddress };
       await this.setup.save(item.key, payload);

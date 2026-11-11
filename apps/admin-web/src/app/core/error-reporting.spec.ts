@@ -30,7 +30,7 @@ describe('Sentry error reporting (admin-web)', () => {
 
   describe('initSentry', () => {
     it('does nothing when sentryDsn is empty', () => {
-      initSentry({ sentryDsn: '', apiBase: '', grafanaUrl: '', uptimeKumaUrl: '', userAppUrl: '' });
+      initSentry({ sentryDsn: '', apiBase: '', grafanaUrl: '', userAppUrl: '' });
       expect(Sentry.init).not.toHaveBeenCalled();
     });
 
@@ -39,7 +39,6 @@ describe('Sentry error reporting (admin-web)', () => {
         sentryDsn: 'https://public@sentry.example.com/1',
         apiBase: '',
         grafanaUrl: '',
-        uptimeKumaUrl: '',
         userAppUrl: '',
       });
       expect(Sentry.init).toHaveBeenCalledTimes(1);
@@ -55,7 +54,6 @@ describe('Sentry error reporting (admin-web)', () => {
         sentryDsn: 'https://public@sentry.example.com/1',
         apiBase: '',
         grafanaUrl: '',
-        uptimeKumaUrl: '',
         userAppUrl: '',
       });
       const callArgs = vi.mocked(Sentry.init).mock.calls[0][0];

@@ -18,13 +18,6 @@ export function getMonitoringLinks(): MonitoringServiceLink[] {
       buttonLabel: 'Open Grafana',
     },
     {
-      id: 'uptime-kuma',
-      title: 'Uptime Kuma status',
-      description: 'Uptime, response times, and public service health status.',
-      url: environment.uptimeKumaUrl,
-      buttonLabel: 'Open Uptime Kuma',
-    },
-    {
       id: 'scalar-docs',
       title: 'API reference',
       description: 'Interactive API reference with Scalar, models, and request samples.',
