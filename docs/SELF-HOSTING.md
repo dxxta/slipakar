@@ -59,7 +59,7 @@ Before starting, ensure the host machine has the following tools installed:
    - **`SETUP_GRAFANA_API_TOKEN`**: Optional token for the Grafana API connection test. Compose supplies internal Grafana and Uptime Kuma URLs and the Kuma credentials to the API automatically.
    - **`ADMIN_EMAILS`**: Comma-separated list of user email addresses granted admin role upon login.
    - **`BIND_ADDRESS`**: Host IP to bind exposed services to (defaults to `127.0.0.1`).
-   - **`AUTH_SMTP_HOST`**, **`AUTH_SMTP_PORT`**, **`AUTH_SMTP_SECURE`**, **`AUTH_SMTP_USER`**, **`AUTH_SMTP_PASS`**, **`AUTH_MAIL_FROM`**: Optional platform SMTP fallback settings used to send transactional authentication emails (verified email change links) and administrative broadcasts. Database-configured `mail` integration settings in `/admin/setup` take precedence over these environment variables (cached for 30s and invalidated on update/delete). When neither DB mail nor `AUTH_SMTP_*` is configured, `POST /api/auth/change-email` returns `400 EMAIL_CHANGE_UNAVAILABLE`, and broadcast sending skips email dispatch while still delivering in-app user notices. Note: Docker Compose passes unset optional variables as empty strings, which the API treats as unset.
+   - **`AUTH_SMTP_HOST`**, **`AUTH_SMTP_PORT`**, **`AUTH_SMTP_SECURE`**, **`AUTH_SMTP_USER`**, **`AUTH_SMTP_PASS`**, **`AUTH_MAIL_FROM`**: Optional platform SMTP fallback settings used to send transactional authentication emails (verified email change links) and administrative broadcasts. Database-configured `mail` integration settings in `/admin/setup` take precedence over these environment variables (cached for 30s and invalidated on update/delete). Credential login needs platform SMTP from `AUTH_SMTP_*` or Admin Setup Mail; without it, only Google login works. When neither DB mail nor `AUTH_SMTP_*` is configured, credential sign-up and reset requests return `400 EMAIL_UNAVAILABLE`, `POST /api/auth/change-email` returns `400 EMAIL_CHANGE_UNAVAILABLE`, and broadcast sending skips email dispatch while still delivering in-app user notices. Note: Docker Compose passes unset optional variables as empty strings, which the API treats as unset.
    - **`APP_URL`**: Optional frontend application URL used for callback redirection in email verification links (defaults to the first origin in `TRUSTED_ORIGINS`).
    - **`LOGIN_EVENT_RETENTION_DAYS`**: Number of days to retain user login events (default: 90 days, range: 1..3650 days). Expired records are pruned at API boot and every 24 hours.
    - **`TRUST_PROXY`**: Trust proxy setting for Express. Values: `false` (default for bare API), a hop count like `1` (compose default behind nginx reverse proxy), or a comma-separated list of CIDRs. Ensures client IP is accurately resolved from `X-Forwarded-For`.
@@ -206,12 +206,16 @@ The Express server reads these values at runtime and places them in an SSR-rende
 
 Slipakar uses Better Auth for user authentication.
 
+### Sign-in methods
+
+Users can sign in with Google login or credential login using an email address and password. Credential login requires platform SMTP configured through `AUTH_SMTP_*` or Admin Setup Mail so verification and password recovery links can be delivered; without it, only Google login works. Google login can connect to an existing credential account only after that account's email is verified. A Google login cannot take over an unverified credential account; verify the credential email before linking.
+
 To grant an account the `admin` role:
 1. Include the user's email in the `ADMIN_EMAILS` environment variable in `.env`:
    ```bash
    ADMIN_EMAILS=user1@example.com,user2@example.com
    ```
-2. When the user logs in via OAuth, the system evaluates `ADMIN_EMAILS` and assigns the administrative privileges accordingly.
+2. When a user is created or signs in, the system evaluates `ADMIN_EMAILS` and assigns the administrative privileges accordingly, whether the account uses Google login or credential login.
 
 ### Seeding the Demo Project
 

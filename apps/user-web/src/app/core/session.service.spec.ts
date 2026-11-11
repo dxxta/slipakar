@@ -54,4 +54,32 @@ describe('SessionService', () => {
     safeRequest.flush({});
     await rejected;
   });
+
+  it('posts credential sign-up and reset requests with the frontend callback URLs', async () => {
+    const signup = service.signUpWithEmail('Person', ' person@example.com ', 'long-enough-password', `${window.location.origin}/verify-email`);
+    const signupRequest = http.expectOne('/api/auth/sign-up/email');
+    expect(signupRequest.request.body).toEqual({ name: 'Person', email: 'person@example.com', password: 'long-enough-password', callbackURL: `${window.location.origin}/verify-email` });
+    signupRequest.flush({ token: null }); await signup;
+
+    const reset = service.requestPasswordReset(' person@example.com ');
+    const resetRequest = http.expectOne('/api/auth/request-password-reset');
+    expect(resetRequest.request.body).toEqual({ email: 'person@example.com', redirectTo: `${window.location.origin}/reset-password` });
+    resetRequest.flush({ status: true }); await reset;
+  });
+
+  it('posts password reset and change requests and reads account methods', async () => {
+    const reset = service.resetPassword('opaque-token', 'new-long-password');
+    const resetRequest = http.expectOne('/api/auth/reset-password');
+    expect(resetRequest.request.body).toEqual({ token: 'opaque-token', newPassword: 'new-long-password' });
+    resetRequest.flush({ status: true }); await reset;
+
+    const change = service.changePassword('old-long-password', 'new-long-password');
+    const changeRequest = http.expectOne('/api/auth/change-password');
+    expect(changeRequest.request.body).toEqual({ currentPassword: 'old-long-password', newPassword: 'new-long-password' });
+    changeRequest.flush({ status: true }); await change;
+
+    const accounts = service.listAccounts();
+    http.expectOne('/api/auth/list-accounts').flush([{ id: 'account-1', providerId: 'google', accountId: 'google-user' }]);
+    await expect(accounts).resolves.toEqual([{ id: 'account-1', providerId: 'google', accountId: 'google-user' }]);
+  });
 });

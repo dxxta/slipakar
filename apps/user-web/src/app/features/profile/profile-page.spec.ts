@@ -10,7 +10,7 @@ import { ACCENT_PRESET_COLORS, defaultThemeColors, type ThemeAccent } from '../.
 import { ProfilePage } from './profile-page';
 import type { ComponentFixture } from '@angular/core/testing';
 
-describe('ProfilePage', () => {
+describe('ProfilePage', async () => {
   let http: HttpTestingController;
   let session: SessionService;
   const themeColors = signal(defaultThemeColors());
@@ -35,30 +35,62 @@ describe('ProfilePage', () => {
 
   afterEach(() => http.verify());
 
-  function createFixture(): ComponentFixture<ProfilePage> {
+  async function createFixture(accounts: { id: string; providerId: string; accountId: string }[] = [{ id: 'credential-1', providerId: 'credential', accountId: session.user()?.email ?? '' }]): Promise<ComponentFixture<ProfilePage>> {
     const fixture = TestBed.createComponent(ProfilePage);
     fixture.detectChanges();
     http.expectOne('/api/auth/get-session').flush({ user: session.user(), session: {} });
+    http.expectOne('/api/auth/list-accounts').flush(accounts);
+    await fixture.whenStable();
     fixture.detectChanges();
     return fixture;
   }
 
-  it('shows the initials avatar when the user has no custom image', () => {
-    const fixture = createFixture();
+  it('shows the initials avatar when the user has no custom image', async () => {
+    const fixture = await createFixture();
     expect(fixture.nativeElement.querySelector('[data-testid="profile-avatar"] img')).toBeNull();
     expect(fixture.nativeElement.querySelector('[data-testid="profile-avatar"]')?.textContent).toContain('AL');
   });
 
 
 
-  it('keeps the page header and profile sections in one 24px spacing stack', () => {
-    const fixture = createFixture();
+  it('keeps the page header and profile sections in one 24px spacing stack', async () => {
+    const fixture = await createFixture();
     const header = fixture.nativeElement.querySelector('app-page-header') as HTMLElement;
     expect(header.parentElement?.classList.contains('space-y-6')).toBe(true);
   });
 
+  it('shows credential sign-in methods and only shows email editing for credential accounts', async () => {
+    const fixture = await createFixture();
+    expect(fixture.nativeElement.textContent).toContain('Credential login');
+    expect(fixture.nativeElement.textContent).toContain('Set');
+    expect(fixture.nativeElement.querySelector('#email-heading')).not.toBeNull();
+    fixture.destroy();
+
+    const googleOnly = await createFixture([{ id: 'google-1', providerId: 'google', accountId: 'google-subject' }]);
+    expect(googleOnly.nativeElement.querySelector('#email-heading')).toBeNull();
+    expect(googleOnly.nativeElement.textContent).toContain('Your email follows your Google account.');
+    expect(googleOnly.nativeElement.textContent).toContain('Connected');
+    googleOnly.destroy();
+  });
+
+  it('requests a password setup link for a Google-only account and closes the drawer on success', async () => {
+    const fixture = await createFixture([{ id: 'google-1', providerId: 'google', accountId: 'google-subject' }]);
+    const setButton = [...fixture.nativeElement.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent?.includes('Set credential login')) as HTMLButtonElement;
+    setButton.click(); fixture.detectChanges();
+    const sendButton = [...fixture.nativeElement.querySelectorAll<HTMLButtonElement>('button')].find((button) => button.textContent?.includes('Send verification email')) as HTMLButtonElement;
+    sendButton.click();
+    const request = http.expectOne('/api/auth/request-password-reset');
+    expect(request.request.body).toEqual({ email: 'old@example.test', redirectTo: `${window.location.origin}/reset-password` });
+    request.flush({ status: true });
+    await Promise.resolve();
+    http.expectOne('/api/auth/list-accounts').flush([{ id: 'google-1', providerId: 'google', accountId: 'google-subject' }]);
+    await fixture.whenStable(); fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('[role="dialog"]')).toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Check your email for a secure link');
+  });
+
   it('updates the profile name through the Better Auth update-user endpoint', async () => {
-    const fixture = createFixture();
+    const fixture = await createFixture();
     const input = fixture.nativeElement.querySelector('#profile-name') as HTMLInputElement;
     input.value = 'Ada Byron';
     input.dispatchEvent(new Event('input'));
@@ -76,7 +108,7 @@ describe('ProfilePage', () => {
   });
 
   it('uploads and removes an avatar through the profile file endpoints', async () => {
-    const fixture = createFixture();
+    const fixture = await createFixture();
     await fixture.whenStable();
     fixture.detectChanges();
     const file = new File(['image-bytes'], 'avatar.png', { type: 'image/png' });
@@ -108,8 +140,8 @@ describe('ProfilePage', () => {
     expect(fixture.nativeElement.querySelector('[data-testid="profile-avatar"]')?.textContent).toContain('AL');
   });
 
-  it('keeps the current email and shows a pending verification message', () => {
-    const fixture = createFixture();
+  it('keeps the current email and shows a pending verification message', async () => {
+    const fixture = await createFixture();
     (fixture.nativeElement.querySelector('#profile-email') as HTMLInputElement).value = 'new@example.test';
     fixture.nativeElement.querySelector('#profile-email').dispatchEvent(new Event('input'));
     fixture.detectChanges();
@@ -122,8 +154,8 @@ describe('ProfilePage', () => {
     expect(session.user()?.email).toBe('old@example.test');
   });
 
-  it('shows when platform email verification is unavailable', () => {
-    const fixture = createFixture();
+  it('shows when platform email verification is unavailable', async () => {
+    const fixture = await createFixture();
     (fixture.nativeElement.querySelector('#profile-email') as HTMLInputElement).value = 'new@example.test';
     fixture.nativeElement.querySelector('#profile-email').dispatchEvent(new Event('input'));
     fixture.detectChanges();
@@ -133,8 +165,8 @@ describe('ProfilePage', () => {
     expect(fixture.nativeElement.textContent).toContain('Email verification is unavailable');
   });
 
-  it('offers theme mode and accent controls with a live preview', () => {
-    const fixture = createFixture();
+  it('offers theme mode and accent controls with a live preview', async () => {
+    const fixture = await createFixture();
     const mode = fixture.nativeElement.querySelector('#theme-mode') as HTMLSelectElement;
     mode.value = 'dark';
     mode.dispatchEvent(new Event('change'));
@@ -145,8 +177,8 @@ describe('ProfilePage', () => {
     expect(fixture.nativeElement.querySelector('[data-theme-preview]')).not.toBeNull();
   });
 
-  it('labels the default lime accent and uses its brand swatch', () => {
-    const fixture = createFixture();
+  it('labels the default lime accent and uses its brand swatch', async () => {
+    const fixture = await createFixture();
     const button = fixture.nativeElement.querySelector('[aria-label="Lime accent"]') as HTMLButtonElement | null;
     expect(button).not.toBeNull();
     expect(button?.querySelector('span')?.getAttribute('style')).toContain('background-color');

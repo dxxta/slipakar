@@ -5,9 +5,13 @@ import { LoginPage } from './features/login/login-page';
 import { NotFoundPage } from './features/not-found/not-found-page';
 import { ProjectDetailLayout } from './features/project-detail/project-detail-layout';
 import { AccountDisabledPage } from './features/account-disabled/account-disabled-page';
+import { ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from './features/login/credential-pages';
 
 export const routes: Routes = [
   { path: 'login', component: LoginPage },
+  { path: 'forgot-password', component: ForgotPasswordPage },
+  { path: 'reset-password', component: ResetPasswordPage },
+  { path: 'verify-email', component: VerifyEmailPage },
   { path: 'account-disabled', component: AccountDisabledPage },
   {
     path: '', component: UserLayout, canActivate: [authGuard],

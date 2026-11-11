@@ -43,4 +43,23 @@ describe('LoginPage', () => {
     });
     request.flush({});
   });
+
+  it('uses credential sign-in with the validated return path', async () => {
+    TestBed.overrideProvider(ActivatedRoute, {
+      useValue: { snapshot: { queryParamMap: { get: (key: string) => key === 'returnUrl' ? '/users?sortBy=email' : null } } },
+    });
+    const fixture = TestBed.createComponent(LoginPage);
+    fixture.detectChanges();
+    const email = fixture.nativeElement.querySelector('#credential-email') as HTMLInputElement;
+    const password = fixture.nativeElement.querySelector('#credential-password') as HTMLInputElement;
+    email.value = 'admin@example.com'; email.dispatchEvent(new Event('input'));
+    password.value = 'a-long-enough-password'; password.dispatchEvent(new Event('input'));
+    fixture.detectChanges();
+    (fixture.nativeElement.querySelector('form') as HTMLFormElement).dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    const request = http.expectOne('/api/auth/sign-in/email');
+    expect(request.request.body).toEqual({ email: 'admin@example.com', password: 'a-long-enough-password', callbackURL: `${window.location.origin}/users?sortBy=email` });
+    request.flush({ user: { id: 'admin-1', email: 'admin@example.com', role: 'admin' }, token: 'session-token' });
+    await fixture.whenStable();
+    expect(TestBed.inject(SessionService).user()?.role).toBe('admin');
+  });
 });

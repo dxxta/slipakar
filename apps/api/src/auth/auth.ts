@@ -1,5 +1,6 @@
 import type { PrismaClient } from '@prisma/client';
-import { APIError, betterAuth } from 'better-auth';
+import { APIError, betterAuth, type BetterAuthPlugin } from 'better-auth';
+import { createAuthMiddleware } from 'better-auth/api';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import type { AuthEmailSenderInterface } from '../domain/auth/sender.js';
 import type { LoginActivityUseCaseInterface } from '../domain/login-activity/interface.js';
@@ -23,7 +24,134 @@ export type AuthDeps = {
 };
 
 function buildAuth({ prisma, env, authEmailSender, loginActivityUseCase, adminEmails = [], errorReporter }: AuthDeps) {
-  const plugins = [];
+  const plugins: BetterAuthPlugin[] = [];
+  const adminEmailSet = new Set(adminEmails.map((email) => email.trim().toLowerCase()));
+  const googleProfiles = new Map<string, { email: string; verified: boolean; expiresAt: number }>();
+
+  const throwEmailUnavailable = (): never => {
+    throw new APIError(400, {
+      message: 'Credential login email is unavailable because platform SMTP is not configured',
+      code: 'EMAIL_UNAVAILABLE',
+    });
+  };
+
+  const ensureEmailSender = async (): Promise<void> => {
+    if (!authEmailSender) return throwEmailUnavailable();
+    if (authEmailSender.isConfigured) {
+      let configured = false;
+      try {
+        configured = await authEmailSender.isConfigured();
+      } catch { configured = false; }
+      if (!configured) throwEmailUnavailable();
+    }
+  };
+
+  const sendAuthenticationEmail = async ({
+    to,
+    subject,
+    heading,
+    intro,
+    actionLabel,
+    url,
+  }: {
+    to: string;
+    subject: string;
+    heading: string;
+    intro: string;
+    actionLabel: string;
+    url: string;
+  }): Promise<void> => {
+    await ensureEmailSender();
+    const safeUrl = url.replaceAll('&', '&amp;').replaceAll('"', '&quot;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+    let result: { ok: boolean };
+    try {
+      result = await authEmailSender!.sendMail({
+        to,
+        subject,
+        text: `${heading}\n\n${intro}\n\n${actionLabel}: ${url}\n\nIf you did not request this, you can ignore this email.`,
+        html: `<div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;"><h2>${heading}</h2><p>${intro}</p><p style="margin: 24px 0;"><a href="${safeUrl}" style="background-color: #D4F03C; color: #151513; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block;">${actionLabel}</a></p><p style="color: #6b7280; font-size: 14px;">If you did not request this, you can ignore this email.</p></div>`,
+      });
+    } catch {
+      throw new APIError(500, { message: 'Could not send the authentication email', code: 'EMAIL_SEND_FAILED' });
+    }
+    if (!result.ok) {
+      throw new APIError(500, { message: 'Could not send the authentication email', code: 'EMAIL_SEND_FAILED' });
+    }
+  };
+
+  const authCallbackFallback = (request?: Request): string => {
+    const origin = request?.headers.get('origin');
+    if (origin && env.trustedOrigins.includes(origin)) return `${origin.replace(/\/$/, '')}/verify-email`;
+    const frontendOrigin = env.appUrl || env.trustedOrigins[0];
+    return frontendOrigin ? `${frontendOrigin.replace(/\/$/, '')}/verify-email` : `${env.baseUrl}/verify-email`;
+  };
+
+  const googleProfileFor = (accountId: string) => {
+    const profile = googleProfiles.get(accountId);
+    if (profile && profile.expiresAt <= Date.now()) {
+      googleProfiles.delete(accountId);
+      return undefined;
+    }
+    return profile;
+  };
+
+  const assertGoogleCanLink = async (account: { accountId?: string; userId?: string }): Promise<{ email: string; verified: boolean }> => {
+    if (!account.accountId || !account.userId) {
+      throw new APIError(400, { message: 'Google account details are incomplete', code: 'GOOGLE_ACCOUNT_INVALID' });
+    }
+    const profile = googleProfileFor(account.accountId);
+    if (!profile?.verified) {
+      throw new APIError(403, { message: 'Google must provide a verified email address', code: 'GOOGLE_EMAIL_NOT_VERIFIED' });
+    }
+    const [user, emailOwner] = await Promise.all([
+      prisma.user.findUnique({ where: { id: account.userId }, select: { emailVerified: true } }),
+      prisma.user.findUnique({ where: { email: profile.email }, select: { id: true } }),
+    ]);
+    if (!user?.emailVerified) {
+      throw new APIError(403, { message: 'Verify your account email before linking Google login', code: 'EMAIL_NOT_VERIFIED' });
+    }
+    if (emailOwner && emailOwner.id !== account.userId) {
+      throw new APIError(409, { message: 'That Google email is already connected to another account', code: 'GOOGLE_EMAIL_ALREADY_IN_USE' });
+    }
+    return { email: profile.email, verified: profile.verified };
+  };
+
+  const syncGoogleEmail = async (account: { accountId: string; userId: string; providerId: string }, removeNewLinkOnConflict: boolean): Promise<void> => {
+    const profile = googleProfileFor(account.accountId);
+    if (!profile?.verified) {
+      if (removeNewLinkOnConflict) await prisma.account.deleteMany({ where: { userId: account.userId, providerId: 'google', accountId: account.accountId } });
+      throw new APIError(403, { message: 'Google must provide a verified email address', code: 'GOOGLE_EMAIL_NOT_VERIFIED' });
+    }
+    try {
+      const emailOwner = await prisma.user.findUnique({ where: { email: profile.email }, select: { id: true } });
+      if (emailOwner && emailOwner.id !== account.userId) {
+        throw new APIError(409, { message: 'That Google email is already connected to another account', code: 'GOOGLE_EMAIL_ALREADY_IN_USE' });
+      }
+      await prisma.user.update({
+        where: { id: account.userId },
+        data: { email: profile.email, emailVerified: true, ...(adminEmailSet.has(profile.email) ? { role: 'admin' } : {}) },
+      });
+    } catch (error: unknown) {
+      if (removeNewLinkOnConflict) await prisma.account.deleteMany({ where: { userId: account.userId, providerId: 'google', accountId: account.accountId } });
+      if (error instanceof APIError) throw error;
+      throw new APIError(409, { message: 'That Google email could not be connected to this account', code: 'GOOGLE_EMAIL_ALREADY_IN_USE' });
+    } finally {
+      googleProfiles.delete(account.accountId);
+    }
+  };
+
+  const credentialEmailGuard: BetterAuthPlugin = {
+    id: 'credential-email-availability',
+    hooks: {
+      before: [
+        {
+          matcher: (ctx) => ctx.path === '/sign-up/email' || ctx.path === '/request-password-reset' || ctx.path === '/send-verification-email',
+          handler: async () => ensureEmailSender(),
+        },
+      ],
+    },
+  };
+  plugins.push(credentialEmailGuard);
 
   plugins.push({
     id: 'email-change-guard',
@@ -53,6 +181,47 @@ function buildAuth({ prisma, env, authEmailSender, loginActivityUseCase, adminEm
     },
   });
 
+  plugins.push({
+    id: 'credential-account-link-guard',
+    hooks: {
+      before: [
+        {
+          matcher: (ctx) => ctx.path === '/link-social' || ctx.path === '/unlink-account',
+          handler: createAuthMiddleware(async (ctx) => {
+            const session = ctx.context.session as { user?: { id?: string; emailVerified?: boolean } } | null | undefined;
+            const userId = session?.user?.id;
+            if (!userId) return;
+            if (ctx.path === '/link-social') {
+              const user = await prisma.user.findUnique({ where: { id: userId }, select: { emailVerified: true } });
+              if (!user?.emailVerified) {
+                throw new APIError(403, { message: 'Verify your email before connecting Google login', code: 'EMAIL_NOT_VERIFIED' });
+              }
+              const body = ctx.body as { provider?: unknown } | undefined;
+              if (body?.provider !== 'google') {
+                throw new APIError(400, { message: 'Only Google login can be connected here', code: 'UNSUPPORTED_ACCOUNT_PROVIDER' });
+              }
+              return;
+            }
+            const body = ctx.body as { accountId?: unknown } | undefined;
+            if (typeof body?.accountId !== 'string') return;
+            const account = await prisma.account.findFirst({
+              where: { id: body.accountId, userId, providerId: 'google' },
+              select: { id: true },
+            });
+            if (!account) return;
+            const credential = await prisma.account.findFirst({
+              where: { userId, providerId: 'credential' },
+              select: { password: true },
+            });
+            if (!credential?.password) {
+              throw new APIError(400, { message: 'Set and verify a credential login before disconnecting Google', code: 'CREDENTIAL_LOGIN_REQUIRED' });
+            }
+          }),
+        },
+      ],
+    },
+  });
+
   return betterAuth({
     database: prismaAdapter(prisma, { provider: 'postgresql' }),
     secret: env.secret,
@@ -60,9 +229,34 @@ function buildAuth({ prisma, env, authEmailSender, loginActivityUseCase, adminEm
     trustedOrigins: env.trustedOrigins,
     advanced: { disableOriginCheck: false },
     plugins,
+    rateLimit: {
+      customRules: {
+        '/sign-in/email': { window: 60, max: 5 },
+        '/sign-up/email': { window: 600, max: 3 },
+        '/request-password-reset': { window: 600, max: 3 },
+        '/reset-password': { window: 600, max: 5 },
+      },
+    },
     databaseHooks: {
+      user: {
+        create: {
+          before: async (user) => ({
+            data: { role: adminEmailSet.has(String(user.email).trim().toLowerCase()) ? 'admin' : user.role },
+          }),
+        },
+      },
       session: {
         create: {
+          before: async (session) => {
+            if (!session?.userId) return;
+            const user = await prisma.user.findUnique({ where: { id: session.userId }, select: { email: true, emailVerified: true, disabledAt: true, role: true } });
+            if (user?.disabledAt) {
+              throw new APIError(403, { message: 'This account is disabled', code: 'ACCOUNT_DISABLED' });
+            }
+            if (user && adminEmailSet.has(user.email.trim().toLowerCase()) && user.role !== 'admin') {
+              await prisma.user.update({ where: { id: session.userId }, data: { role: 'admin' } });
+            }
+          },
           after: async (session: { userId?: string; ipAddress?: string | null; userAgent?: string | null }, context?: unknown) => {
             if (session?.userId) {
               try {
@@ -104,6 +298,33 @@ function buildAuth({ prisma, env, authEmailSender, loginActivityUseCase, adminEm
           },
         },
       },
+      account: {
+        create: {
+          before: async (account) => {
+            if (account.providerId === 'google') await assertGoogleCanLink(account);
+          },
+          after: async (account) => {
+            if (account.providerId === 'google') await syncGoogleEmail(account, true);
+          },
+        },
+        update: {
+          before: async (account) => {
+            if (account.providerId === 'google') await assertGoogleCanLink(account);
+          },
+          after: async (account) => {
+            if (account.providerId === 'google') await syncGoogleEmail(account, false);
+          },
+        },
+        delete: {
+          before: async (account) => {
+            if (account.providerId !== 'google') return;
+            const credential = await prisma.account.findFirst({ where: { userId: account.userId, providerId: 'credential' }, select: { password: true } });
+            if (!credential?.password) {
+              throw new APIError(400, { message: 'Set a credential login before disconnecting Google', code: 'CREDENTIAL_LOGIN_REQUIRED' });
+            }
+          },
+        },
+      },
     },
     user: {
       changeEmail: {
@@ -116,53 +337,72 @@ function buildAuth({ prisma, env, authEmailSender, loginActivityUseCase, adminEm
       },
     },
     emailVerification: {
-      sendVerificationEmail: async (data) => {
-        if (!authEmailSender) {
-          throw new APIError(400, {
-            message: 'Email change unavailable: SMTP is not configured',
-            code: 'EMAIL_CHANGE_UNAVAILABLE',
-          });
-        }
-
+      sendOnSignUp: true,
+      sendOnSignIn: true,
+      autoSignInAfterVerification: false,
+      sendVerificationEmail: async (data, request) => {
         const verifyUrl = new URL(data.url);
-        // If appUrl or trusted origin is available, rewrite callbackURL
-        const frontendBase = env.appUrl || env.trustedOrigins[0];
-        if (frontendBase && !verifyUrl.searchParams.has('callbackURL')) {
-          verifyUrl.searchParams.set('callbackURL', `${frontendBase}/verify-email`);
+        const callbackURL = verifyUrl.searchParams.get('callbackURL');
+        if (!callbackURL || callbackURL === '/') {
+          verifyUrl.searchParams.set('callbackURL', authCallbackFallback(request));
         }
-
-        const html = `
-          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-            <h2>Verify your new email address</h2>
-            <p>You requested to change your email address for your Slipakar account.</p>
-            <p>Please click the link below to confirm this change:</p>
-            <p style="margin: 24px 0;">
-              <a href="${verifyUrl.toString()}" style="background-color: #2563eb; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">
-                Confirm Email Change
-              </a>
-            </p>
-            <p style="color: #6b7280; font-size: 14px;">If you did not request this change, you can safely ignore this email.</p>
-          </div>
-        `;
-
-        const result = await authEmailSender.sendMail({
+        const requestPath = request ? new URL(request.url).pathname : '';
+        const isEmailChange = requestPath.endsWith('/change-email');
+        const isSignup = !isEmailChange && !data.user.emailVerified;
+        await sendAuthenticationEmail({
           to: data.user.email,
-          subject: 'Verify your new email address',
-          html,
+          subject: isSignup ? 'Verify your email address' : 'Verify your new email address',
+          heading: isSignup ? 'Verify your email address' : 'Verify your new email address',
+          intro: isSignup ? 'Confirm your email address to finish creating your Slipakar account.' : 'You requested to change your email address for your Slipakar account.',
+          actionLabel: isSignup ? 'Confirm email' : 'Confirm Email Change',
+          url: verifyUrl.toString(),
         });
-
-        if (!result.ok) {
-          throw new APIError(500, {
-            message: result.error,
-            code: 'EMAIL_SEND_FAILED',
-          });
-        }
+      },
+    },
+    emailAndPassword: {
+      enabled: true,
+      minPasswordLength: 12,
+      maxPasswordLength: 128,
+      requireEmailVerification: true,
+      autoSignIn: false,
+      sendResetPassword: async (data) => {
+        await sendAuthenticationEmail({
+          to: data.user.email,
+          subject: 'Reset your Slipakar password',
+          heading: 'Choose a password for Slipakar',
+          intro: 'Use the secure link below to set or reset the password for your Slipakar account.',
+          actionLabel: 'Choose password',
+          url: data.url,
+        });
+      },
+    },
+    account: {
+      accountLinking: {
+        enabled: true,
+        trustedProviders: ['google'],
+        allowDifferentEmails: true,
+        allowUnlinkingAll: false,
+        requireLocalEmailVerified: true,
       },
     },
     socialProviders: {
       google: {
         clientId: env.googleClientId,
         clientSecret: env.googleClientSecret,
+        requireEmailVerification: true,
+        mapProfileToUser: (profile) => {
+          const now = Date.now();
+          for (const [id, pending] of googleProfiles) {
+            if (pending.expiresAt <= now) googleProfiles.delete(id);
+          }
+          if (googleProfiles.size > 500) googleProfiles.clear();
+          googleProfiles.set(profile.sub, {
+            email: profile.email.trim().toLowerCase(),
+            verified: profile.email_verified === true,
+            expiresAt: now + 5 * 60_000,
+          });
+          return {};
+        },
       },
     },
   });

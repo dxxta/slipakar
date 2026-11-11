@@ -1,22 +1,21 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgIcon, provideIcons } from '@ng-icons/core';
 import { tablerPencil } from '@ng-icons/tabler-icons';
-import { environment } from '../../../environments/environment';
-import { SessionService } from '../../core/session.service';
+import { AuthAccountView, SessionService, credentialAuthErrorMessage } from '../../core/session.service';
 import { ThemePreferencesService } from '../../core/theme-preferences.service';
 import { contrastRatio, isHexColor, readableForeground, type BaseColorKey, type ThemeAccent, type ThemeMode } from '../../core/theme-preferences';
 import { Avatar } from '@slipakar/ui/avatar';
 import { HlmButton } from '../../ui/button/src';
-import { PageHeader, SelectControl, SegmentedTabs } from '../../ui';
+import { Drawer, PageHeader, SelectControl, SegmentedTabs } from '../../ui';
 import type { TabItem } from '../../ui';
 import { Ripple } from '../../ui/shared/ripple';
 
 @Component({
   selector: 'app-profile-page',
-  imports: [Ripple, CommonModule, Avatar, HlmButton, PageHeader, SelectControl, SegmentedTabs, NgIcon],
+  imports: [Ripple, CommonModule, Avatar, HlmButton, PageHeader, SelectControl, SegmentedTabs, NgIcon, Drawer],
   providers: [provideIcons({ tablerPencil })],
   template: `
     <div class="space-y-6">
@@ -116,6 +115,33 @@ import { Ripple } from '../../ui/shared/ripple';
       </form>
     </section>
 
+    @if (accountsLoaded()) {
+    <section class="space-y-4 rounded-ui-lg border border-border bg-card p-card" aria-labelledby="signin-methods-heading">
+      <div>
+        <h2 id="signin-methods-heading" class="text-lg font-semibold">Sign-in methods</h2>
+        <p class="mt-1 text-sm text-muted-foreground">Manage the ways you can sign in to Slipakar.</p>
+      </div>
+      @if (signinMethodError()) { <p role="alert" class="rounded-ui-md bg-[#E5484D]/10 p-3 text-sm text-[#E5484D]">{{ signinMethodError() }}</p> }
+      <div class="grid gap-4 md:grid-cols-2">
+        <article class="space-y-3 rounded-ui-md border border-border bg-background p-4" aria-label="Google login">
+          <div class="flex flex-wrap items-center justify-between gap-3"><h3 class="font-semibold">Google login</h3><span class="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-2.5 py-1 text-xs font-medium"><span class="size-2 rounded-full" [class.bg-primary]="googleAccount()" [class.bg-muted-foreground]="!googleAccount()" aria-hidden="true"></span>{{ googleAccount() ? 'Connected' : 'Not connected' }}</span></div>
+          @if (googleAccount()) { <p class="text-sm text-muted-foreground">{{ session.user()?.email }}</p> }
+          @if (googleAccount()) {
+            <button hlmBtn variant="outline" type="button" [disabled]="methodBusy()" (click)="openSigninDrawer(credentialSet() ? 'disconnect-google' : 'set-password')">Disconnect Google</button>
+          } @else { <button hlmBtn variant="outline" type="button" [disabled]="methodBusy()" (click)="openSigninDrawer('connect-google')">Connect Google</button> }
+        </article>
+        <article class="space-y-3 rounded-ui-md border border-border bg-background p-4" aria-label="Credential login">
+          <div class="flex flex-wrap items-center justify-between gap-3"><h3 class="font-semibold">Credential login</h3><span class="inline-flex items-center gap-2 rounded-full border border-border bg-muted px-2.5 py-1 text-xs font-medium"><span class="size-2 rounded-full" [class.bg-primary]="credentialSet()" [class.bg-muted-foreground]="!credentialSet()" aria-hidden="true"></span>{{ credentialSet() ? 'Set' : 'Not set' }}</span></div>
+          <p class="text-sm text-muted-foreground">Email and password sign-in</p>
+          @if (credentialSet()) { <button hlmBtn variant="outline" type="button" [disabled]="methodBusy()" (click)="openSigninDrawer('change-password')">Change password</button> }
+          @else if (googleAccount()) { <button hlmBtn variant="outline" type="button" [disabled]="methodBusy()" (click)="openSigninDrawer('set-password')">Set credential login</button> }
+          @else { <p class="text-sm text-muted-foreground">Use Google login to connect an account.</p> }
+        </article>
+      </div>
+    </section>
+    }
+
+    @if (accountsLoaded() && credentialSet()) {
     <section class="space-y-4 rounded-ui-lg border border-border bg-card p-card" aria-labelledby="email-heading">
       <div>
         <h2 id="email-heading" class="text-lg font-semibold">Email address</h2>
@@ -148,6 +174,9 @@ import { Ripple } from '../../ui/shared/ripple';
         <p role="status" class="text-sm text-emerald-700 dark:text-emerald-300">Check {{ pendingEmail() }} to confirm</p>
       }
     </section>
+    } @else if (accountsLoaded() && googleAccount()) {
+      <p class="rounded-ui-lg border border-border bg-card p-card text-sm text-muted-foreground">Your email follows your Google account. Set a password to change it here.</p>
+    }
 
     <section class="space-y-5 rounded-ui-lg border border-border bg-card p-card" aria-labelledby="appearance-heading">
       <div>
@@ -235,8 +264,40 @@ import { Ripple } from '../../ui/shared/ripple';
         <button hlmBtn type="button">Preview action</button>
       </div>
     </section>
+
+    <app-drawer [open]="signinDrawer() !== null" [title]="signinDrawerTitle()" (closed)="closeSigninDrawer()">
+      @if (signinDrawer() === 'set-password') {
+        <div class="space-y-4">
+          <p class="text-sm text-muted-foreground">To keep access to your account you must first verify your email and set a password.</p>
+          @if (signinMethodError()) { <p role="alert" class="rounded-ui-md bg-[#E5484D]/10 p-3 text-sm text-[#E5484D]">{{ signinMethodError() }}</p> }
+          <p class="text-sm">We’ll send a secure password setup link to <strong>{{ session.user()?.email }}</strong>.</p>
+          <button hlmBtn type="button" [disabled]="methodBusy()" (click)="sendPasswordSetup()">{{ methodBusy() ? 'Sending…' : 'Send verification email' }}</button>
+        </div>
+      } @else if (signinDrawer() === 'connect-google') {
+        <div class="space-y-4">
+          <p class="text-sm text-muted-foreground">Connect a Google login to this account. After connecting, your account email will follow the verified Google email.</p>
+          @if (signinMethodError()) { <p role="alert" class="rounded-ui-md bg-[#E5484D]/10 p-3 text-sm text-[#E5484D]">{{ signinMethodError() }}</p> }
+          <button hlmBtn type="button" [disabled]="methodBusy()" (click)="connectGoogle()">{{ methodBusy() ? 'Connecting…' : 'Continue with Google' }}</button>
+        </div>
+      } @else if (signinDrawer() === 'disconnect-google') {
+        <div class="space-y-4">
+          <p class="text-sm">Disconnect Google login from this account? You’ll still be able to sign in with your credential login.</p>
+          @if (signinMethodError()) { <p role="alert" class="rounded-ui-md bg-[#E5484D]/10 p-3 text-sm text-[#E5484D]">{{ signinMethodError() }}</p> }
+          <button hlmBtn variant="destructive" type="button" [disabled]="methodBusy()" (click)="disconnectGoogle()">{{ methodBusy() ? 'Disconnecting…' : 'Confirm disconnect' }}</button>
+        </div>
+      } @else if (signinDrawer() === 'change-password') {
+        <form class="space-y-4" (submit)="changeCredentialPassword($event)">
+          <label class="grid gap-2 text-sm font-medium" for="current-password">Current password<input id="current-password" class="profile-control" type="password" autocomplete="current-password" placeholder="Current password" [value]="currentPassword()" (input)="currentPassword.set(inputValue($event))" required /></label>
+          <label class="grid gap-2 text-sm font-medium" for="new-password">New password<input id="new-password" class="profile-control" type="password" autocomplete="new-password" placeholder="At least 12 characters" [value]="newPassword()" (input)="newPassword.set(inputValue($event))" minlength="12" required /></label>
+          <label class="grid gap-2 text-sm font-medium" for="confirm-new-password">Confirm new password<input id="confirm-new-password" class="profile-control" type="password" autocomplete="new-password" placeholder="Re-enter new password" [value]="confirmNewPassword()" (input)="confirmNewPassword.set(inputValue($event))" minlength="12" required /></label>
+          @if (signinMethodError()) { <p role="alert" class="rounded-ui-md bg-[#E5484D]/10 p-3 text-sm text-[#E5484D]">{{ signinMethodError() }}</p> }
+          <button hlmBtn type="submit" [disabled]="methodBusy()">{{ methodBusy() ? 'Saving…' : 'Change password' }}</button>
+        </form>
+      }
+    </app-drawer>
     </div>
   `,
+  styles: [`.profile-control{width:100%;height:2.5rem;border:1px solid var(--input);border-radius:.5rem;background:var(--background);padding:0 .75rem;font-size:.875rem;outline:none}.profile-control:focus-visible{outline:2px solid var(--ring);outline-offset:2px}`],
 })
 export class ProfilePage {
   protected readonly session = inject(SessionService);
@@ -252,6 +313,17 @@ export class ProfilePage {
   readonly saving = signal(false);
   readonly avatarUploading = signal(false);
   readonly emailSending = signal(false);
+  readonly accounts = signal<AuthAccountView[]>([]);
+  readonly accountsLoaded = signal(false);
+  readonly signinMethodError = signal<string | null>(null);
+  readonly methodBusy = signal(false);
+  readonly signinDrawer = signal<'set-password' | 'connect-google' | 'disconnect-google' | 'change-password' | null>(null);
+  readonly currentPassword = signal('');
+  readonly newPassword = signal('');
+  readonly confirmNewPassword = signal('');
+  readonly credentialAccount = computed(() => this.accounts().find((account) => account.providerId === 'credential' && account.id) ?? null);
+  readonly googleAccount = computed(() => this.accounts().find((account) => account.providerId === 'google') ?? null);
+  readonly credentialSet = computed(() => Boolean(this.credentialAccount()));
   protected readonly accents: ThemeAccent[] = ['slate', 'blue', 'green', 'violet', 'rose', 'amber'];
   protected readonly appearanceStyleOptions: TabItem[] = [
     { id: 'styled', label: 'Styled' },
@@ -280,6 +352,78 @@ export class ProfilePage {
     });
     const pending = sessionStorage.getItem('slipakar:pending-email-new');
     if (pending) this.pendingEmail.set(pending);
+    void this.refreshSigninMethods();
+  }
+
+  async refreshSigninMethods(): Promise<void> {
+    try { this.accounts.set(await this.session.listAccounts()); }
+    catch { this.signinMethodError.set('Could not load sign-in methods. Please refresh the page.'); }
+    finally { this.accountsLoaded.set(true); }
+  }
+
+  protected openSigninDrawer(mode: 'set-password' | 'connect-google' | 'disconnect-google' | 'change-password'): void {
+    this.signinMethodError.set(null);
+    this.signinDrawer.set(mode);
+  }
+
+  protected signinDrawerTitle(): string {
+    const titles = { 'set-password': 'Set credential login', 'connect-google': 'Connect Google login', 'disconnect-google': 'Disconnect Google login?', 'change-password': 'Change password' };
+    return this.signinDrawer() ? titles[this.signinDrawer()!] : 'Sign-in method';
+  }
+
+  protected closeSigninDrawer(): void {
+    if (this.methodBusy()) return;
+    this.signinDrawer.set(null);
+    this.signinMethodError.set(null);
+  }
+
+  protected async sendPasswordSetup(): Promise<void> {
+    const email = this.session.user()?.email;
+    if (!email || this.methodBusy()) return;
+    this.methodBusy.set(true); this.signinMethodError.set(null);
+    try {
+      await this.session.requestPasswordReset(email);
+      this.signinDrawer.set(null);
+      this.success.set('Check your email for a secure link to set a credential password.');
+      await this.refreshSigninMethods();
+    } catch (error: unknown) { this.signinMethodError.set(credentialAuthErrorMessage(error)); }
+    finally { this.methodBusy.set(false); }
+  }
+
+  protected async connectGoogle(): Promise<void> {
+    if (this.methodBusy()) return;
+    this.methodBusy.set(true); this.signinMethodError.set(null);
+    try { await this.session.linkGoogle(this.session.frontendPageUrl('profile')); }
+    catch (error: unknown) { this.signinMethodError.set(credentialAuthErrorMessage(error)); }
+    finally { this.methodBusy.set(false); }
+  }
+
+  protected async disconnectGoogle(): Promise<void> {
+    const google = this.googleAccount();
+    if (!google || !this.credentialSet() || this.methodBusy()) return;
+    this.methodBusy.set(true); this.signinMethodError.set(null);
+    try {
+      await this.session.unlinkAccount(google.id);
+      await this.refreshSigninMethods();
+      this.signinDrawer.set(null);
+      this.success.set('Google login disconnected.');
+    } catch (error: unknown) { this.signinMethodError.set(credentialAuthErrorMessage(error)); }
+    finally { this.methodBusy.set(false); }
+  }
+
+  protected async changeCredentialPassword(event: Event): Promise<void> {
+    event.preventDefault();
+    if (this.methodBusy()) return;
+    if (this.newPassword().length < 12) { this.signinMethodError.set('Use a password with at least 12 characters.'); return; }
+    if (this.newPassword() !== this.confirmNewPassword()) { this.signinMethodError.set('Passwords do not match.'); return; }
+    this.methodBusy.set(true); this.signinMethodError.set(null);
+    try {
+      await this.session.changePassword(this.currentPassword(), this.newPassword());
+      await this.refreshSigninMethods();
+      this.signinDrawer.set(null); this.success.set('Password changed successfully.');
+      this.currentPassword.set(''); this.newPassword.set(''); this.confirmNewPassword.set('');
+    } catch (error: unknown) { this.signinMethodError.set(credentialAuthErrorMessage(error)); }
+    finally { this.methodBusy.set(false); }
   }
 
   saveProfile(): void {

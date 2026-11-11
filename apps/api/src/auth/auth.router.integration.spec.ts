@@ -85,6 +85,81 @@ describe('Better Auth HTTP routes', () => {
     expect(untrustedResponse.status).toBe(403);
   });
 
+  it('rejects credential signup and password reset before writes when platform mail is unavailable', async () => {
+    const email = 'smtp-unavailable-signup@example.com';
+    const signUpResponse = await request(app)
+      .post('/api/auth/sign-up/email')
+      .set('Origin', trustedOrigin)
+      .send({ name: 'No Mail', email, password: 'long-enough-password' });
+
+    expect(signUpResponse.status).toBe(400);
+    expect(signUpResponse.body.code).toBe('EMAIL_UNAVAILABLE');
+    expect(await prisma.user.findUnique({ where: { email } })).toBeNull();
+
+    const resetResponse = await request(app)
+      .post('/api/auth/request-password-reset')
+      .set('Origin', trustedOrigin)
+      .send({ email: 'unknown-reset@example.com', redirectTo: `${trustedOrigin}/reset-password` });
+
+    expect(resetResponse.status).toBe(400);
+    expect(resetResponse.body.code).toBe('EMAIL_UNAVAILABLE');
+  });
+
+  it('creates an unverified credential account and emails the frontend verification link when SMTP is available', async () => {
+    const sentEmails: { to: string; subject: string; html: string }[] = [];
+    const testApp = buildApp({
+      env: {
+        DATABASE_URL: container.getConnectionUri(),
+        APP_ENCRYPTION_KEY: 'a'.repeat(64),
+        GOOGLE_CLIENT_ID: 'google-client-id',
+        GOOGLE_CLIENT_SECRET: 'google-client-secret',
+        BETTER_AUTH_SECRET: authSecret,
+        BETTER_AUTH_URL: 'http://localhost:3000',
+        TRUSTED_ORIGINS: [trustedOrigin],
+        S3_ENDPOINT: 'localhost',
+        S3_PORT: 3900,
+        S3_USE_SSL: false,
+        S3_ACCESS_KEY: 'test-access',
+        S3_SECRET_KEY: 'test-secret',
+        S3_BUCKET: 'test-bucket',
+        S3_REGION: 'garage',
+        S3_PATH_STYLE: true,
+        REDIS_URL: 'redis://localhost:6379',
+        RABBITMQ_URL: 'amqp://guest:guest@localhost:5672',
+        ADMIN_EMAILS: [],
+        PORT: 3000,
+      },
+      prisma,
+      authEmailSender: {
+        isConfigured: async () => true,
+        sendMail: async (message) => {
+          sentEmails.push({ to: message.to, subject: message.subject, html: message.html });
+          return { ok: true };
+        },
+      },
+    });
+
+    const response = await request(testApp)
+      .post('/api/auth/sign-up/email')
+      .set('Origin', trustedOrigin)
+      .send({
+        name: 'Credential User',
+        email: 'credential-user@example.com',
+        password: 'long-enough-password',
+        callbackURL: `${trustedOrigin}/verify-email`,
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.token).toBeNull();
+    expect(response.body.user.emailVerified).toBe(false);
+    expect(sentEmails).toHaveLength(1);
+    expect(sentEmails[0].subject).toBe('Verify your email address');
+    expect(sentEmails[0].html).toContain(`${trustedOrigin}/verify-email`);
+    expect(await prisma.account.findFirst({ where: { userId: response.body.user.id, providerId: 'credential' } })).toMatchObject({
+      password: expect.any(String),
+    });
+  });
+
   it('rejects /change-email with 400 EMAIL_CHANGE_UNAVAILABLE when auth email sender is not configured', async () => {
     // Create a user in database and an active session
     const user = await prisma.user.create({

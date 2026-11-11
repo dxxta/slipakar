@@ -49,6 +49,17 @@ describe('SessionService', () => {
     request.flush({});
     await signingIn;
   });
+
+  it('provides credential recovery and account-method requests', async () => {
+    const reset = service.requestPasswordReset('admin@example.com');
+    const resetRequest = http.expectOne('/api/auth/request-password-reset');
+    expect(resetRequest.request.body).toEqual({ email: 'admin@example.com', redirectTo: `${window.location.origin}/reset-password` });
+    resetRequest.flush({ status: true }); await reset;
+
+    const accounts = service.listAccounts();
+    http.expectOne('/api/auth/list-accounts').flush([{ id: 'credential-1', providerId: 'credential', accountId: 'admin@example.com' }]);
+    await expect(accounts).resolves.toEqual([{ id: 'credential-1', providerId: 'credential', accountId: 'admin@example.com' }]);
+  });
 });
 
 describe('adminAuthCallbackUrl', () => {

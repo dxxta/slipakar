@@ -5,9 +5,13 @@ import { ForbiddenPage } from './pages/forbidden-page';
 import { LoginPage } from './pages/login-page';
 import { NotFoundPage } from './pages/not-found-page';
 import { UserAppRedirect } from './pages/user-app-redirect';
+import { ForgotPasswordPage, ResetPasswordPage, VerifyEmailPage } from './pages/credential-pages';
 
 export const routes: Routes = [
   { path: 'login', component: LoginPage },
+  { path: 'forgot-password', component: ForgotPasswordPage },
+  { path: 'reset-password', component: ResetPasswordPage },
+  { path: 'verify-email', component: VerifyEmailPage },
   { path: 'forbidden', component: ForbiddenPage },
   {
     path: '',
