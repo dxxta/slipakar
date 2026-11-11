@@ -371,6 +371,7 @@ button[data-quiet-button] {
   font-weight: 400 !important;
   transition: background-color 120ms ease-out;
 }
+button[data-quiet-button][data-pill] { border-radius: var(--radius-control) !important; }
 button[data-quiet-button]:hover:not(:disabled) { background: var(--muted) !important; color: var(--foreground) !important; }
 button[data-quiet-button]:active:not(:disabled), button[data-quiet-button][data-pressed] { transform: none !important; box-shadow: none !important; }
 button[data-slot='button'] { border-radius: var(--radius-pill) !important; }
