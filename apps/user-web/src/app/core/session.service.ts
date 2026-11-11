@@ -3,6 +3,7 @@ import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject, signal } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../environments/environment';
+import { LoginContextService } from './login-context.service';
 
 export type SessionUser = { id: string; email: string; emailVerified?: boolean; name?: string; image?: string | null; role: string };
 type SessionResponse = { user: SessionUser; session: unknown } | null;
@@ -39,6 +40,7 @@ export function credentialAuthErrorMessage(error: unknown): string {
 export class SessionService {
   private readonly http = inject(HttpClient);
   private readonly document = inject(DOCUMENT);
+  private readonly loginContext = inject(LoginContextService);
   readonly user = signal<SessionUser | null>(null);
   readonly loading = signal(true);
   readonly accountDisabled = signal(false);
@@ -98,12 +100,19 @@ export class SessionService {
     if (!view) return;
     const requestedReturnUrl = returnUrl === undefined ? this.storedReturnUrl() : this.rememberReturnUrl(returnUrl);
     const callbackURL = new URL(requestedReturnUrl ?? '/', view.location.origin).toString();
-    const response = await firstValueFrom(this.http.post<{ url?: string; redirect?: boolean }>(
-      `${environment.apiBase}/api/auth/sign-in/social`,
-      { provider: 'google', callbackURL },
-      { withCredentials: true },
-    ));
-    if (response.url) view.location.assign(response.url);
+    this.loginContext.markPending();
+    try {
+      const response = await firstValueFrom(this.http.post<{ url?: string; redirect?: boolean }>(
+        `${environment.apiBase}/api/auth/sign-in/social`,
+        { provider: 'google', callbackURL },
+        { withCredentials: true },
+      ));
+      if (response.url) view.location.assign(response.url);
+      else this.loginContext.clearPending();
+    } catch (error: unknown) {
+      this.loginContext.clearPending();
+      throw error;
+    }
   }
 
   callbackUrlFor(returnUrl?: string, fallbackPage = '/'): string {
@@ -128,6 +137,7 @@ export class SessionService {
       { withCredentials: true },
     ));
     if (!response.user) throw new Error('Credential sign-in did not return a user');
+    this.loginContext.markPending();
     this.user.set(response.user);
     return response.user;
   }

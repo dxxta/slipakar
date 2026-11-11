@@ -335,3 +335,7 @@ If the deployment used a custom Compose project name, keep that exact name in `C
   The Scalar API reference (`/docs`) and OpenAPI specification (`/openapi.json`) require an authenticated session. Sign in to the user app or admin app (`/console/`) on the shared origin first, then open `/docs`. Nginx serves `/docs` with a dedicated per-location CSP `script-src` hash (`'sha256-lmba+p2ZA26l0frITlGt+zVDpF9V987twNchN6VQgQ8='`).
 - **Login activity shows `"Local network"`**:
   Signing in from `localhost` or directly through the Docker bridge network records a loopback or Docker gateway IP (e.g. `172.18.0.1`), which is private and has no GeoIP coordinates (`null` location, `proxy: false`). Behind an external reverse proxy, ensure `X-Forwarded-For` is forwarded and `TRUST_PROXY` matches your proxy hop count or CIDRs.
+
+## Browser login location
+
+Login coordinates are collected from the browser only when the user allows location access. If location access is denied or unavailable, the login history uses the approximate location derived from the request IP.

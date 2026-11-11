@@ -19,8 +19,8 @@ import { uploadsRoutes } from './uploads.js';
 import { userNoticeRoutes } from './user-notices.js';
 
 export const allRouteDocs: RouteDoc[] = [
-  ...preferencesRoutes,
   ...loginActivityRoutes,
+  ...preferencesRoutes,
   ...userNoticeRoutes,
   ...avatarRoutes,
   ...projectsRoutes,

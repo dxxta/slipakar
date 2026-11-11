@@ -6,6 +6,8 @@ describe('LoginActivityUseCase', () => {
   it('masks other users emails in admin activity but leaves the signed-in admin visible', async () => {
     const mockRepo: LoginActivityRepositoryInterface = {
       create: vi.fn(),
+      findMostRecentEvent: vi.fn(),
+      updateEventCoordinates: vi.fn(),
       findUserEvents: vi.fn(),
       findAllEvents: vi.fn().mockResolvedValue({
         data: [
@@ -44,6 +46,8 @@ describe('LoginActivityUseCase', () => {
       ),
       findUserEvents: vi.fn(),
       findAllEvents: vi.fn(),
+      findMostRecentEvent: vi.fn(),
+      updateEventCoordinates: vi.fn(),
       purgeExpired: vi.fn(),
     };
 
@@ -80,6 +84,8 @@ describe('LoginActivityUseCase', () => {
       ),
       findUserEvents: vi.fn(),
       findAllEvents: vi.fn(),
+      findMostRecentEvent: vi.fn(),
+      updateEventCoordinates: vi.fn(),
       purgeExpired: vi.fn(),
     };
 
@@ -91,5 +97,65 @@ describe('LoginActivityUseCase', () => {
 
     expect(result.proxy).toBe(false);
     expect(result.country).toBeNull();
+  });
+
+  it('rounds browser coordinates and claims a recent event once', async () => {
+    const repository: LoginActivityRepositoryInterface = {
+      create: vi.fn(),
+      findMostRecentEvent: vi.fn().mockResolvedValue({ id: 'event-1' }),
+      updateEventCoordinates: vi.fn().mockResolvedValue(true),
+      findUserEvents: vi.fn(),
+      findAllEvents: vi.fn(),
+      purgeExpired: vi.fn(),
+    };
+    const limiter = { tryAcquire: vi.fn().mockResolvedValue({ allowed: true as const }) };
+    const store = { claim: vi.fn().mockResolvedValue(true), release: vi.fn() };
+    const useCase = new LoginActivityUseCase(repository, 90, limiter, store);
+
+    await expect(useCase.updateLoginContext('user-1', { latitude: 37.42291, longitude: -122.08411, accuracy: 25 }))
+      .resolves.toEqual({ updated: true });
+    expect(limiter.tryAcquire).toHaveBeenCalledWith('login-context:user-1', 10);
+    expect(repository.updateEventCoordinates).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'event-1', userId: 'user-1', latitude: 37.423, longitude: -122.084,
+    }));
+    expect(store.claim).toHaveBeenCalledWith('user-1', 'event-1');
+  });
+
+  it('does nothing when the event was already claimed by a browser update', async () => {
+    const repository: LoginActivityRepositoryInterface = {
+      create: vi.fn(),
+      findMostRecentEvent: vi.fn().mockResolvedValue({ id: 'event-1' }),
+      updateEventCoordinates: vi.fn(),
+      findUserEvents: vi.fn(),
+      findAllEvents: vi.fn(),
+      purgeExpired: vi.fn(),
+    };
+    const limiter = { tryAcquire: vi.fn().mockResolvedValue({ allowed: true as const }) };
+    const store = { claim: vi.fn().mockResolvedValue(false), release: vi.fn() };
+    const useCase = new LoginActivityUseCase(repository, 90, limiter, store);
+
+    await expect(useCase.updateLoginContext('user-1', { latitude: 1, longitude: 2 })).resolves.toEqual({ updated: false });
+    expect(repository.updateEventCoordinates).not.toHaveBeenCalled();
+  });
+
+  it('returns updated false when no recent event exists and rate-limits per user', async () => {
+    const repository: LoginActivityRepositoryInterface = {
+      create: vi.fn(),
+      findMostRecentEvent: vi.fn().mockResolvedValue(null),
+      updateEventCoordinates: vi.fn(),
+      findUserEvents: vi.fn(),
+      findAllEvents: vi.fn(),
+      purgeExpired: vi.fn(),
+    };
+    const limiter = { tryAcquire: vi.fn().mockResolvedValueOnce({ allowed: true as const }).mockResolvedValueOnce({ allowed: false as const, retryAfterMs: 6000 }) };
+    const store = { claim: vi.fn(), release: vi.fn() };
+    const useCase = new LoginActivityUseCase(repository, 90, limiter, store);
+
+    await expect(useCase.updateLoginContext('user-1', { latitude: 1, longitude: 2 })).resolves.toEqual({ updated: false });
+    await expect(useCase.updateLoginContext('user-1', { latitude: 1, longitude: 2 })).rejects.toMatchObject({
+      status: 429,
+      code: 'RATE_LIMITED',
+    });
+    expect(limiter.tryAcquire).toHaveBeenNthCalledWith(1, 'login-context:user-1', 10);
   });
 });

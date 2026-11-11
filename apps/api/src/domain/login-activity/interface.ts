@@ -20,6 +20,14 @@ export interface CreateLoginEventData {
 
 export interface LoginActivityRepositoryInterface {
   create(data: CreateLoginEventData): Promise<LoginEventView>;
+  findMostRecentEvent(userId: string, createdAfter: Date): Promise<{ id: string } | null>;
+  updateEventCoordinates(args: {
+    id: string;
+    userId: string;
+    createdAfter: Date;
+    latitude: number;
+    longitude: number;
+  }): Promise<boolean>;
   findUserEvents(
     userId: string,
     query: ListLoginActivityQueryDto,
@@ -29,6 +37,15 @@ export interface LoginActivityRepositoryInterface {
   ): Promise<{ data: LoginEventView[]; total: number }>;
   purgeExpired(retentionDays: number): Promise<number>;
 }
+
+export type LoginContextRateLimiterInterface = {
+  tryAcquire(key: string, limitPerMinute: number): Promise<{ allowed: true } | { allowed: false; retryAfterMs: number }>;
+};
+
+export type LoginContextUpdateStoreInterface = {
+  claim(userId: string, loginEventId: string): Promise<boolean>;
+  release(userId: string, loginEventId: string): Promise<void>;
+};
 
 export interface LoginActivityUseCaseInterface {
   getUserActivity(
@@ -45,5 +62,6 @@ export interface LoginActivityUseCaseInterface {
     userAgent?: string | null;
     forwardedFor?: string | string[] | null;
   }): Promise<LoginEventView>;
+  updateLoginContext(userId: string, payload: unknown): Promise<{ updated: boolean }>;
   purgeExpired(): Promise<number>;
 }

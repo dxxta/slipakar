@@ -37,7 +37,17 @@ describe('LoginActivity HTTP integration', () => {
     testUserId = user.id;
 
     const repo = new LoginActivityRepository(prisma);
-    const useCase = new LoginActivityUseCase(repo, 90);
+    const updatedEvents = new Set<string>();
+    const useCase = new LoginActivityUseCase(repo, 90, {
+      tryAcquire: async () => ({ allowed: true }),
+    }, {
+      claim: async (_userId, eventId) => {
+        if (updatedEvents.has(eventId)) return false;
+        updatedEvents.add(eventId);
+        return true;
+      },
+      release: async (_userId, eventId) => { updatedEvents.delete(eventId); },
+    });
 
     // Pre-seed some events
     await repo.create({
@@ -86,5 +96,24 @@ describe('LoginActivity HTTP integration', () => {
     expect(res.body.success).toBe(true);
     expect(res.body.data.length).toBeGreaterThanOrEqual(1);
     expect(res.body.data[0].userEmail).toBe('logintest@example.com');
+  });
+
+  it('POST /me/login-context updates only recent coordinates and preserves IP location', async () => {
+    const res = await request(app).post('/me/login-context').send({
+      latitude: 37.42291,
+      longitude: -122.08411,
+      accuracy: 22,
+    });
+    expect(res.status).toBe(200);
+    expect(res.body.data).toEqual({ updated: true });
+
+    const latest = await prisma.loginEvent.findFirst({ where: { userId: testUserId }, orderBy: { createdAt: 'desc' } });
+    expect(latest?.latitude).toBe(37.423);
+    expect(latest?.longitude).toBe(-122.084);
+    expect(latest?.country).toBe('US');
+    expect(latest?.city).toBe('Mountain View');
+
+    const repeated = await request(app).post('/me/login-context').send({ latitude: 1, longitude: 2 });
+    expect(repeated.body.data).toEqual({ updated: false });
   });
 });

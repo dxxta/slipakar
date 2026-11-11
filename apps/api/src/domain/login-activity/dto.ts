@@ -29,6 +29,14 @@ export const listAdminLoginActivityQueryDto = z.strictObject({
 
 export type ListAdminLoginActivityQueryDto = z.infer<typeof listAdminLoginActivityQueryDto>;
 
+export const loginContextPayloadDto = z.strictObject({
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
+  accuracy: z.number().min(0).max(100000).optional(),
+});
+
+export type LoginContextPayloadDto = z.infer<typeof loginContextPayloadDto>;
+
 export const loginEventViewDto = z.strictObject({
   id: z.string().uuid().or(z.string().min(1)),
   userId: z.string().uuid().or(z.string().min(1)),

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   listLoginActivityQueryDto,
   listAdminLoginActivityQueryDto,
+  loginContextPayloadDto,
   loginEventViewDto,
 } from './dto.js';
 
@@ -55,5 +56,17 @@ describe('Login Activity DTO', () => {
       createdAt: new Date().toISOString(),
     });
     expect(view.ip).toBe('8.8.8.8');
+  });
+
+  it('accepts bounded, strict browser login coordinates', () => {
+    expect(loginContextPayloadDto.parse({ latitude: -90, longitude: 180, accuracy: 100000 })).toEqual({
+      latitude: -90,
+      longitude: 180,
+      accuracy: 100000,
+    });
+    expect(() => loginContextPayloadDto.parse({ latitude: 91, longitude: 0 })).toThrow();
+    expect(() => loginContextPayloadDto.parse({ latitude: 0, longitude: 181 })).toThrow();
+    expect(() => loginContextPayloadDto.parse({ latitude: 0, longitude: 0, accuracy: -1 })).toThrow();
+    expect(() => loginContextPayloadDto.parse({ latitude: 0, longitude: 0, ipAddress: '8.8.8.8' })).toThrow();
   });
 });

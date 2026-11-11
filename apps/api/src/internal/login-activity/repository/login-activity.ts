@@ -12,6 +12,35 @@ import type {
 export class LoginActivityRepository implements LoginActivityRepositoryInterface {
   constructor(private readonly prisma: PrismaClient) {}
 
+  async findMostRecentEvent(userId: string, createdAfter: Date): Promise<{ id: string } | null> {
+    return this.prisma.loginEvent.findFirst({
+      where: { userId, createdAt: { gte: createdAfter } },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      select: { id: true },
+    });
+  }
+
+  async updateEventCoordinates({ id, userId, createdAfter, latitude, longitude }: {
+    id: string;
+    userId: string;
+    createdAfter: Date;
+    latitude: number;
+    longitude: number;
+  }): Promise<boolean> {
+    const latest = await this.prisma.loginEvent.findFirst({
+      where: { userId, createdAt: { gte: createdAfter } },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      select: { id: true },
+    });
+    if (latest?.id !== id) return false;
+
+    const result = await this.prisma.loginEvent.updateMany({
+      where: { id, userId, createdAt: { gte: createdAfter } },
+      data: { latitude, longitude },
+    });
+    return result.count === 1;
+  }
+
   async create(data: CreateLoginEventData): Promise<LoginEventView> {
     const created = await this.prisma.loginEvent.create({
       data: {

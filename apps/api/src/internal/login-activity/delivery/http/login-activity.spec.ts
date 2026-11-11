@@ -15,6 +15,7 @@ describe('LoginActivity HTTP router', () => {
       metadata: { page: 1, limit: 20, total: 1 },
     }),
     recordLogin: vi.fn(),
+    updateLoginContext: vi.fn().mockResolvedValue({ updated: true }),
     purgeExpired: vi.fn(),
   };
 
@@ -53,5 +54,12 @@ describe('LoginActivity HTTP router', () => {
       metadata: { page: 1, limit: 20, total: 1 },
       success: true,
     });
+  });
+
+  it('POST /me/login-context forwards the authenticated user and body', async () => {
+    const res = await request(app).post('/me/login-context').send({ latitude: 1.2, longitude: 2.3 });
+    expect(mockUseCase.updateLoginContext).toHaveBeenCalledWith('user-123', { latitude: 1.2, longitude: 2.3 });
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ message: 'Login location updated', data: { updated: true }, success: true });
   });
 });

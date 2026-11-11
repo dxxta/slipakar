@@ -33,6 +33,7 @@ import { PreferencesRepository } from './internal/preferences/repository/prefere
 import { PreferencesUseCase } from './internal/preferences/usecase/preferences.js';
 import { createLoginActivityRouter } from './internal/login-activity/delivery/http/login-activity.js';
 import { LoginActivityRepository } from './internal/login-activity/repository/login-activity.js';
+import { LoginContextStateRepository } from './internal/login-activity/repository/login-context-state.js';
 import { LoginActivityUseCase } from './internal/login-activity/usecase/login-activity.js';
 import { createBroadcastsRouter } from './internal/broadcasts/delivery/http/broadcasts.js';
 import { BroadcastRepository } from './internal/broadcasts/repository/broadcasts.js';
@@ -172,9 +173,12 @@ export function buildApplication({
     authEmailSenderOverride ?? dynamicAuthEmailSender;
 
   const loginActivityRepository = new LoginActivityRepository(prisma);
+  const loginContextRedis = new Redis(env.REDIS_URL, { lazyConnect: true });
   const loginActivityUseCase = new LoginActivityUseCase(
     loginActivityRepository,
     env.LOGIN_EVENT_RETENTION_DAYS,
+    buildRateLimiter({ redis: loginContextRedis }),
+    new LoginContextStateRepository(loginContextRedis),
   );
 
   const auth = createAuth({
@@ -622,6 +626,7 @@ export function buildApplication({
       await queue.stop();
       await flags.stop();
       await errorLogSink.stop();
+      loginContextRedis.disconnect();
     },
   };
 }

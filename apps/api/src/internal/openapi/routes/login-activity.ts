@@ -1,8 +1,18 @@
 import { z } from 'zod';
 import type { RouteDoc } from '../../../domain/openapi/interface.js';
-import { loginEventViewDto } from '../../../domain/login-activity/dto.js';
+import { loginContextPayloadDto, loginEventViewDto } from '../../../domain/login-activity/dto.js';
 
 export const loginActivityRoutes: RouteDoc[] = [
+  {
+    method: 'post',
+    path: '/me/login-context',
+    summary: 'Attach browser-provided coordinates to the current login event',
+    tag: 'Login Activity',
+    auth: 'session',
+    body: loginContextPayloadDto,
+    status: 200,
+    data: z.object({ updated: z.boolean() }),
+  },
   {
     method: 'get',
     path: '/me/login-activity',

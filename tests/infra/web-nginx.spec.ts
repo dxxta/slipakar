@@ -241,6 +241,8 @@ describe('production web Nginx cache behavior', () => {
     ]) {
       expect(securityHeaders).toContain(`add_header ${header} `);
     }
+    expect(securityHeaders).toContain('camera=(), microphone=(), geolocation=(self)');
+    expect(securityHeaders).not.toContain('geolocation=()');
   });
 
   it('does not allow generated remote avatar URLs after switching to initials', () => {
@@ -287,5 +289,6 @@ describe('production web Nginx cache behavior', () => {
     ]) {
       expect(block).toContain(`add_header ${header} `);
     }
+    expect(block).toContain('camera=(), microphone=(), geolocation=(self)');
   });
 });

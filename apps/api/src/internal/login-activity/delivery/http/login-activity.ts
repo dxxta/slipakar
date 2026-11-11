@@ -42,5 +42,18 @@ export function createLoginActivityRouter({
     }
   });
 
+  router.post('/me/login-context', ...userGuards, async (req, res, next) => {
+    try {
+      const result = await useCase.updateLoginContext(userId(res), req.body);
+      res.status(200).json({
+        message: 'Login location updated',
+        data: result,
+        success: true,
+      });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   return router;
 }
