@@ -79,8 +79,8 @@ h1, h2, h3 { text-wrap: balance; }
 
 .section-shell { width: min(100% - 3rem, 1160px); margin-inline: auto; }
 .site-header { position: sticky; z-index: 5; top: 0.75rem; min-height: 74px; width: min(100% - 3rem, 1280px); margin: 0.75rem auto 0; padding: 0.65rem 1.1rem; display: flex; align-items: center; justify-content: space-between; gap: 2rem; border: 2px solid var(--header-border); border-radius: 999px; background: var(--surface); box-shadow: var(--shadow-ink); }
-.wordmark { display: inline-flex; align-items: baseline; color: var(--text); text-decoration: none; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.04em; white-space: nowrap; }
-.wordmark-dot { color: var(--warm); }
+.wordmark { display: inline-flex; align-items: baseline; color: var(--text); text-decoration: none; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.042em; white-space: nowrap; font-weight: 800; }
+.wordmark-dot { color: light-dark(#A87D55, var(--lime)); }
 .header-nav, .header-actions { display: flex; align-items: center; gap: clamp(1rem, 2.4vw, 2.25rem); }
 .header-nav a { color: var(--landing-muted); font-size: 0.91rem; font-weight: 650; text-decoration: none; }
 .header-nav a:hover, .footer-links a:hover { color: var(--warm); }

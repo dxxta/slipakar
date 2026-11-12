@@ -54,7 +54,7 @@ type Campaign = { status: string; createdAt: string };
           </article>
           <article appPressed class="min-h-24 rounded-ui-lg border border-border bg-card p-card">
             <p class="text-sm text-muted-foreground">Last send status</p>
-            <p class="mt-2 text-lg font-semibold">{{ lastStatus() }}</p>
+            <p class="mt-2 break-words text-base font-semibold leading-snug [overflow-wrap:anywhere]">{{ lastStatus() }}</p>
           </article>
         </section>
 

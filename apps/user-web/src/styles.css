@@ -207,8 +207,9 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%23F7EFE7' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 7 5 5 5-5'/%3E%3C/svg%3E");
 }
 
-.wordmark { display: inline-flex; align-items: baseline; color: var(--foreground); text-decoration: none; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.055em; white-space: nowrap; font-family: var(--font-display); }
+.wordmark { display: inline-flex; align-items: baseline; color: var(--foreground); text-decoration: none; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.042em; white-space: nowrap; font-family: var(--font-display); }
 .wordmark-dot { color: var(--secondary); }
+.dark .wordmark-dot { color: var(--primary); }
 /* Mobile filters: search on its own row, every filter shares the next row evenly. */
 @media (max-width: 767px) {
   app-data-table-controls div[table-filters] {

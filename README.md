@@ -425,4 +425,4 @@ Each project keeps its own license, please read them before redistributing or of
 
 ## Branding
 
-Logo files, favicons and the default design system (colours, fonts, shapes, components) are documented in [docs/BRANDING.md](docs/BRANDING.md).
+Logo files, favicons and the default design system (colours, fonts, shapes, components) are documented in [docs/branding/README.md](docs/branding/README.md).
