@@ -1,6 +1,38 @@
 # Changelog
 
 
+## [3.2.0](https://github.com/dxxta/slipakar/compare/v3.1.3...v3.2.0) (2026-11-12)
+
+### Features
+
+* **admin-web:** broadcast delivery channel, masked user emails, row menus and badge dots ([5fd4cd0](https://github.com/dxxta/slipakar/commit/5fd4cd0ca1056e5c9fa044fdd3478d9fa536e7c4))
+* **admin-web:** remove every Uptime Kuma reference from the admin app ([e835389](https://github.com/dxxta/slipakar/commit/e835389697f0651ff3a5c06cfce82526a5ee916f))
+* **admin-web:** remove Uptime Kuma from the Setup page since it runs as a separate status deployment ([0bb544f](https://github.com/dxxta/slipakar/commit/0bb544f512e9a3ae2efc4c0632d6df6d6c7e71f3))
+* **api:** add API keys for self-hosted integrations behind flags ([3a36c28](https://github.com/dxxta/slipakar/commit/3a36c281125dc3dba939326b9ad14e8c4bb87298))
+* **auth-pages:** use the sidebar wordmark, an input group for the password and text links on sign-in ([d4964c7](https://github.com/dxxta/slipakar/commit/d4964c7e9a330545ac6bc6619479aad87c429f1d))
+* **auth:** add credential login with sign-in methods on the profile page ([8047d69](https://github.com/dxxta/slipakar/commit/8047d69af911c924602d3484980858ed661d1e69))
+* **auth:** add TOTP two-factor authentication ([7788b85](https://github.com/dxxta/slipakar/commit/7788b85f9197d889d73c32ea11a970b3c5c5d54d))
+* **brand:** new S icon and wordmark, branding docs folder, release scripts and sign-in fixes ([a4342f2](https://github.com/dxxta/slipakar/commit/a4342f2e3a6ed947fb9a3a36f1dd57f79072c662))
+* **dev:** add Mailpit to the local development infrastructure ([b342736](https://github.com/dxxta/slipakar/commit/b342736a480fcfc622dc1f1ca28acce904783ca7))
+* **embed:** add flag-gated iframe embedding with launch tokens ([5c634b0](https://github.com/dxxta/slipakar/commit/5c634b0fc1a9c45f14211339a3d4e48958080c8e))
+* **infra:** run Uptime Kuma as a separate status page stack and drop it from the app stack ([87669c5](https://github.com/dxxta/slipakar/commit/87669c514e0f6b706b9609039bb1c4ec087282fc))
+* **landing:** add live Uptime Kuma status badge, dev.akarun.site footer credit and more ([19c5c9f](https://github.com/dxxta/slipakar/commit/19c5c9ff566ee524428e73c1c506f87b1720db61))
+* **login-activity:** record browser location after sign-in ([4038547](https://github.com/dxxta/slipakar/commit/40385479dd46979bd91b4a2e644ea186a7df35d5))
+* **web:** move short drawers to modals and add zoom to the login location map ([51c61da](https://github.com/dxxta/slipakar/commit/51c61da7883e25e498af45af19bc4457f974d270))
+
+### Bug Fixes
+
+* **admin-web:** close the setup drawer on save and remove its test button; toast appearance saves ([313205b](https://github.com/dxxta/slipakar/commit/313205bb373890fd7472c06ffa32198f5da14f8a))
+* **api:** treat setup as complete once Grafana and Mail are connected ([060df0b](https://github.com/dxxta/slipakar/commit/060df0bdc2ad5b9bbb8d011707ff0cc69431eb52))
+* **auth:** show Google sign-in errors in the web apps and keep returning Google logins working ([c0c4915](https://github.com/dxxta/slipakar/commit/c0c49159e52b7b971e7bde6d03478311d43d197c))
+* **landing:** press buttons straight down into their shadow and match card press offsets ([21d761a](https://github.com/dxxta/slipakar/commit/21d761a39ee3a0acc2daf72dff043ad7c7bf69c8))
+* **web:** make the embed frame-ancestors entrypoint executable and default it to none ([e9247eb](https://github.com/dxxta/slipakar/commit/e9247eb8d0d0240ace0a9952daf26ce3d879a397))
+
+### Documentation
+
+* add MVP demo screenshots for the user and admin apps ([1202e2a](https://github.com/dxxta/slipakar/commit/1202e2a3ad4345cb28dd8b572aa3f963f75c0b92))
+* explain real client IP behind Traefik and Cloudflare ([b68a848](https://github.com/dxxta/slipakar/commit/b68a848b4b0f3e08246c63d21e94045a8be53c07))
+
 ## [3.1.3](https://github.com/dxxta/slipakar/compare/v3.1.2...v3.1.3) (2026-11-10)
 
 ### Features

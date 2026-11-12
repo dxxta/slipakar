@@ -38,7 +38,7 @@ const navLink = 'flex h-control-9 items-center gap-3 rounded-md text-sm text-mut
     <div class="min-h-dvh min-w-0 bg-background text-foreground md:grid transition-[grid-template-columns] duration-200 motion-reduce:transition-none" [style.grid-template-columns]="sidebarCollapsed() ? '4.5rem minmax(0,1fr)' : '15rem minmax(0,1fr)'">
       <header class="sticky top-0 z-30 flex min-h-16 items-center gap-3 border-b border-border bg-card px-3 py-2 md:hidden">
         <button appPressed type="button" class="sidebar-square-button grid size-11 shrink-0 place-items-center rounded-ui-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Open navigation" [attr.aria-expanded]="navigationOpen()" (click)="navigationOpen.set(true)"><ng-icon name="tablerMenu2" aria-hidden="true" class="size-5" /></button>
-        <a routerLink="/flags" class="brand-link text-sm font-semibold">Slipakar</a>
+        <a routerLink="/flags" class="brand-link wordmark" aria-label="Slipakar">Slipakar<span class="wordmark-dot">.</span></a>
         <span class="h-5 w-px bg-border" aria-hidden="true"></span>
         <span class="min-w-0 truncate text-sm font-medium" aria-live="polite">{{ mobileTitle() }}</span>
       </header>
@@ -68,7 +68,7 @@ const navLink = 'flex h-control-9 items-center gap-3 rounded-md text-sm text-mut
     </div>
     <app-drawer [open]="navigationOpen()" [side]="'left'" title="Navigation" (closed)="navigationOpen.set(false)">
       <div class="flex min-h-full flex-col">
-        <a routerLink="/flags" class="mb-6 flex h-control-9 items-center gap-3 rounded-md text-lg font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" (click)="navigationOpen.set(false)"><span class="grid size-9 place-items-center rounded-lg bg-primary text-primary-foreground" aria-hidden="true">L</span>Slipakar</a>
+        <a routerLink="/flags" class="mb-6 flex h-control-9 items-center gap-3 rounded-md text-lg font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" (click)="navigationOpen.set(false)"><img src="/favicon.svg" alt="" class="size-9" aria-hidden="true" /><span class="wordmark">Slipakar<span class="wordmark-dot">.</span></span></a>
         <nav aria-label="Main navigation" class="grid gap-1">
           @for (item of items(); track item.label) {
             @if (item.link) {
