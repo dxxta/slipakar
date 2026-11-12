@@ -26,7 +26,7 @@ cd apps/admin-web  && make env
 cd apps/landing-web && make env   # optional
 ```
 
-`make env` never overwrites an existing `.env`. The defaults point at the local infrastructure below; fill in `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `ADMIN_EMAILS` in `apps/api/.env`. Values in `.env` take priority over exported shell variables, so override on the command line instead (for example `make dev PORT=3999`).
+`make env` never overwrites an existing `.env`. The defaults point at the local infrastructure below, fill in `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` and `ADMIN_EMAILS` in `apps/api/.env`. Values in `.env` take priority over exported shell variables, so override on the command line instead (for example `make dev PORT=3999`).
 
 ## 2. Infrastructure (Docker)
 
@@ -48,7 +48,7 @@ The API `.env` defaults use the `apps/api` development ports. To use the root de
 
 ### Local email (Mailpit)
 
-Mailpit catches email for local development. `make dev-infra-up` starts it with the root development services; open the inbox at <http://localhost:8025> or send SMTP to `localhost:1025`. Copy the `AUTH_SMTP_*` values from `apps/api/.env.example` into `apps/api/.env` so the API sends platform email to Mailpit. Project SMTP connections created in the user app can also use host `localhost`, port `1025`, and any non-empty username and password. Mailpit is for local development only and is not part of `docker-compose.yml`.
+Mailpit catches email for local development. `make dev-infra-up` starts it with the root development services, open the inbox at <http://localhost:8025> or send SMTP to `localhost:1025`. Copy the `AUTH_SMTP_*` values from `apps/api/.env.example` into `apps/api/.env` so the API sends platform email to Mailpit. Project SMTP connections created in the user app can also use host `localhost`, port `1025`, and any non-empty username and password. Mailpit is for local development only and is not part of `docker-compose.yml`.
 
 Optional monitoring for local development uses the `monitoring` Compose profile:
 
@@ -56,7 +56,7 @@ Optional monitoring for local development uses the `monitoring` Compose profile:
 make dev-monitoring-up
 ```
 
-It provisions Prometheus and Grafana and initializes Uptime Kuma without a manual first-run setup. Host ports are Grafana `3011`, Prometheus `9091`, and Uptime Kuma `3012`; the development Uptime Kuma credentials are `admin` / `slipakar_dev_admin`. The API `.env.example` points its Setup integration URLs at `http://localhost:3011` and `http://localhost:3012`. Stop only these monitoring containers with `make dev-monitoring-down` (their data volumes are retained).
+It provisions Prometheus and Grafana and initializes Uptime Kuma without a manual first-run setup. Host ports are Grafana `3011`, Prometheus `9091`, and Uptime Kuma `3012`, the development Uptime Kuma credentials are `admin` / `slipakar_dev_admin`. The API `.env.example` points its Setup integration URLs at `http://localhost:3011` and `http://localhost:3012`. Stop only these monitoring containers with `make dev-monitoring-down` (their data volumes are retained).
 
 ## 3. Start the API
 
@@ -67,7 +67,7 @@ make migrate    # apply Prisma migrations
 make dev        # tsx watch on http://localhost:3000
 ```
 
-On the first API startup, a sample payroll workspace is created under a disabled system account. The first administrator to sign in claims it. The workspace includes a placeholder SMTP connection (`smtp.example.com`) and a draft campaign; it cannot send until a real project SMTP connection is configured.
+On the first API startup, a sample payroll workspace is created under a disabled system account. The first administrator to sign in claims it. The workspace includes a placeholder SMTP connection (`smtp.example.com`) and a draft campaign, it cannot send until a real project SMTP connection is configured.
 
 Other targets: `make start`, `make build`, `make typecheck`, `make test`, `make clean`, `make help`.
 
@@ -121,7 +121,7 @@ curl -s -o /dev/null -w "%{http_code}\n" http://localhost:4302/   # landing (opt
 
 ## Troubleshooting
 
-- **`EADDRINUSE` / port in use**: another process (often the Compose `api`) holds the port; the Makefile guard stops early. Free it or override `PORT`.
+- **`EADDRINUSE` / port in use**: another process (often the Compose `api`) holds the port, the Makefile guard stops early. Free it or override `PORT`.
 - **Database errors on start**: run `make infra-up` then `make migrate` in `apps/api`.
 - **HTTP 403 invalid origin**: add the browser's origin to `TRUSTED_ORIGINS` in `apps/api/.env` and restart `make dev`.
 - **`redirect_uri_mismatch`**: the Google redirect URI must match `BETTER_AUTH_URL` + `/api/auth/callback/google` exactly.

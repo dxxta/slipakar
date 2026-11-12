@@ -15,6 +15,7 @@ export const contentEn: LandingDictionary = {
       description: 'Slipakar helps HR, finance, and operations send bulk email through the company’s own SMTP server, with an optional personalized PDF for every recipient.',
       signIn: 'Sign in',
       selfHost: 'Self-hosting guide',
+      connectionStatus: { connected: 'Connected', disconnected: 'Disconnected', checking: 'Checking' },
     },
     audience: {
       title: 'Built for the work that has to reach everyone personally.',
@@ -36,7 +37,7 @@ export const contentEn: LandingDictionary = {
         { title: 'Safe email templates', body: 'Personalize messages with simple {{placeholder}} fields. Template text is substituted, never evaluated as code.' },
         { title: 'Uploads and field mapping', body: 'Use CSV, XLSX, or JSON recipient data, then map columns to the fields your templates use.' },
         { title: 'PDF template builder', body: 'Build personalized PDF layouts with text, table, image, and divider nodes.' },
-        { title: 'Background campaigns', body: 'RabbitMQ queues sending work; Redis rate limits SMTP connections and transient SMTP failures are retried.' },
+        { title: 'Background campaigns', body: 'RabbitMQ queues sending work, Redis rate limits SMTP connections and transient SMTP failures are retried.' },
         { title: 'Status and notifications', body: 'Track each recipient and see campaign notifications and login activity.' },
       ],
     },
@@ -50,7 +51,7 @@ export const contentEn: LandingDictionary = {
     security: {
       title: 'Your mail server. Your data. Your deployment.',
       items: [
-        'Connect through your own SMTP server; SMTP credentials are encrypted at rest.',
+        'Connect through your own SMTP server, SMTP credentials are encrypted at rest.',
         'Self-host Slipakar on infrastructure you operate.',
         'Placeholders perform simple substitution and never run template code.',
         'Disabling an account revokes its sessions immediately.',
@@ -74,7 +75,7 @@ export const contentEn: LandingDictionary = {
         { question: 'What is Slipakar?', answer: 'Slipakar is an open-source, self-hostable platform for personalized bulk email sent through a company’s own SMTP server.' },
         { question: 'Can each recipient get a different PDF?', answer: 'Yes. A campaign can attach a personalized PDF, such as a payslip, for each recipient.' },
         { question: 'Which data file formats can I upload?', answer: 'Slipakar supports CSV, XLSX, and JSON files.' },
-        { question: 'Do email placeholders execute code?', answer: 'No. Email templates use safe placeholder substitution; they do not evaluate expressions or code.' },
+        { question: 'Do email placeholders execute code?', answer: 'No. Email templates use safe placeholder substitution, they do not evaluate expressions or code.' },
         { question: 'How are campaigns sent?', answer: 'Campaign work is queued through RabbitMQ and sent in the background, with per-recipient status and retries for transient SMTP failures.' },
         { question: 'Where are SMTP credentials stored?', answer: 'SMTP credentials are encrypted at rest with the application encryption key and are not returned in API views.' },
         { question: 'Can we host Slipakar ourselves?', answer: 'Yes. Slipakar is designed to be self-hosted and is deployed with Docker.' },

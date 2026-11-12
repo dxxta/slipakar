@@ -1,0 +1,10 @@
+node_modules
+dist
+coverage
+.angular
+test-results
+playwright-report
+package-lock.json
+CHANGELOG.md
+apps/api/prisma/migrations
+docs/demos

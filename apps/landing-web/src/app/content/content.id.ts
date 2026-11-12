@@ -15,6 +15,7 @@ export const contentId: LandingDictionary = {
       description: 'Slipakar membantu tim HR, keuangan, dan operasional mengirim email massal melalui server SMTP perusahaan, dengan PDF personal opsional untuk setiap penerima.',
       signIn: 'Masuk',
       selfHost: 'Panduan self-hosting',
+      connectionStatus: { connected: 'Terhubung', disconnected: 'Terputus', checking: 'Memeriksa' },
     },
     audience: {
       title: 'Untuk pekerjaan yang harus menjangkau setiap orang secara personal.',
@@ -36,7 +37,7 @@ export const contentId: LandingDictionary = {
         { title: 'Template email aman', body: 'Personalisasi pesan dengan kolom {{placeholder}} sederhana. Teks template diganti, tidak dievaluasi sebagai kode.' },
         { title: 'Unggahan dan pemetaan field', body: 'Gunakan data penerima CSV, XLSX, atau JSON, lalu petakan kolom ke field yang digunakan template.' },
         { title: 'Pembuat template PDF', body: 'Susun tata letak PDF personal dengan node teks, tabel, gambar, dan pemisah.' },
-        { title: 'Kampanye latar belakang', body: 'RabbitMQ mengantrekan pekerjaan; Redis membatasi laju koneksi SMTP dan kegagalan SMTP sementara dicoba kembali.' },
+        { title: 'Kampanye latar belakang', body: 'RabbitMQ mengantrekan pekerjaan, Redis membatasi laju koneksi SMTP dan kegagalan SMTP sementara dicoba kembali.' },
         { title: 'Status dan notifikasi', body: 'Lacak setiap penerima serta lihat notifikasi kampanye dan aktivitas login.' },
       ],
     },
@@ -50,7 +51,7 @@ export const contentId: LandingDictionary = {
     security: {
       title: 'Server email Anda. Data Anda. Deployment Anda.',
       items: [
-        'Hubungkan server SMTP sendiri; kredensial SMTP dienkripsi saat tersimpan.',
+        'Hubungkan server SMTP sendiri, kredensial SMTP dienkripsi saat tersimpan.',
         'Host Slipakar sendiri di infrastruktur yang Anda kelola.',
         'Placeholder hanya mengganti teks dan tidak menjalankan kode template.',
         'Menonaktifkan akun langsung mencabut sesi akun tersebut.',

@@ -23,13 +23,13 @@ The primary use case is HR, finance, or operations uploading a spreadsheet, mapp
 ## Features
 
 - **Projects, SMTP & Templates**: Projects organize SMTP connections, email templates, uploads, PDF templates, and campaigns. SMTP credentials are configured per project and encrypted at rest with `APP_ENCRYPTION_KEY` (never returned in API views). Email templates use safe `{{placeholder}}` substitution without evaluating expressions or code.
-- **Data Upload, Mapping & PDF Builder**: Upload recipient data from CSV, XLSX, or JSON files and map columns to template placeholders. Build personalized PDF templates using a visual node builder (text, table, image, and divider nodes); generated PDFs and extra shared attachments are stored in Garage.
+- **Data Upload, Mapping & PDF Builder**: Upload recipient data from CSV, XLSX, or JSON files and map columns to template placeholders. Build personalized PDF templates using a visual node builder (text, table, image, and divider nodes), generated PDFs and extra shared attachments are stored in Garage.
 - **Campaigns**: Queued through RabbitMQ and sent asynchronously in the background with Redis token-bucket rate limiting per SMTP connection, per-recipient status tracking, and automatic retries for transient SMTP failures.
 - **Notifications & Announcements**: Campaign notifications (`campaign_finished`, `send_failed`) and admin announcements (`UserNotice` from broadcasts) appear in the user app with unread badges.
 - **User Profile & Theme Preferences**: Users can edit their display name, upload or reset a custom avatar (`PNG`/`JPEG`/`WebP` up to 2 MB, magic-byte verified, stored in Garage), and change their email address (always requires clicking a verification link sent to the new address). Account-saved theme preferences support `light`, `dark`, or `system` mode and preset accent colors (`slate`, `blue`, `green`, `violet`, `rose`, `amber`).
 - **Login Activity**: Records sign-in events with resolved client IP, a best-effort proxy indicator, parsed browser/OS/device type, and offline geolocation via `geoip-lite` ( retained for `LOGIN_EVENT_RETENTION_DAYS`, default 90 days). Optional map previews load OpenStreetMap raster tiles on demand only when opened.
 - **Admin Web**: Manage users (view, edit name/image, disable/enable accounts with immediate session revocation), compose and send broadcasts to all users, by role, or selected users, audit login activity across all accounts, toggle instance feature flags (`scalar_docs`, `pdf_builder`, `self_signup`), view service monitoring links and live health, configure required external integrations via the setup gate (`uptime` for Uptime Kuma, `grafana` for Grafana, and `mail` for platform SMTP), and idempotently seed an example payroll project (`make seed-demo` or `POST /admin/demo-project`).
-- **OpenAPI & Observability**: Scalar OpenAPI reference at `/docs` and specification at `/openapi.json` (requires authentication; toggleable via `scalar_docs`). Prometheus scrapes `/metrics` for Grafana dashboards, Uptime Kuma monitors service health, API error logs are persisted to object storage, and browser Sentry reporting is optional.
+- **OpenAPI & Observability**: Scalar OpenAPI reference at `/docs` and specification at `/openapi.json` (requires authentication, toggleable via `scalar_docs`). Prometheus scrapes `/metrics` for Grafana dashboards, Uptime Kuma monitors service health, API error logs are persisted to object storage, and browser Sentry reporting is optional.
 
 ## Architecture
 
@@ -111,11 +111,11 @@ The API applies database migrations during startup. Wait for the services to bec
 | Grafana | `http://127.0.0.1:3001` | `127.0.0.1:3001` |
 | Landing site (optional) | `http://127.0.0.1:8082` | `127.0.0.1:8082` |
 
-`BIND_ADDRESS` controls the host IP and `WEB_PORT` changes the published web port. The admin app is served from `/console/` on that same origin. The landing site is opt-in: start it with `docker compose --profile landing up -d` or `make up-landing`. For public access, place an HTTPS reverse proxy in front of the web port; see [Self-Hosting](docs/SELF-HOSTING.md).
+`BIND_ADDRESS` controls the host IP and `WEB_PORT` changes the published web port. The admin app is served from `/console/` on that same origin. The landing site is opt-in: start it with `docker compose --profile landing up -d` or `make up-landing`. For public access, place an HTTPS reverse proxy in front of the web port, see [Self-Hosting](docs/SELF-HOSTING.md).
 
 To grant admin access, add the account's Google email to `ADMIN_EMAILS` before signing in. Admin-only routes compare the signed-in email with this configured list.
 
-The API seeds one example payroll workspace at startup by default (`SEED_DEMO_PROJECT=false` disables it). It is first owned by a disabled, hidden system account and transfers to the first administrator who signs in. It contains a sample XLSX upload and mapping, email and PDF templates, a placeholder SMTP connection (`smtp.example.com`), and a draft campaign. The placeholder campaign cannot send until a real project SMTP connection is configured. Grafana provisioning is automatic; the Admin Setup page remains available for platform mail.
+The API seeds one example payroll workspace at startup by default (`SEED_DEMO_PROJECT=false` disables it). It is first owned by a disabled, hidden system account and transfers to the first administrator who signs in. It contains a sample XLSX upload and mapping, email and PDF templates, a placeholder SMTP connection (`smtp.example.com`), and a draft campaign. The placeholder campaign cannot send until a real project SMTP connection is configured. Grafana provisioning is automatic, the Admin Setup page remains available for platform mail.
 
 ## Google sign-in setup
 
@@ -124,7 +124,7 @@ Google OAuth must be configured before users can sign in.
 1. In Google Cloud Console, create or choose a project.
 2. Configure the OAuth consent screen and add the intended users as test users if the consent screen remains in testing mode.
 3. Create an OAuth client ID with application type **Web application**.
-4. Add the shared app origin under **Authorized JavaScript origins**. The default local origin is `http://localhost:8080`; user and admin share it, with admin under `/console/`.
+4. Add the shared app origin under **Authorized JavaScript origins**. The default local origin is `http://localhost:8080`, user and admin share it, with admin under `/console/`.
 5. Add this exact value under **Authorized redirect URIs**:
 
    ```text
@@ -134,7 +134,7 @@ Google OAuth must be configured before users can sign in.
    With the local default `BETTER_AUTH_URL=http://localhost:8080`, the URI is `http://localhost:8080/api/auth/callback/google`.
 
 6. Put the Google client ID and client secret in `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` in `.env`.
-7. Set `BETTER_AUTH_URL` to the public app origin people open. Set `TRUSTED_ORIGINS` to that origin and any other browser origin you explicitly use; the admin path does not need a separate trusted origin.
+7. Set `BETTER_AUTH_URL` to the public app origin people open. Set `TRUSTED_ORIGINS` to that origin and any other browser origin you explicitly use, the admin path does not need a separate trusted origin.
 8. Add admin account emails to `ADMIN_EMAILS` if needed.
 9. Recreate the API container so it receives the updated environment, then sign in from the user app and the admin app at `/console/`:
 
@@ -146,7 +146,7 @@ Common sign-in problems:
 
 - **`redirect_uri_mismatch`**: the Google redirect URI must exactly match `BETTER_AUTH_URL` followed by `/api/auth/callback/google`, including scheme, hostname, and port.
 - **HTTP 403 invalid origin**: add the browser's full origin to `TRUSTED_ORIGINS`, then recreate the API container. Compose defaults to both local web origins.
-- **Different subdomains**: cookies are shared between ports on one hostname, but not between different hostnames such as `app.example.com` and `admin.example.com`. The current auth configuration does not set a shared parent-domain cookie; use one hostname for both apps if they need a shared session.
+- **Different subdomains**: cookies are shared between ports on one hostname, but not between different hostnames such as `app.example.com` and `admin.example.com`. The current auth configuration does not set a shared parent-domain cookie, use one hostname for both apps if they need a shared session.
 - **Consent screen in testing mode**: only Google accounts listed as test users can complete OAuth until the consent screen is published or otherwise approved.
 
 ## Local development
@@ -161,7 +161,7 @@ npm ci
 make install
 ```
 
-Create `.env` with `make env` or copy `.env.example`, then provide the required API environment values from [Configuration](#configuration-reference). The API process reads from its shell environment; export values from `.env` before starting it:
+Create `.env` with `make env` or copy `.env.example`, then provide the required API environment values from [Configuration](#configuration-reference). The API process reads from its shell environment, export values from `.env` before starting it:
 
 ```bash
 set -a
@@ -179,7 +179,7 @@ docker compose up -d postgres redis rabbitmq garage garage-init
 
 Those services do not publish their ports to the host. A host-run, hot-reload API therefore needs local or otherwise host-reachable PostgreSQL, Redis, RabbitMQ, and S3-compatible storage at the URLs in its environment. The Compose-only dependencies are reachable by services running inside the Compose network.
 
-For host-run local development with published dependency ports, use `make dev-infra-up`; it also starts Mailpit at SMTP `localhost:1025` and inbox <http://localhost:8025> for local email testing.
+For host-run local development with published dependency ports, use `make dev-infra-up`, it also starts Mailpit at SMTP `localhost:1025` and inbox <http://localhost:8025> for local email testing.
 
 Start the API and Angular apps with the Make targets:
 
@@ -190,7 +190,7 @@ make dev-admin
 make dev-landing
 ```
 
-The API defaults to port `3000`. Angular `ng serve` defaults to port `4200`; run the apps separately or start them on different ports. For example, these workspace scripts accept Angular CLI arguments:
+The API defaults to port `3000`. Angular `ng serve` defaults to port `4200`, run the apps separately or start them on different ports. For example, these workspace scripts accept Angular CLI arguments:
 
 ```bash
 npm run start -w @slipakar/user-web -- --port 4300
@@ -199,7 +199,7 @@ npm run start -w @slipakar/admin-web -- --port 4301
 
 The web dev-server proxies API requests to port `3000`.
 
-Run `make dev-monitoring-up` to start provisioned Grafana, Prometheus, and Uptime Kuma for local development (ports `3011`, `9091`, and `3012`). The API dev env points the Setup integrations at these URLs. `make dev-monitoring-down` removes only those monitoring containers and retains their volumes. The demo workspace appears on the first administrator sign-in; its SMTP is a placeholder and the draft campaign is not sendable.
+Run `make dev-monitoring-up` to start provisioned Grafana, Prometheus, and Uptime Kuma for local development (ports `3011`, `9091`, and `3012`). The API dev env points the Setup integrations at these URLs. `make dev-monitoring-down` removes only those monitoring containers and retains their volumes. The demo workspace appears on the first administrator sign-in, its SMTP is a placeholder and the draft campaign is not sendable.
 
 Generate the Prisma client and manage migrations with:
 
@@ -210,7 +210,7 @@ make db-migrate-deploy
 make db-studio
 ```
 
-`db-migrate-dev` creates and applies development migrations; `db-migrate-deploy` applies checked-in migrations to the configured database.
+`db-migrate-dev` creates and applies development migrations, `db-migrate-deploy` applies checked-in migrations to the configured database.
 
 ## Testing
 
@@ -276,7 +276,7 @@ Useful Make targets are listed below. `make check` runs typechecking, lint, and 
 | `down` | Stop and remove Docker Compose containers and networks while preserving volumes. |
 | `down-volumes` | Stop containers and delete all persistent data volumes (requires `CONFIRM=yes`). |
 | `ps` | List running containers in the Docker Compose stack. |
-| `logs` | Tail logs for a Compose service (defaults to `SERVICE=api`; use `SERVICE=web` for Nginx). |
+| `logs` | Tail logs for a Compose service (defaults to `SERVICE=api`, use `SERVICE=web` for Nginx). |
 | `restart` | Restart a service container in the Docker Compose stack (defaults to `SERVICE=api`). |
 | `config` | Validate and render the Docker Compose configuration against the env file. |
 | `playwright-install` | Install Playwright Chromium browser binaries. |
@@ -306,24 +306,24 @@ The API environment schema is in `apps/api/src/config/env.ts`. Compose-specific 
 ### Where secrets live
 
 - **Project SMTP passwords** (`SmtpConfig`) and **Admin setup integration credentials** (`IntegrationConfig` for `uptime`, `grafana`, and `mail`) are encrypted at rest in PostgreSQL using AES-256-GCM with `APP_ENCRYPTION_KEY`.
-- Credentials are write-only and are never returned in API responses or written to `AuditLog` (responses include only `hasCredentials` and a masked 4-character suffix `credentialHint`; for `mail`, non-secret settings `{host, port, secure, username, fromAddress}` are returned so the UI can prefill edits).
+- Credentials are write-only and are never returned in API responses or written to `AuditLog` (responses include only `hasCredentials` and a masked 4-character suffix `credentialHint`, for `mail`, non-secret settings `{host, port, secure, username, fromAddress}` are returned so the UI can prefill edits).
 - For platform mail (email change verification and broadcast emails), database-stored `mail` credentials configured via `/admin/setup` take precedence over the `AUTH_SMTP_*` / `AUTH_MAIL_FROM` environment variables (cached for 30s and invalidated immediately on `PUT`/`DELETE`).
 
 | Variable | Required? | Default or Compose value | Description |
 |---|---|---|---|
 | `DATABASE_URL` | API: yes | Compose builds it from `POSTGRES_PASSWORD` | PostgreSQL connection URL. |
 | `POSTGRES_PASSWORD` | Compose: yes | None | Password for the PostgreSQL Compose user. |
-| `APP_ENCRYPTION_KEY` | API/Compose: yes | None | Exactly 64 hex characters; encrypts stored SMTP credentials. |
+| `APP_ENCRYPTION_KEY` | API/Compose: yes | None | Exactly 64 hex characters, encrypts stored SMTP credentials. |
 | `GOOGLE_CLIENT_ID` | API/Compose: yes | None | Google OAuth client ID. |
 | `GOOGLE_CLIENT_SECRET` | API/Compose: yes | None | Google OAuth client secret. |
 | `BETTER_AUTH_SECRET` | API/Compose: yes | None | Secret used by Better Auth for sessions and tokens. |
 | `BETTER_AUTH_URL` | API/Compose: yes | Compose example: `http://localhost:8080` | Public user-app URL used to construct OAuth callback URLs. |
-| `TRUSTED_ORIGINS` | No for API; Compose supplies a default | Empty in API; Compose defaults to `http://localhost:8080` | Comma-separated absolute browser origins accepted by Better Auth. User and admin share the same origin. |
-| `S3_ENDPOINT` | API: yes | Compose uses `garage`; local example uses `localhost` | Hostname of the S3-compatible object store. |
+| `TRUSTED_ORIGINS` | No for API, Compose supplies a default | Empty in API, Compose defaults to `http://localhost:8080` | Comma-separated absolute browser origins accepted by Better Auth. User and admin share the same origin. |
+| `S3_ENDPOINT` | API: yes | Compose uses `garage`, local example uses `localhost` | Hostname of the S3-compatible object store. |
 | `S3_PORT` | No | `3900` | Object-store API port. |
 | `S3_USE_SSL` | No | `false` | Whether to use TLS to the object store. |
-| `S3_ACCESS_KEY` | API/Compose: yes | None | Object-store access key; Garage keys use the `GK` prefix plus 24 hex characters. |
-| `S3_SECRET_KEY` | API/Compose: yes | None | Object-store secret key; Garage expects 64 hex characters. |
+| `S3_ACCESS_KEY` | API/Compose: yes | None | Object-store access key, Garage keys use the `GK` prefix plus 24 hex characters. |
+| `S3_SECRET_KEY` | API/Compose: yes | None | Object-store secret key, Garage expects 64 hex characters. |
 | `S3_BUCKET` | API: yes | Compose uses `slipakar` | Bucket for attachments, generated PDFs, and error records. |
 | `S3_REGION` | No | `garage` | S3 signing region. |
 | `S3_PATH_STYLE` | No | `true` | Use path-style S3 requests. |
@@ -332,13 +332,13 @@ The API environment schema is in `apps/api/src/config/env.ts`. Compose-specific 
 | `RABBITMQ_PASSWORD` | Compose: yes | None | Password for the RabbitMQ Compose user. |
 | `ADMIN_EMAILS` | No | Empty | Comma-separated admin email allowlist. |
 | `SEED_DEMO_PROJECT` | No | `true` (test environment defaults to `false`) | Seed the one-time example workspace during API startup. |
-| `SETUP_GRAFANA_URL` | No | Compose: `http://grafana:3000`; local dev: `http://localhost:3011` | Trusted environment URL for Grafana in Admin Setup. |
-| `SETUP_UPTIME_URL` | No | Compose: Empty; local dev: `http://localhost:3012` | Optional private Kuma admin URL reachable from the API for its Setup connection test. |
+| `SETUP_GRAFANA_URL` | No | Compose: `http://grafana:3000`, local dev: `http://localhost:3011` | Trusted environment URL for Grafana in Admin Setup. |
+| `SETUP_UPTIME_URL` | No | Compose: Empty, local dev: `http://localhost:3012` | Optional private Kuma admin URL reachable from the API for its Setup connection test. |
 | `SETUP_UPTIME_USERNAME` | No | Empty unless `UPTIME_KUMA_ADMIN_USER` is set | Optional Kuma username supplied to the API's Setup integration tester. |
 | `SETUP_UPTIME_PASSWORD` | No | Empty unless `UPTIME_KUMA_ADMIN_PASSWORD` is set | Optional Kuma password supplied to the API's Setup integration tester. |
 | `SETUP_GRAFANA_API_TOKEN` | No | Empty | Optional Grafana token used by the Setup connection test. |
-| `METRICS_TOKEN` | API: optional; Compose: required | None in API schema | Bearer token for `/metrics`; must be at least 16 characters. |
-| `PORT` | No | `3000` | API listen port; Compose sets it to `3000`. |
+| `METRICS_TOKEN` | API: optional, Compose: required | None in API schema | Bearer token for `/metrics`, must be at least 16 characters. |
+| `PORT` | No | `3000` | API listen port, Compose sets it to `3000`. |
 | `APP_URL` | No | Empty (falls back to first entry in `TRUSTED_ORIGINS`) | Frontend application URL used for email verification redirect callbacks and as the fallback `/auth/error` page for failed Google sign-in. |
 | `AUTH_SMTP_HOST` | Optional (all `AUTH_SMTP_*` must be set together) | None | Platform SMTP server hostname for transactional auth emails (email change verification). |
 | `AUTH_SMTP_PORT` | No | `587` | Platform SMTP server port. |
@@ -347,27 +347,27 @@ The API environment schema is in `apps/api/src/config/env.ts`. Compose-specific 
 | `AUTH_SMTP_PASS` | Optional (all `AUTH_SMTP_*` must be set together) | None | Password for platform SMTP authentication. |
 | `AUTH_MAIL_FROM` | Optional (all `AUTH_SMTP_*` must be set together) | None | `From` email address for platform transactional auth emails (e.g. `noreply@example.com`). |
 | `LOGIN_EVENT_RETENTION_DAYS` | No | `90` | Number of days to retain user login activity records (1..3650 days). Expired records purged at startup and daily. |
-| `TRUST_PROXY` | No | `false` (API default; `1` in Compose) | Trust proxy setting for Express: `false`, hop count (e.g. `1`), or comma-separated CIDRs. |
+| `TRUST_PROXY` | No | `false` (API default, `1` in Compose) | Trust proxy setting for Express: `false`, hop count (e.g. `1`), or comma-separated CIDRs. |
 | `GARAGE_RPC_SECRET` | Compose: yes | None | Garage cluster RPC secret, 64 hex characters. |
 | `GARAGE_ADMIN_TOKEN` | Compose: yes | None | Garage bootstrap admin token, 48 hex characters. |
 | `GARAGE_METRICS_TOKEN` | No | Empty | Optional token forwarded to the Garage container. |
 | `GRAFANA_ADMIN_USER` | No | `admin` | Grafana login name. |
 | `GRAFANA_ADMIN_PASSWORD` | Compose: yes | None | Grafana login password. |
-| `UPTIME_KUMA_ADMIN_USER` | No | `admin` | Admin username for the standalone status stack; also used by the optional API Setup test. |
-| `UPTIME_KUMA_ADMIN_PASSWORD` | Required by standalone status Compose only | None | Kuma password; `make secrets` generates it. Not required by the main application stack. |
-| `KUMA_MONITOR_WEB_URL` | No | Empty | Public Web URL to monitor in the standalone status stack; empty skips it. |
-| `KUMA_MONITOR_ADMIN_URL` | No | Empty | Public Admin URL to monitor in the standalone status stack; empty skips it. |
-| `KUMA_MONITOR_API_URL` | No | Empty | Public API health URL to monitor in the standalone status stack; empty skips it. |
-| `KUMA_MONITOR_LANDING_URL` | No | Empty | Public Landing URL to monitor; empty skips it. |
+| `UPTIME_KUMA_ADMIN_USER` | No | `admin` | Admin username for the standalone status stack, also used by the optional API Setup test. |
+| `UPTIME_KUMA_ADMIN_PASSWORD` | Required by standalone status Compose only | None | Kuma password, `make secrets` generates it. Not required by the main application stack. |
+| `KUMA_MONITOR_WEB_URL` | No | Empty | Public Web URL to monitor in the standalone status stack, empty skips it. |
+| `KUMA_MONITOR_ADMIN_URL` | No | Empty | Public Admin URL to monitor in the standalone status stack, empty skips it. |
+| `KUMA_MONITOR_API_URL` | No | Empty | Public API health URL to monitor in the standalone status stack, empty skips it. |
+| `KUMA_MONITOR_LANDING_URL` | No | Empty | Public Landing URL to monitor, empty skips it. |
 | `KUMA_MONITOR_LANDING` | No | `false` | Enable creation of the Landing monitor when its URL is set. |
 | `STATUS_PAGE_SLUG` | No | `status` | Public Uptime Kuma status-page slug. |
 | `STATUS_PAGE_TITLE` | No | `Slipakar status` | Public status-page title. |
 | `STATUS_PORT` | No | `8081` | Host port for the standalone public status gateway. |
-| `STATUS_BIND_ADDRESS` | No | `127.0.0.1` | Host address for the standalone status gateway; keep loopback when using a reverse proxy. |
+| `STATUS_BIND_ADDRESS` | No | `127.0.0.1` | Host address for the standalone status gateway, keep loopback when using a reverse proxy. |
 | `KUMA_ADMIN_PORT` | No | `3002` | Host port for the standalone Kuma dashboard. |
 | `KUMA_ADMIN_BIND_ADDRESS` | No | `127.0.0.1` | Host address for the private Kuma dashboard. |
 | `BIND_ADDRESS` | No | `127.0.0.1` | Host IP used for published Compose ports. |
-| `WEB_PORT` | No | `8080` | Host port for the user and admin web apps; admin is under `/console/`. |
+| `WEB_PORT` | No | `8080` | Host port for the user and admin web apps, admin is under `/console/`. |
 | `API_UPSTREAM` | No | `api:3000` | Nginx upstream address for API requests inside Compose. |
 | `PORT` | No | `8080` | Nginx listener port inside the web container. |
 | `SENTRY_DSN_USER` | No | Empty | Build-time Sentry DSN embedded in the user-web production bundle. |
@@ -377,13 +377,13 @@ The API environment schema is in `apps/api/src/config/env.ts`. Compose-specific 
 
 - **Backups:** PostgreSQL and service state live in named volumes. Back up the database and both Garage volumes (`garage_meta` and `garage_data`) consistently. The backup examples and volume list are in [Self-Hosting](docs/SELF-HOSTING.md).
 - **Upgrades:** rebuild and restart with the steps in [Self-Hosting](docs/SELF-HOSTING.md). API migrations run on startup. Keep a verified backup before upgrading.
-- **Uptime Kuma:** deploy it separately with `docker compose -f docker-compose.status.yml up -d --build`. Its account and monitors persist in the standalone `uptime_kuma_data` volume; the API Setup connection test is optional and needs a private URL reachable from the API.
-- **Sentry:** set `SENTRY_DSN_USER` and/or `SENTRY_DSN_ADMIN` in the build environment, then rebuild the `web` image. The DSNs are embedded in production browser bundles; keep them out of committed source.
+- **Uptime Kuma:** deploy it separately with `docker compose -f docker-compose.status.yml up -d --build`. Its account and monitors persist in the standalone `uptime_kuma_data` volume, the API Setup connection test is optional and needs a private URL reachable from the API.
+- **Sentry:** set `SENTRY_DSN_USER` and/or `SENTRY_DSN_ADMIN` in the build environment, then rebuild the `web` image. The DSNs are embedded in production browser bundles, keep them out of committed source.
 - **Reverse proxy and security:** Compose binds the API and web service to loopback by default. The optional landing service also binds to loopback and can be started with the `landing` profile. Review [Self-Hosting](docs/SELF-HOSTING.md) for TLS proxy examples, cookie behavior, port details, and deployment security notes.
 
 ## Contributing
 
-Use test-driven development for behavior changes and keep API code in the `domain/` and `internal/` layers. For Angular work, keep tests colocated with the code and add HTTP contract checks. Treat API DTOs and response views as the contract source of truth; do not invent client request fields. Run the relevant tests, typecheck, and lint before submitting changes.
+Use test-driven development for behavior changes and keep API code in the `domain/` and `internal/` layers. For Angular work, keep tests colocated with the code and add HTTP contract checks. Treat API DTOs and response views as the contract source of truth, do not invent client request fields. Run the relevant tests, typecheck, and lint before submitting changes.
 
 ## Troubleshooting
 
@@ -395,13 +395,13 @@ Use test-driven development for behavior changes and keep API code in the `domai
 
 ## Security
 
-Please report vulnerabilities privately according to [SECURITY.md](SECURITY.md); do not open a public issue for an unpatched vulnerability.
+Please report vulnerabilities privately according to [SECURITY.md](SECURITY.md), do not open a public issue for an unpatched vulnerability.
 
 ### Privacy note
 
 - **IP & device data**: Every sign-in records a `LoginEvent` with the resolved client IP (`TRUST_PROXY`-aware), a best-effort proxy flag (never set for private/loopback/Docker IPs), parsed browser/OS/device type, and offline city/region/country/coordinates via `geoip-lite`.
 - **Retention**: Login events are retained for `LOGIN_EVENT_RETENTION_DAYS` (default `90` days, range `1..3650`) and purged automatically at API startup and every 24 hours.
-- **OpenStreetMap tiles**: Map previews in Login Activity fetch raster tiles from `https://tile.openstreetmap.org` only when a user opens the map drawer for an event. Loading those tiles discloses the viewer's client IP address to OpenStreetMap contributors; see [SECURITY.md](SECURITY.md).
+- **OpenStreetMap tiles**: Map previews in Login Activity fetch raster tiles from `https://tile.openstreetmap.org` only when a user opens the map drawer for an event. Loading those tiles discloses the viewer's client IP address to OpenStreetMap contributors, see [SECURITY.md](SECURITY.md).
 
 ## Code of Conduct
 
@@ -421,7 +421,7 @@ Slipakar stands on the work of many open-source projects and free services. Than
 - **Observability**: [Prometheus](https://prometheus.io), [Grafana](https://grafana.com), [Uptime Kuma](https://github.com/louislam/uptime-kuma), and [Sentry](https://sentry.io) for optional browser error reporting.
 - **Data**: [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors for map tiles, and [geoip-lite](https://github.com/geoip-lite/node-geoip), which includes GeoLite data created by [MaxMind](https://www.maxmind.com).
 
-Each project keeps its own license; please read them before redistributing or offering Slipakar as a hosted service.
+Each project keeps its own license, please read them before redistributing or offering Slipakar as a hosted service.
 
 ## Branding
 

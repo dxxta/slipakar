@@ -18,7 +18,9 @@
     "dev:user": "npm run start -w @slipakar/user-web",
     "test:user": "npm run test -w @slipakar/user-web",
     "e2e": "playwright test",
-    "release": "commit-and-tag-version"
+    "release": "commit-and-tag-version",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "devDependencies": {
     "@playwright/test": "1.65.0",

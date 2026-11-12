@@ -31,6 +31,7 @@ describe('landing runtime config', () => {
       siteUrl: 'https://site.example',
       repoUrl: 'https://code.example/repo',
       docsUrl: 'https://docs.example',
+      statusUrl: '',
     });
   });
 

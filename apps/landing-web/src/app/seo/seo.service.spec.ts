@@ -20,7 +20,7 @@ describe('SeoService', () => {
       providers: [
         SeoService,
         Title,
-        { provide: LANDING_CONFIG, useValue: { appUrl: 'http://localhost:8080', siteUrl: 'https://site.example', repoUrl: 'https://repo.example', docsUrl: 'https://docs.example' } },
+        { provide: LANDING_CONFIG, useValue: { appUrl: 'http://localhost:8080', siteUrl: 'https://site.example', repoUrl: 'https://repo.example', docsUrl: 'https://docs.example', statusUrl: '' } },
       ],
     });
   });

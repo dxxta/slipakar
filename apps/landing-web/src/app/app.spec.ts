@@ -26,7 +26,7 @@ describe('App', () => {
   it('renders an accessible Spartan language toggle group with the active language marked', async () => {
     await TestBed.configureTestingModule({
       imports: [LandingHeaderComponent],
-      providers: [{ provide: LANDING_CONFIG, useValue: { appUrl: '/', siteUrl: 'https://example.test', repoUrl: '/', docsUrl: '/' } }],
+      providers: [{ provide: LANDING_CONFIG, useValue: { appUrl: '/', siteUrl: 'https://example.test', repoUrl: '/', docsUrl: '/', statusUrl: '' } }],
     }).compileComponents();
     const fixture = TestBed.createComponent(LandingHeaderComponent);
     fixture.componentRef.setInput('language', 'en');

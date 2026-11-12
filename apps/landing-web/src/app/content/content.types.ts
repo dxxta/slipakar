@@ -12,7 +12,13 @@ export interface FaqItem {
 export interface HomeCopy {
   metadata: PageMetadata;
   nav: { how: string; features: string; signIn: string };
-  hero: { title: string; description: string; signIn: string; selfHost: string };
+  hero: {
+    title: string;
+    description: string;
+    signIn: string;
+    selfHost: string;
+    connectionStatus: { connected: string; disconnected: string; checking: string };
+  };
   audience: { title: string; items: string[] };
   how: { title: string; steps: Array<{ title: string; body: string }> };
   features: { title: string; items: Array<{ title: string; body: string }> };

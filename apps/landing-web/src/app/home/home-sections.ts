@@ -1,5 +1,5 @@
-import { DOCUMENT } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, OnInit, PLATFORM_ID, signal } from '@angular/core';
 import { HomeCopy } from '../content/content.types';
 import { LANDING_CONFIG } from '../runtime-config';
 import { HlmToggleGroupImports } from '@slipakar/ui/toggle-group';
@@ -87,22 +87,77 @@ export class LandingHeaderComponent {
             <div class="mail-line mail-line-long"></div><div class="mail-line"></div>
             <div class="attachment"><span class="attachment-file">PDF</span><span><strong> payslip-{{ placeholderLabel }}.pdf</strong><small>One file for this recipient</small></span></div>
           </div>
-          <div class="window-bottom"><span>SMTP connection</span><span class="connection-dot"></span><strong>Connected</strong></div>
+          <div class="window-bottom">
+            <span>SMTP connection</span>
+            @if (config.statusUrl) {
+              <a appPressed class="connection-badge" [href]="config.statusUrl" target="_blank" rel="noopener">
+                <span class="connection-dot" [attr.data-state]="status()"></span>
+                <strong aria-live="polite">{{ statusLabel() }}</strong>
+              </a>
+            } @else {
+              <span class="connection-badge">
+                <span class="connection-dot" [attr.data-state]="status()"></span>
+                <strong aria-live="polite">{{ copy().hero.connectionStatus.checking }}</strong>
+              </span>
+            }
+          </div>
         </div>
         <span class="proof-caption">One campaign. A message and document for each person.</span>
       </div>
     </section>
   `,
 })
-export class LandingHeroComponent {
+export class LandingHeroComponent implements OnInit, OnDestroy {
   readonly copy = input.required<HomeCopy>();
   protected readonly placeholderLabel = '{{name}}';
+  protected readonly status = signal<'up' | 'down' | 'checking'>('checking');
+  protected readonly statusLabel = computed(() => {
+    const labels = this.copy().hero.connectionStatus;
+    switch (this.status()) {
+      case 'up': return labels.connected;
+      case 'down': return labels.disconnected;
+      default: return labels.checking;
+    }
+  });
   protected readonly titleParts = computed(() => {
     const title = this.copy().hero.title.trim();
     const lastSpace = title.lastIndexOf(' ');
     return { lead: lastSpace < 0 ? '' : title.slice(0, lastSpace), accent: title.slice(lastSpace + 1) };
   });
   protected readonly config = inject(LANDING_CONFIG);
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly document = inject(DOCUMENT);
+  private statusTimer: number | undefined;
+
+  ngOnInit(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+    void this.refreshStatus();
+    this.statusTimer = this.document.defaultView?.setInterval(() => void this.refreshStatus(), 60_000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.statusTimer !== undefined) this.document.defaultView?.clearInterval(this.statusTimer);
+  }
+
+  private async refreshStatus(): Promise<void> {
+    const browserWindow = this.document.defaultView;
+    if (!browserWindow) return;
+
+    this.status.set('checking');
+    try {
+      const response = await browserWindow.fetch('/status.json', { cache: 'no-store' });
+      if (!response.ok) {
+        this.status.set('checking');
+        return;
+      }
+
+      const result: unknown = await response.json();
+      const state = typeof result === 'object' && result !== null ? (result as { state?: unknown }).state : undefined;
+      this.status.set(state === 'up' || state === 'down' ? state : 'checking');
+    } catch {
+      this.status.set('checking');
+    }
+  }
 }
 
 @Component({
@@ -259,7 +314,7 @@ export class LandingFaqComponent { readonly copy = input.required<HomeCopy>(); }
   template: `
     <footer class="site-footer" id="get-started"><div class="section-shell footer-main"><div><p class="section-kicker">SLIPAKAR</p><h2>{{ copy().final.title }}</h2><p>{{ copy().final.body }}</p><a appPressed class="button button-primary" [href]="config.appUrl">{{ copy().final.signIn }} <span class="arrow-mark" aria-hidden="true"></span></a></div>
       <div class="footer-links"><a appPressed [href]="termsPath()">{{ copy().final.terms }}</a><a appPressed [href]="config.repoUrl" target="_blank" rel="noopener noreferrer">{{ copy().final.repository }}</a></div>
-    </div><div class="section-shell footer-bottom"><span>© Slipakar</span><span>Open source · Apache-2.0</span></div></footer>
+    </div><div class="section-shell footer-bottom"><span>© Slipakar</span><span>Loved and managed by <a class="footer-credit" href="https://dev.akarun.site" target="_blank" rel="noopener">dev.akarun.site</a></span></div></footer>
   `,
 })
 export class LandingFooterComponent {

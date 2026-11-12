@@ -49,20 +49,20 @@ Before starting, ensure the host machine has the following tools installed:
      openssl rand -base64 32
      ```
    - **`BETTER_AUTH_URL`**: The single public origin users open for both web apps (for example `http://localhost:8080` locally or `https://app.example.com` behind Caddy). The admin app is served under `/console/`. Better Auth uses this URL when constructing OAuth callback URLs.
-   - **`TRUSTED_ORIGINS`**: Comma-separated absolute browser origins accepted by Better Auth. Compose defaults to `http://localhost:8080`; the user and admin apps share this origin.
-   - **`API_ACCESS_ENABLED`**: Self-hosted bearer API master switch (default `false`); must be enabled alongside the runtime switch in Admin Setup. Hosted cloud keeps it disabled.
-   - **`API_ALLOWED_ORIGINS`**: Optional comma-separated absolute origins allowed for browser CORS with API keys (default empty; no wildcard or credentials). See [API integrations](INTEGRATIONS.md).
-   - **`EMBED_ALLOWED_ORIGINS`**: Optional comma-separated absolute HTTPS origins allowed to frame the embed app (only `http://localhost[:port]` is accepted for development). Empty disables embedding. Embedding also requires active API access and the Admin Setup Embedding switch; hosted cloud keeps it disabled. See [API integrations](INTEGRATIONS.md#embedding-a-project).
+   - **`TRUSTED_ORIGINS`**: Comma-separated absolute browser origins accepted by Better Auth. Compose defaults to `http://localhost:8080`, the user and admin apps share this origin.
+   - **`API_ACCESS_ENABLED`**: Self-hosted bearer API master switch (default `false`), must be enabled alongside the runtime switch in Admin Setup. Hosted cloud keeps it disabled.
+   - **`API_ALLOWED_ORIGINS`**: Optional comma-separated absolute origins allowed for browser CORS with API keys (default empty, no wildcard or credentials). See [API integrations](INTEGRATIONS.md).
+   - **`EMBED_ALLOWED_ORIGINS`**: Optional comma-separated absolute HTTPS origins allowed to frame the embed app (only `http://localhost[:port]` is accepted for development). Empty disables embedding. Embedding also requires active API access and the Admin Setup Embedding switch, hosted cloud keeps it disabled. See [API integrations](INTEGRATIONS.md#embedding-a-project).
    - **`GOOGLE_CLIENT_ID`** & **`GOOGLE_CLIENT_SECRET`**: OAuth credentials from the Google Cloud Console.
    - **`METRICS_TOKEN`**: High-entropy secret token (at least 16 characters) used by Prometheus to scrape `/metrics`.
    - **`GRAFANA_ADMIN_PASSWORD`**: Password for the Grafana admin account (`admin`).
-   - **`UPTIME_KUMA_ADMIN_USER`** and **`UPTIME_KUMA_ADMIN_PASSWORD`**: Credentials for the separate `docker-compose.status.yml` deployment. The password is required only by that stack; `make secrets` prints a generated value. They can also be supplied to the API's optional Setup connection test.
-   - **`SEED_DEMO_PROJECT`**: Startup demo workspace toggle (`true` by default; set `false` to disable it).
-   - **`SETUP_GRAFANA_API_TOKEN`**: Optional token for the Grafana API connection test. Compose supplies the internal Grafana URL; Uptime Kuma settings are optional and must be configured separately if the API should test that integration.
+   - **`UPTIME_KUMA_ADMIN_USER`** and **`UPTIME_KUMA_ADMIN_PASSWORD`**: Credentials for the separate `docker-compose.status.yml` deployment. The password is required only by that stack, `make secrets` prints a generated value. They can also be supplied to the API's optional Setup connection test.
+   - **`SEED_DEMO_PROJECT`**: Startup demo workspace toggle (`true` by default, set `false` to disable it).
+   - **`SETUP_GRAFANA_API_TOKEN`**: Optional token for the Grafana API connection test. Compose supplies the internal Grafana URL, Uptime Kuma settings are optional and must be configured separately if the API should test that integration.
    - **`ADMIN_EMAILS`**: Comma-separated list of user email addresses granted admin role upon login.
    - **`BIND_ADDRESS`**: Host IP to bind exposed services to (defaults to `127.0.0.1`).
-   - **`AUTH_SMTP_HOST`**, **`AUTH_SMTP_PORT`**, **`AUTH_SMTP_SECURE`**, **`AUTH_SMTP_USER`**, **`AUTH_SMTP_PASS`**, **`AUTH_MAIL_FROM`**: Optional platform SMTP fallback settings used to send transactional authentication emails (verified email change links) and administrative broadcasts. Database-configured `mail` integration settings in `/admin/setup` take precedence over these environment variables (cached for 30s and invalidated on update/delete). Credential login needs platform SMTP from `AUTH_SMTP_*` or Admin Setup Mail; without it, only Google login works. When neither DB mail nor `AUTH_SMTP_*` is configured, credential sign-up and reset requests return `400 EMAIL_UNAVAILABLE`, `POST /api/auth/change-email` returns `400 EMAIL_CHANGE_UNAVAILABLE`, and broadcast sending skips email dispatch while still delivering in-app user notices. Note: Docker Compose passes unset optional variables as empty strings, which the API treats as unset.
-   - **`APP_URL`**: Optional frontend application URL used for callback redirection in email verification links and as the fallback landing page for failed Google sign-in (`<APP_URL>/auth/error`). Normally the user and admin apps send their own error page. Defaults to the first origin in `TRUSTED_ORIGINS` for verification links; the error fallback is only set when `APP_URL` is configured.
+   - **`AUTH_SMTP_HOST`**, **`AUTH_SMTP_PORT`**, **`AUTH_SMTP_SECURE`**, **`AUTH_SMTP_USER`**, **`AUTH_SMTP_PASS`**, **`AUTH_MAIL_FROM`**: Optional platform SMTP fallback settings used to send transactional authentication emails (verified email change links) and administrative broadcasts. Database-configured `mail` integration settings in `/admin/setup` take precedence over these environment variables (cached for 30s and invalidated on update/delete). Credential login needs platform SMTP from `AUTH_SMTP_*` or Admin Setup Mail, without it, only Google login works. When neither DB mail nor `AUTH_SMTP_*` is configured, credential sign-up and reset requests return `400 EMAIL_UNAVAILABLE`, `POST /api/auth/change-email` returns `400 EMAIL_CHANGE_UNAVAILABLE`, and broadcast sending skips email dispatch while still delivering in-app user notices. Note: Docker Compose passes unset optional variables as empty strings, which the API treats as unset.
+   - **`APP_URL`**: Optional frontend application URL used for callback redirection in email verification links and as the fallback landing page for failed Google sign-in (`<APP_URL>/auth/error`). Normally the user and admin apps send their own error page. Defaults to the first origin in `TRUSTED_ORIGINS` for verification links, the error fallback is only set when `APP_URL` is configured.
    - **`LOGIN_EVENT_RETENTION_DAYS`**: Number of days to retain user login events (default: 90 days, range: 1..3650 days). Expired records are pruned at API boot and every 24 hours.
    - **`TRUST_PROXY`**: Trust proxy setting for Express. Values: `false` (default for bare API), a hop count like `1` (compose default behind nginx reverse proxy), or a comma-separated list of CIDRs. Ensures client IP is accurately resolved from `X-Forwarded-For`.
 
@@ -96,11 +96,11 @@ Slipakar uses [Garage](https://garagehq.deuxfleurs.fr/) (`dxflrs/garage:v1.0.1`)
 
 ### Preconfigured Monitoring
 
-Grafana loads the Prometheus data source and dashboard from `infra/grafana/provisioning` on first start. Uptime Kuma is deployed separately with `docker-compose.status.yml`; see [Separate status page (Uptime Kuma)](#separate-status-page-uptime-kuma). The main application stack does not depend on Kuma and remains available independently of the status deployment.
+Grafana loads the Prometheus data source and dashboard from `infra/grafana/provisioning` on first start. Uptime Kuma is deployed separately with `docker-compose.status.yml`, see [Separate status page (Uptime Kuma)](#separate-status-page-uptime-kuma). The main application stack does not depend on Kuma and remains available independently of the status deployment.
 
 For optional self-hosted server-to-server API keys, see [API integrations](INTEGRATIONS.md). They are disabled by default and remain disabled on the hosted cloud service.
 
-The API receives `SETUP_GRAFANA_URL=http://grafana:3000` from Compose. `SETUP_UPTIME_URL`, `UPTIME_KUMA_ADMIN_USER`, and `UPTIME_KUMA_ADMIN_PASSWORD` are optional pass-through values; set them only when the API can reach the standalone Kuma admin endpoint. The Setup page displays environment-configured integrations as read-only and keeps their connection tests available. The Setup page remains necessary for platform mail, which is not configured by this stack by default.
+The API receives `SETUP_GRAFANA_URL=http://grafana:3000` from Compose. `SETUP_UPTIME_URL`, `UPTIME_KUMA_ADMIN_USER`, and `UPTIME_KUMA_ADMIN_PASSWORD` are optional pass-through values, set them only when the API can reach the standalone Kuma admin endpoint. The Setup page displays environment-configured integrations as read-only and keeps their connection tests available. The Setup page remains necessary for platform mail, which is not configured by this stack by default.
 
 | Variable | Default in Docker Compose | Purpose |
 |---|---|---|
@@ -123,7 +123,7 @@ docker compose up -d --build
 
 The `api` container automatically executes database migrations via `docker-entrypoint.sh` before launching the application server.
 
-After migrations and API startup, `SEED_DEMO_PROJECT=true` (the default) seeds one sample payroll workspace under a disabled, hidden system owner. The system user acts as the one-time seed marker, so deleting the project later does not recreate it. The first administrator who signs in claims project ownership; an audit entry records the assignment. Set `SEED_DEMO_PROJECT=false` to disable startup seeding. The sample includes an Excel upload, field mapping, email and PDF templates, a placeholder SMTP connection at `smtp.example.com`, and a draft campaign. The campaign cannot send until you configure a real SMTP connection for the project.
+After migrations and API startup, `SEED_DEMO_PROJECT=true` (the default) seeds one sample payroll workspace under a disabled, hidden system owner. The system user acts as the one-time seed marker, so deleting the project later does not recreate it. The first administrator who signs in claims project ownership, an audit entry records the assignment. Set `SEED_DEMO_PROJECT=false` to disable startup seeding. The sample includes an Excel upload, field mapping, email and PDF templates, a placeholder SMTP connection at `smtp.example.com`, and a draft campaign. The campaign cannot send until you configure a real SMTP connection for the project.
 
 To inspect running containers and health status:
 
@@ -142,7 +142,7 @@ docker compose logs -f api
 
 ## 5. Web Interfaces & Endpoints
 
-One Nginx container serves both production Angular apps on container port `8080`: user web is at `/` and admin web at `/console/`. API routes such as `/admin/*` remain proxied to the API, so the admin SPA must stay under `/console/`. Compose publishes the web port on `127.0.0.1` by default through `BIND_ADDRESS`; put a TLS reverse proxy in front of that single origin.
+One Nginx container serves both production Angular apps on container port `8080`: user web is at `/` and admin web at `/console/`. API routes such as `/admin/*` remain proxied to the API, so the admin SPA must stay under `/console/`. Compose publishes the web port on `127.0.0.1` by default through `BIND_ADDRESS`, put a TLS reverse proxy in front of that single origin.
 
 | Service | Container / host port | Default URL | Description |
 |---|---:|---|---|
@@ -152,7 +152,7 @@ One Nginx container serves both production Angular apps on container port `8080`
 | **Grafana** | `3000` / `3001` | `http://127.0.0.1:3001` | Monitoring dashboards (default user: `admin`) |
 The separate status deployment publishes its gateway on `STATUS_PORT` (default `8081`) and the Kuma admin dashboard on `KUMA_ADMIN_PORT` (default `3002`), both loopback-bound by default. See the standalone deployment section below.
 
-The `landing` site is an optional Compose profile, not part of a normal `docker compose up`. Start it with `docker compose --profile landing up -d`; it publishes loopback port `8082` by default and can use its own domain. PostgreSQL, Redis, RabbitMQ, Garage, and Prometheus remain internal to the main Compose network. `WEB_PORT` changes the single published web host port while Nginx listens on container port `8080`.
+The `landing` site is an optional Compose profile, not part of a normal `docker compose up`. Start it with `docker compose --profile landing up -d`, it publishes loopback port `8082` by default and can use its own domain. PostgreSQL, Redis, RabbitMQ, Garage, and Prometheus remain internal to the main Compose network. `WEB_PORT` changes the single published web host port while Nginx listens on container port `8080`.
 
 ### Google OAuth and public hostnames
 
@@ -162,9 +162,9 @@ Register this redirect URI in Google Cloud Console:
 ${BETTER_AUTH_URL}/api/auth/callback/google
 ```
 
-`BETTER_AUTH_URL` must be the public origin users open. For local Compose, use `http://localhost:8080`; behind the reverse proxy below, use `https://app.example.com`. User web lives at `/` and admin web at `/console/` on that origin. The browser sends Better Auth requests through the same-origin Nginx proxy.
+`BETTER_AUTH_URL` must be the public origin users open. For local Compose, use `http://localhost:8080`, behind the reverse proxy below, use `https://app.example.com`. User web lives at `/` and admin web at `/console/` on that origin. The browser sends Better Auth requests through the same-origin Nginx proxy.
 
-The admin and user apps share the same host and port, so their browser cookies are shared by origin. Keep authorization enforced by the API's role checks and the web security policy; the `/console/` path is not an authorization boundary.
+The admin and user apps share the same host and port, so their browser cookies are shared by origin. Keep authorization enforced by the API's role checks and the web security policy, the `/console/` path is not an authorization boundary.
 
 Example Caddy configuration for the single app origin:
 
@@ -181,7 +181,7 @@ BETTER_AUTH_URL=https://app.example.com
 TRUSTED_ORIGINS=https://app.example.com
 ```
 
-The user and admin Sentry DSNs are optional Docker build arguments. Set `SENTRY_DSN_USER` and `SENTRY_DSN_ADMIN` in the Compose environment before building `web`; each value is embedded in that app's production JavaScript bundle. Leave them empty to disable browser Sentry reporting.
+The user and admin Sentry DSNs are optional Docker build arguments. Set `SENTRY_DSN_USER` and `SENTRY_DSN_ADMIN` in the Compose environment before building `web`, each value is embedded in that app's production JavaScript bundle. Leave them empty to disable browser Sentry reporting.
 
 Nginx allows same-origin app assets and API requests, Sentry ingestion, Angular inline styles, and the same-origin sandboxed `srcdoc` email preview iframe. That iframe remains sandboxed without scripts or same-origin privileges.
 
@@ -197,7 +197,7 @@ landing.example.com {
 }
 ```
 
-The landing site's default `LANDING_APP_URL` follows `BETTER_AUTH_URL`; its other URL settings are independent. Set `API_UPSTREAM` if the Nginx web container needs a non-default API address. `PORT` is the Nginx container listener and defaults to `8080` (the Compose mapping targets that port).
+The landing site's default `LANDING_APP_URL` follows `BETTER_AUTH_URL`, its other URL settings are independent. Set `API_UPSTREAM` if the Nginx web container needs a non-default API address. `PORT` is the Nginx container listener and defaults to `8080` (the Compose mapping targets that port).
 
 Set these public URLs in `.env` before starting or rebuilding the service:
 
@@ -207,8 +207,9 @@ Set these public URLs in `.env` before starting or rebuilding the service:
 | `LANDING_SITE_URL` | Public landing origin used for canonical, Open Graph, and sitemap URLs. |
 | `LANDING_REPO_URL` | Public source repository link. |
 | `LANDING_DOCS_URL` | Public self-hosting guide link. |
+| `LANDING_STATUS_URL` | Optional public Uptime Kuma status page URL (`https://status.example.com/status/<slug>`), leave empty to show the status as checking without a link. |
 
-The Express server reads these values at runtime and places them in an SSR-rendered metadata element; the Angular app reads that value through an injection token rather than a `window` global. Missing values use localhost defaults. The landing site serves a dynamic `robots.txt` that disallows the listed AI model crawlers while allowing general crawling and search crawlers. Express also returns `403` for requests whose user-agent matches the block list. These checks only guide or stop honest clients; user agents can be spoofed, so use a CDN or WAF if access must be enforced.
+The Express server reads these values at runtime and places them in an SSR-rendered metadata element, the Angular app reads that value through an injection token rather than a `window` global. Missing values use localhost defaults. The landing site serves a dynamic `robots.txt` that disallows the listed AI model crawlers while allowing general crawling and search crawlers. Express also returns `403` for requests whose user-agent matches the block list. These checks only guide or stop honest clients, user agents can be spoofed, so use a CDN or WAF if access must be enforced.
 
 ### Separate status page (Uptime Kuma)
 
@@ -216,9 +217,9 @@ The public status page runs in a separate Compose deployment so it can remain av
 
 For Dokploy, create a separate Compose application using Compose Path `./docker-compose.status.yml`. Point its public domain to the `status-gateway` service on container port `8081`. Configure `STATUS_PAGE_SLUG`, `STATUS_PAGE_TITLE`, `STATUS_PORT`, `STATUS_BIND_ADDRESS`, `KUMA_ADMIN_PORT`, `KUMA_ADMIN_BIND_ADDRESS`, the `KUMA_MONITOR_*_URL` values, `KUMA_MONITOR_LANDING`, and `UPTIME_KUMA_ADMIN_USER` / `UPTIME_KUMA_ADMIN_PASSWORD` in that deployment. Monitor URL values are empty by default, so set the public health URLs you want to show. The status password is required by this standalone stack, not by the main application stack.
 
-The public root `/` redirects to `/status/<STATUS_PAGE_SLUG>`. The gateway allows only GET and HEAD requests to `/status/*`, `/api/status-page/*`, `/assets/*`, `/icon.svg`, `/apple-touch-icon.png`, `/favicon.ico`, and `/upload/*`; other paths, including `/dashboard`, `/login`, `/settings`, `/add`, `/manage-status-page`, `/socket.io`, `/metrics`, and `/api/push`, return 404. The Kuma dashboard is published only on `127.0.0.1:KUMA_ADMIN_PORT` by default. To reach it on a remote host, use an SSH tunnel such as `ssh -L 3002:127.0.0.1:3002 user@server`, then open `http://localhost:3002` locally.
+The public root `/` redirects to `/status/<STATUS_PAGE_SLUG>`. The gateway allows only GET and HEAD requests to `/status/*`, `/api/status-page/*`, `/assets/*`, `/icon.svg`, `/apple-touch-icon.png`, `/favicon.ico`, and `/upload/*`, other paths, including `/dashboard`, `/login`, `/settings`, `/add`, `/manage-status-page`, `/socket.io`, `/metrics`, and `/api/push`, return 404. The Kuma dashboard is published only on `127.0.0.1:KUMA_ADMIN_PORT` by default. To reach it on a remote host, use an SSH tunnel such as `ssh -L 3002:127.0.0.1:3002 user@server`, then open `http://localhost:3002` locally.
 
-Admins may create additional status pages in the Kuma dashboard; valid `/status/<slug>` pages are served automatically through the public host. Back up the separate `uptime_kuma_data` volume with the other deployment data. Its volume name is prefixed by the standalone Compose project name (default `slipakar-status`); preserve that volume when upgrading or recreating the status stack. For example, with the default project name:
+Admins may create additional status pages in the Kuma dashboard, valid `/status/<slug>` pages are served automatically through the public host. Back up the separate `uptime_kuma_data` volume with the other deployment data. Its volume name is prefixed by the standalone Compose project name (default `slipakar-status`), preserve that volume when upgrading or recreating the status stack. For example, with the default project name:
 
 ```bash
 docker run --rm \
@@ -229,7 +230,7 @@ docker run --rm \
 
 Replace the volume name prefix if `COMPOSE_PROJECT_NAME` is customized.
 
-`SETUP_UPTIME_URL` is optional. Set it only when the API can reach the private Kuma admin URL and you want the Admin Setup connection test; do not point it at the public read-only gateway.
+`SETUP_UPTIME_URL` is optional. Set it only when the API can reach the private Kuma admin URL and you want the Admin Setup connection test, do not point it at the public read-only gateway.
 
 ---
 
@@ -239,7 +240,7 @@ Slipakar uses Better Auth for user authentication.
 
 ### Sign-in methods
 
-Users can sign in with Google login or credential login using an email address and password. Credential login requires platform SMTP configured through `AUTH_SMTP_*` or Admin Setup Mail so verification and password recovery links can be delivered; without it, only Google login works. Google login can connect to an existing credential account only after that account's email is verified. A Google login cannot take over an unverified credential account; verify the credential email before linking.
+Users can sign in with Google login or credential login using an email address and password. Credential login requires platform SMTP configured through `AUTH_SMTP_*` or Admin Setup Mail so verification and password recovery links can be delivered, without it, only Google login works. Google login can connect to an existing credential account only after that account's email is verified. A Google login cannot take over an unverified credential account, verify the credential email before linking.
 
 To grant an account the `admin` role:
 1. Include the user's email in the `ADMIN_EMAILS` environment variable in `.env`:
@@ -334,7 +335,7 @@ RABBITMQ_USER=lokaslip
 S3_BUCKET=lokaslip
 ```
 
-If the deployment used a custom Compose project name, keep that exact name in `COMPOSE_PROJECT_NAME` so Compose continues to select the existing named volumes. PostgreSQL and RabbitMQ only create their configured users and databases on first initialization, so the values must match the existing data volumes. The old `lokaslip.theme-preferences` browser key is migrated to `slipakar.theme-preferences`; metric names now use the Slipakar prefix, so update any custom dashboards or alerts that query them.
+If the deployment used a custom Compose project name, keep that exact name in `COMPOSE_PROJECT_NAME` so Compose continues to select the existing named volumes. PostgreSQL and RabbitMQ only create their configured users and databases on first initialization, so the values must match the existing data volumes. The old `lokaslip.theme-preferences` browser key is migrated to `slipakar.theme-preferences`, metric names now use the Slipakar prefix, so update any custom dashboards or alerts that query them.
 
 ---
 
@@ -343,7 +344,7 @@ If the deployment used a custom Compose project name, keep that exact name in `C
 - **Localhost Binding**:
   By default, `docker-compose.yml` binds `web` (8080), `api` (3000), and `grafana` (3001) to `127.0.0.1` using `${BIND_ADDRESS:-127.0.0.1}`. The optional landing service also defaults to `127.0.0.1` on port `8082`. The separate status gateway and Kuma dashboard default to loopback bindings in `docker-compose.status.yml`.
 - **Isolated Internal Services**:
-  PostgreSQL, Redis, RabbitMQ, Garage, and Prometheus publish **no** host ports; they communicate entirely through the internal Docker network.
+  PostgreSQL, Redis, RabbitMQ, Garage, and Prometheus publish **no** host ports, they communicate entirely through the internal Docker network.
 - **Production Reverse Proxy & `TRUST_PROXY`**:
   Never expose ports directly to the public internet without a reverse proxy. Place a reverse proxy (e.g. Nginx, Caddy, Cloudflare Tunnel, or Traefik) in front of the services to terminate TLS/HTTPS, manage SSL certificates, and configure security headers (HSTS, CSP, X-Frame-Options). Set `TRUST_PROXY` (`1` by default in Docker Compose for the bundled Nginx proxy) so Express accurately resolves client IPs from `X-Forwarded-For`.
 - **Encrypted Secrets & Platform Mail Precedence**:
@@ -381,4 +382,4 @@ If login activity shows private or unknown IPs:
 Login coordinates are collected from the browser only when the user allows location access. If location access is denied or unavailable, the login history uses the approximate location derived from the request IP.
 # Two-factor authentication
 
-Credential login can use TOTP from any authenticator app, with one-time backup codes for recovery. Two-factor verification applies to email-and-password sign-ins; Google login continues to use Google's own verification. Enabling this feature requires the `20261111101500_totp_2fa` database migration, which is applied automatically when the API starts.
+Credential login can use TOTP from any authenticator app, with one-time backup codes for recovery. Two-factor verification applies to email-and-password sign-ins, Google login continues to use Google's own verification. Enabling this feature requires the `20261111101500_totp_2fa` database migration, which is applied automatically when the API starts.

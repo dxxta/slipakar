@@ -128,8 +128,12 @@ h1 { max-width: 13ch; margin-bottom: 1.45rem; font-size: clamp(2.85rem, 5.5vw, 5
 .attachment strong { font-size: 0.87rem; overflow-wrap: anywhere; }
 .attachment small { margin-top: 0.2rem; color: var(--landing-muted); font-size: 0.75rem; }
 .window-bottom { border-top: 3px solid var(--border-strong); }
-.window-bottom strong { margin-left: auto; color: var(--text); }
-.connection-dot { width: 8px; height: 8px; margin-left: -0.4rem; border-radius: 50%; background: var(--lime); outline: 1px solid var(--ink); }
+.connection-badge { display: inline-flex; align-items: center; gap: 0.45rem; margin-left: auto; color: var(--text); text-decoration: none; }
+.connection-badge strong { color: var(--text); }
+.connection-dot { box-sizing: border-box; width: 8px; height: 8px; flex: 0 0 8px; border-radius: 50%; background: var(--landing-muted); outline: 1px solid var(--ink); }
+.connection-dot[data-state="up"] { background: var(--lime); }
+.connection-dot[data-state="down"] { border: 1px solid var(--warm); background: transparent; outline: 1px solid var(--ink); }
+.connection-dot[data-state="checking"] { background: var(--landing-muted); }
 .proof-caption { position: absolute; right: 0; bottom: 0; color: var(--landing-muted); font-size: 0.75rem; font-weight: 650; }
 
 .audience { border-block: 3px solid var(--ink-fixed); background: var(--lime); }
@@ -214,6 +218,7 @@ h1 { max-width: 13ch; margin-bottom: 1.45rem; font-size: clamp(2.85rem, 5.5vw, 5
 .footer-links a { padding: 0.45rem 1rem; border: 2px solid var(--ink-fixed); border-radius: 999px; box-shadow: 3px 3px 0 var(--ink-fixed); background: var(--surface); color: var(--text); font-size: 0.85rem; font-weight: 800; text-decoration: none; }
 .footer-links a:hover { color: var(--ink); background: var(--lime); }
 .footer-bottom { display: flex; justify-content: space-between; padding-block: 1.1rem; border-top: 2px solid var(--ink-fixed); color: var(--ink); font-size: 0.74rem; font-weight: 650; }
+.footer-credit { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
 .site-footer .button { border-color: var(--ink-fixed); box-shadow: 0 4px 0 var(--ink-fixed), inset 0 2px 0 var(--on-ink); }
 .site-footer .button[appPressed]:hover { box-shadow: 0 6px 0 var(--ink-fixed), inset 0 2px 0 var(--on-ink); }
 .site-footer .button[appPressed][data-pressed] { box-shadow: 0 0 0 var(--ink-fixed) !important; }

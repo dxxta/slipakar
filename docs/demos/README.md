@@ -1,13 +1,13 @@
 # Slipakar MVP demo
 
-Run on the local development stack with Mailpit for email, using the demo admin account `demo-admin@slipakar.local`, on 2026-11-12. The API used port 3999 because port 3000 was occupied; the user app used port 4300, the admin app 4301, Mailpit 8025, and Grafana 3011.
+Run on the local development stack with Mailpit for email, using the demo admin account `demo-admin@slipakar.local`, on 2026-11-12. The API used port 3999 because port 3000 was occupied, the user app used port 4300, the admin app 4301, Mailpit 8025, and Grafana 3011.
 
 | Screenshot | Feature | What it shows |
 | --- | --- | --- |
 | ![Sign-up form](01-sign-up.png) | Account creation | Demo account details entered with the password masked. |
 | ![Verification email](02-verification-email.png) | Email verification | Mailpit filtered to the demo account’s verification email. |
 | ![Sign-in](03-sign-in.png) | Authentication | Demo account sign-in form with password masked. |
-| ![Projects](04-projects-empty.png) | Projects | Project list; the fresh workspace also contained a seeded example project. “Demo Payroll” was added. |
+| ![Projects](04-projects-empty.png) | Projects | Project list, the fresh workspace also contained a seeded example project. “Demo Payroll” was added. |
 | ![Project overview](05-project-overview.png) | Project overview | Project activity and delivery summary. |
 | ![SMTP connection](06-smtp-connection.png) | SMTP | Mailpit connection configured and tested at localhost:1025. |
 | ![Email template](07-email-template.png) | Email templates | “Demo Payslip” template with month, name, and salary placeholders. |
@@ -30,6 +30,6 @@ Run on the local development stack with Mailpit for email, using the demo admin 
 
 ## Not captured / issues found
 
-- Scene 17 (login location map) was skipped because the available login event had no coordinates; it showed an unavailable location and “No map.”
+- Scene 17 (login location map) was skipped because the available login event had no coordinates, it showed an unavailable location and “No map.”
 - The PDF templates page had no PDF template configured, so the screenshot shows the empty list.
-- The initial project list included the database’s seeded “Example payroll project”; the requested “Demo Payroll” project was created and used for the remaining scenes.
+- The initial project list included the database’s seeded “Example payroll project”, the requested “Demo Payroll” project was created and used for the remaining scenes.
