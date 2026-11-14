@@ -184,16 +184,15 @@ interface FieldMappingSummary {
 
             <!-- 4. SMTP Connection -->
             <div>
-              <label for="smtp-select" class="mb-1 block text-sm font-medium">SMTP Delivery Connection *</label>
+              <label for="smtp-select" class="mb-1 block text-sm font-medium">Mailer</label>
               <select appSelect
                 id="smtp-select"
                 data-testid="smtp-select"
                 class="h-control-9 w-full rounded-md border border-input bg-background px-3 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 [value]="selectedSmtpId()"
                 (change)="onSmtpChange($event)"
-                required
               >
-                <option value="" disabled selected>-- Select SMTP connection --</option>
+                <option value="">Platform mailer (default)</option>
                 @for (smtp of smtpConnections(); track smtp.id) {
                   <option [value]="smtp.id">{{ smtp.host }}:{{ smtp.port }} ({{ smtp.username }})</option>
                 }
@@ -368,8 +367,7 @@ export class CampaignCreatePage implements OnInit {
     return (
       !!this.selectedTemplateId() &&
       !!this.selectedUploadId() &&
-      !!this.selectedEmailColumn() &&
-      !!this.selectedSmtpId()
+      !!this.selectedEmailColumn()
     );
   }
 
@@ -384,7 +382,7 @@ export class CampaignCreatePage implements OnInit {
       emailTemplateId: this.selectedTemplateId(),
       uploadId: this.selectedUploadId(),
       emailColumn: this.selectedEmailColumn(),
-      smtpConnectionId: this.selectedSmtpId(),
+      ...(this.selectedSmtpId() ? { smtpConnectionId: this.selectedSmtpId() } : {}),
       ...(this.selectedPdfTemplateId() ? { pdfTemplateId: this.selectedPdfTemplateId() } : {}),
     };
 

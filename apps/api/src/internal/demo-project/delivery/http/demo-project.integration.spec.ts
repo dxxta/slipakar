@@ -19,7 +19,7 @@ import { buildCampaignsRepository } from '../../../campaigns/repository/campaign
 import { buildSmtpRepository } from '../../../smtp/repository/smtp.js';
 import { buildSmtpUseCase } from '../../../smtp/usecase/smtp.js';
 import { fileParser } from '../../../uploads/parser/file-parser.js';
-import { createCryptoService } from '../../../../services/crypto.js';
+import { realDataVault } from '../../../../test/vault.js';
 import { buildDemoProjectUseCase } from '../../usecase/demo-project.js';
 import { createDemoProjectRouter } from './demo-project.js';
 import { requireAdmin } from '../../../system-config/middleware/require-admin.js';
@@ -58,11 +58,11 @@ describe('Demo Project Integration', () => {
     });
     adminId = admin.id;
 
-    const cryptoService = createCryptoService('a'.repeat(64));
+    const dataVault = realDataVault(prisma);
     const auditRepository = buildAuditRepository(prisma);
     const projectsRepository = buildProjectsRepository({ prisma, auditRepository });
     const templatesRepository = buildTemplatesRepository({ prisma, auditRepository });
-    const uploadsRepository = buildUploadsRepository({ prisma, auditRepository });
+    const uploadsRepository = buildUploadsRepository({ prisma, auditRepository, dataVault });
     const uploadsUseCase = buildUploadsUseCase({
       repository: uploadsRepository,
       prisma,
@@ -73,7 +73,10 @@ describe('Demo Project Integration', () => {
       },
       projectLookup: async (pid, uid) => (await prisma.project.findFirst({ where: { id: pid, ownerId: uid } })) !== null,
     });
-    const mappingRepository = buildMappingRepository({ prisma, auditRepository });
+    const mappingRepository = buildMappingRepository({
+      prisma, auditRepository, dataVault,
+      projectIdOfTemplate: async (templateId) => (await prisma.emailTemplate.findUniqueOrThrow({ where: { id: templateId }, select: { projectId: true } })).projectId,
+    });
     const mappingUseCase = buildMappingUseCase({
       repository: mappingRepository,
       prisma,
@@ -97,11 +100,11 @@ describe('Demo Project Integration', () => {
     });
     const pdfTemplatesRepository = buildPdfTemplatesRepository({ prisma, auditRepository });
     const campaignsRepository = buildCampaignsRepository({ prisma, auditRepository });
-    const smtpRepository = buildSmtpRepository({ prisma, auditRepository, cryptoService });
+    const smtpRepository = buildSmtpRepository({ prisma, auditRepository });
     const smtpUseCase = buildSmtpUseCase({
       repository: smtpRepository,
       prisma,
-      cryptoService,
+      dataVault,
       projectLookup: async (pid, uid) => (await prisma.project.findFirst({ where: { id: pid, ownerId: uid } })) !== null,
     });
 

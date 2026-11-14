@@ -27,7 +27,7 @@ export type CreateCampaignsData = {
   projectId: string;
   emailTemplateId: string;
   pdfTemplateId?: string | null;
-  smtpConnectionId: string;
+  smtpConnectionId?: string | null;
   uploadId: string;
   emailColumn: string;
   recipients: Array<{
@@ -127,6 +127,7 @@ export interface CampaignsUseCaseInterface {
   sendCampaignsUseCase(args: {
     projectId: string;
     id: string;
+    payload?: unknown;
     auditUserId: string;
   }): Promise<ResponseTypeWithoutMetadata<SendCampaignResult>>;
 
@@ -141,6 +142,14 @@ export interface CampaignsUseCaseInterface {
     projectId: string;
     campaignId: string;
     recipientId: string;
+    payload?: unknown;
     auditUserId: string;
   }): Promise<ResponseTypeWithoutMetadata<CampaignRecipientView>>;
+
+  /** Withdraws the owner's consent and stops the worker for this campaign. */
+  stopCampaignsUseCase(args: {
+    projectId: string;
+    id: string;
+    auditUserId: string;
+  }): Promise<ResponseTypeWithoutMetadata<{ campaignId: string; status: string }>>;
 }

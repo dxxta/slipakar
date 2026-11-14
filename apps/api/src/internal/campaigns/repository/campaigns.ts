@@ -22,7 +22,7 @@ export function buildCampaignsRepository({
           projectId: payload.projectId,
           emailTemplateId: payload.emailTemplateId,
           pdfTemplateId: payload.pdfTemplateId ?? null,
-          smtpConnectionId: payload.smtpConnectionId,
+          smtpConnectionId: payload.smtpConnectionId ?? null,
           uploadId: payload.uploadId,
           emailColumn: payload.emailColumn,
           status: 'draft',
@@ -143,7 +143,7 @@ export function buildCampaignsRepository({
     async markSendingCampaignsRepository({ id, auditUserId, tx }): Promise<number> {
       const client = tx ?? prisma;
       const res = await client.campaign.updateMany({
-        where: { id, status: 'draft' },
+        where: { id, status: { in: ['draft', 'stopped'] } },
         data: { status: 'sending' },
       });
 

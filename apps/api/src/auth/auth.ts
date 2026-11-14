@@ -4,6 +4,7 @@ import { createAuthMiddleware } from 'better-auth/api';
 import { prismaAdapter } from 'better-auth/adapters/prisma';
 import { twoFactor } from 'better-auth/plugins';
 import type { AuthEmailSenderInterface } from '../domain/auth/sender.js';
+import type { DataVaultInterface } from '../services/data-vault.js';
 import type { LoginActivityUseCaseInterface } from '../domain/login-activity/interface.js';
 import { claimSystemDemoProject } from '../internal/demo-project/claim.js';
 import type { ErrorReporter } from '../domain/error-reporting/interface.js';
@@ -22,9 +23,10 @@ export type AuthDeps = {
   loginActivityUseCase?: LoginActivityUseCaseInterface;
   adminEmails?: string[];
   errorReporter?: ErrorReporter;
+  dataVault?: DataVaultInterface;
 };
 
-function buildAuth({ prisma, env, authEmailSender, loginActivityUseCase, adminEmails = [], errorReporter }: AuthDeps) {
+function buildAuth({ prisma, env, authEmailSender, loginActivityUseCase, adminEmails = [], errorReporter, dataVault }: AuthDeps) {
   const plugins: BetterAuthPlugin[] = [];
   const adminEmailSet = new Set(adminEmails.map((email) => email.trim().toLowerCase()));
   const googleProfiles = new Map<string, { email: string; verified: boolean; expiresAt: number }>();
@@ -217,6 +219,7 @@ function buildAuth({ prisma, env, authEmailSender, loginActivityUseCase, adminEm
           userEmail: user.email,
           adminEmails,
           errorReporter: errorReporter ?? { capture: (error) => console.error('Demo project claim failed', error) },
+          dataVault,
         });
       }
     } catch (error: unknown) {
@@ -267,6 +270,35 @@ function buildAuth({ prisma, env, authEmailSender, loginActivityUseCase, adminEm
       }],
     },
   });
+
+  // Keeps the password-wrapped copy of the user's data key in step with the password.
+  // The data itself is never re-encrypted, and a failure here never blocks sign-in.
+  if (dataVault) {
+    plugins.push({
+      id: 'data-key-password-wrap',
+      hooks: {
+        after: [{
+          matcher: (ctx) => ctx.path === '/sign-in/email' || ctx.path === '/change-password' || ctx.path === '/set-password',
+          handler: createAuthMiddleware(async (ctx) => {
+            try {
+              if (ctx.context.returned instanceof Error) return;
+              const body = ctx.body as { email?: unknown; password?: unknown; newPassword?: unknown } | undefined;
+              if (ctx.path === '/sign-in/email') {
+                if (typeof body?.email !== 'string' || typeof body.password !== 'string') return;
+                const user = await prisma.user.findUnique({ where: { email: body.email.trim().toLowerCase() }, select: { id: true } });
+                if (user) await dataVault.attachPassword(user.id, body.password);
+                return;
+              }
+              const session = ctx.context.session as { user?: { id?: string } } | null | undefined;
+              if (session?.user?.id && typeof body?.newPassword === 'string') await dataVault.setPassword(session.user.id, body.newPassword);
+            } catch (error) {
+              errorReporter?.capture(error instanceof Error ? error : new Error('Data key password wrap failed'), { path: ctx.path });
+            }
+          }),
+        }],
+      },
+    });
+  }
 
   plugins.push({
     id: 'credential-account-link-guard',

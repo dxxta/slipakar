@@ -59,6 +59,7 @@ describe('CampaignsService', () => {
 
     const req = http.expectOne('/projects/p-1/campaigns/c-1/send');
     expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ consent: true });
     req.flush({
       message: 'Campaign accepted for sending',
       data: { campaignId: 'c-1', status: 'sending', enqueuedCount: 10 },
@@ -97,6 +98,7 @@ describe('CampaignsService', () => {
 
     const req = http.expectOne('/projects/p-1/campaigns/c-1/recipients/r-1/retry');
     expect(req.request.method).toBe('POST');
+    expect(req.request.body).toEqual({ consent: true });
     req.flush({
       message: 'Recipient reset to pending and enqueued',
       data: { id: 'r-1', status: 'pending' },

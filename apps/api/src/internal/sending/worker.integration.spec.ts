@@ -11,7 +11,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { buildAuditRepository } from '../audit/repository/audit.js';
 import type { NotifyMessage, QueuePublisher } from '../../domain/queue/interface.js';
 import type { SmtpSenderInterface } from '../../domain/smtp/interface.js';
-import { createCryptoService } from '../../services/crypto.js';
+import { realDataVault } from '../../test/vault.js';
 import { buildRateLimiter } from './rate-limiter.js';
 import { buildSendWorker } from './worker.js';
 import { buildSmtpSender } from '../smtp/sender/smtp-sender.js';
@@ -73,12 +73,14 @@ describe('SendWorker Integration', () => {
   }, 120_000);
 
   it('campaign of 3 recipients where the second send fails ends with campaign completed_with_errors, statuses sent/failed/sent, one campaign_finished and one send_failed message', async () => {
-    const cryptoService = createCryptoService('a'.repeat(64));
-    const encryptedPassword = cryptoService.encrypt('smtp-secret');
+    const dataVault = realDataVault(prisma);
+    const smtpPassword = 'smtp-secret';
 
     // Create user and project
     const user = await prisma.user.create({ data: { email: 'owner@example.com', name: 'Owner' } });
     const project = await prisma.project.create({ data: { ownerId: user.id, name: 'Project 1', rateLimitPerMinute: 60 } });
+    const vault = await dataVault.forProject(project.id);
+    const encryptedPassword = vault.encryptText(smtpPassword);
 
     // Create template
     const template = await prisma.emailTemplate.create({
@@ -106,13 +108,13 @@ describe('SendWorker Integration', () => {
     const upload = await prisma.dataUpload.create({
       data: {
         projectId: project.id,
-        fileName: 'recipients.csv',
-        columns: ['name', 'amount', 'email'],
-        rows: [
+        fileName: vault.encryptText('recipients.csv'),
+        columns: vault.encryptJson(['name', 'amount', 'email']),
+        rows: vault.encryptJson([
           { name: 'Alice', amount: '100', email: 'alice@example.com' },
           { name: 'Bob', amount: '200', email: 'bob@example.com' },
           { name: 'Charlie', amount: '300', email: 'charlie@example.com' },
-        ],
+        ]),
         rowCount: 3,
       },
     });
@@ -122,7 +124,7 @@ describe('SendWorker Integration', () => {
       data: {
         templateId: template.id,
         uploadId: upload.id,
-        mapping: { name: 'name', amount: 'amount' },
+        mapping: vault.encryptJson({ name: 'name', amount: 'amount' }),
       },
     });
 
@@ -135,6 +137,7 @@ describe('SendWorker Integration', () => {
         uploadId: upload.id,
         emailColumn: 'email',
         status: 'sending',
+        sendConsentAt: new Date(),
         recipients: {
           create: [
             { rowIndex: 0, email: 'alice@example.com', status: 'pending' },
@@ -170,7 +173,7 @@ describe('SendWorker Integration', () => {
     const worker = buildSendWorker({
       prisma,
       queue,
-      cryptoService,
+      dataVault,
       sender,
       rateLimiter,
       engine: {
@@ -226,11 +229,13 @@ describe('SendWorker Integration', () => {
   });
 
   it('campaign with PDF template and shared attachment sends 2 attachments (first bytes %PDF) and creates generated Attachment rows', async () => {
-    const cryptoService = createCryptoService('b'.repeat(64));
-    const encryptedPassword = cryptoService.encrypt('smtp-secret-2');
+    const dataVault = realDataVault(prisma);
+    const smtpPassword = 'smtp-secret-2';
 
     const user = await prisma.user.create({ data: { email: 'owner-pdf@example.com', name: 'Owner PDF' } });
     const project = await prisma.project.create({ data: { ownerId: user.id, name: 'PDF Project', rateLimitPerMinute: 60 } });
+    const vault = await dataVault.forProject(project.id);
+    const encryptedPassword = vault.encryptText(smtpPassword);
 
     const template = await prisma.emailTemplate.create({
       data: {
@@ -278,9 +283,9 @@ describe('SendWorker Integration', () => {
     const upload = await prisma.dataUpload.create({
       data: {
         projectId: project.id,
-        fileName: 'recipients.csv',
-        columns: ['name', 'email'],
-        rows: [{ name: 'Alice', email: 'alice@example.com' }],
+        fileName: vault.encryptText('recipients.csv'),
+        columns: vault.encryptJson(['name', 'email']),
+        rows: vault.encryptJson([{ name: 'Alice', email: 'alice@example.com' }]),
         rowCount: 1,
       },
     });
@@ -289,7 +294,7 @@ describe('SendWorker Integration', () => {
       data: {
         templateId: template.id,
         uploadId: upload.id,
-        mapping: { name: 'name' },
+        mapping: vault.encryptJson({ name: 'name' }),
       },
     });
 
@@ -302,6 +307,7 @@ describe('SendWorker Integration', () => {
         uploadId: upload.id,
         emailColumn: 'email',
         status: 'sending',
+        sendConsentAt: new Date(),
         recipients: {
           create: [{ rowIndex: 0, email: 'alice@example.com', status: 'pending' }],
         },
@@ -372,7 +378,7 @@ describe('SendWorker Integration', () => {
         publishSendEmail: async () => {},
         publishNotify: async () => {},
       },
-      cryptoService,
+      dataVault,
       sender,
       rateLimiter: buildRateLimiter({ redis }),
       engine: {
@@ -422,11 +428,13 @@ describe('SendWorker Integration', () => {
     await queue.start();
 
     // 2. Prepare user, project, template, data upload with 3 recipients
-    const cryptoService = createCryptoService('c'.repeat(64));
-    const encryptedPassword = cryptoService.encrypt('smtp-pwd');
+    const dataVault = realDataVault(prisma);
+    const smtpPassword = 'smtp-pwd';
 
     const user = await prisma.user.create({ data: { email: 'retry-owner@example.com', name: 'Retry Owner' } });
     const project = await prisma.project.create({ data: { ownerId: user.id, name: 'Retry Project', rateLimitPerMinute: 600 } });
+    const vault = await dataVault.forProject(project.id);
+    const encryptedPassword = vault.encryptText(smtpPassword);
 
     const template = await prisma.emailTemplate.create({
       data: {
@@ -440,13 +448,13 @@ describe('SendWorker Integration', () => {
     const upload = await prisma.dataUpload.create({
       data: {
         projectId: project.id,
-        fileName: 'people.csv',
-        columns: ['name', 'email'],
-        rows: [
+        fileName: vault.encryptText('people.csv'),
+        columns: vault.encryptJson(['name', 'email']),
+        rows: vault.encryptJson([
           { name: 'User 1', email: 'u1@example.com' },
           { name: 'User 2', email: 'u2@example.com' },
           { name: 'User 3', email: 'u3@example.com' },
-        ],
+        ]),
         rowCount: 3,
       },
     });
@@ -455,7 +463,7 @@ describe('SendWorker Integration', () => {
       data: {
         templateId: template.id,
         uploadId: upload.id,
-        mapping: { name: 'name' },
+        mapping: vault.encryptJson({ name: 'name' }),
       },
     });
 
@@ -480,6 +488,7 @@ describe('SendWorker Integration', () => {
         uploadId: upload.id,
         emailColumn: 'email',
         status: 'sending',
+        sendConsentAt: new Date(),
         recipients: {
           create: [
             { rowIndex: 0, email: 'u1@example.com', status: 'pending' },
@@ -515,7 +524,7 @@ describe('SendWorker Integration', () => {
     const worker = buildSendWorker({
       prisma,
       queue: queueWrapper,
-      cryptoService,
+      dataVault,
       sender: realSender,
       rateLimiter,
       engine: {
@@ -610,11 +619,13 @@ describe('SendWorker Integration', () => {
     const queue = buildQueue({ url: amqpUrl });
     await queue.start();
 
-    const cryptoService = createCryptoService('d'.repeat(64));
-    const encryptedPassword = cryptoService.encrypt('smtp-pwd');
+    const dataVault = realDataVault(prisma);
+    const smtpPassword = 'smtp-pwd';
 
     const user = await prisma.user.create({ data: { email: 'exhaust-owner@example.com', name: 'Exhaust Owner' } });
     const project = await prisma.project.create({ data: { ownerId: user.id, name: 'Exhaust Project', rateLimitPerMinute: 600 } });
+    const vault = await dataVault.forProject(project.id);
+    const encryptedPassword = vault.encryptText(smtpPassword);
 
     const template = await prisma.emailTemplate.create({
       data: {
@@ -628,9 +639,9 @@ describe('SendWorker Integration', () => {
     const upload = await prisma.dataUpload.create({
       data: {
         projectId: project.id,
-        fileName: 'exhaust.csv',
-        columns: ['name', 'email'],
-        rows: [{ name: 'Fail User', email: 'fail@example.com' }],
+        fileName: vault.encryptText('exhaust.csv'),
+        columns: vault.encryptJson(['name', 'email']),
+        rows: vault.encryptJson([{ name: 'Fail User', email: 'fail@example.com' }]),
         rowCount: 1,
       },
     });
@@ -639,7 +650,7 @@ describe('SendWorker Integration', () => {
       data: {
         templateId: template.id,
         uploadId: upload.id,
-        mapping: { name: 'name' },
+        mapping: vault.encryptJson({ name: 'name' }),
       },
     });
 
@@ -663,6 +674,7 @@ describe('SendWorker Integration', () => {
         uploadId: upload.id,
         emailColumn: 'email',
         status: 'sending',
+        sendConsentAt: new Date(),
         recipients: {
           create: [{ rowIndex: 0, email: 'fail@example.com', status: 'pending' }],
         },
@@ -684,7 +696,7 @@ describe('SendWorker Integration', () => {
     const worker = buildSendWorker({
       prisma,
       queue,
-      cryptoService,
+      dataVault,
       sender: realSender,
       rateLimiter,
       engine: {

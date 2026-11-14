@@ -18,7 +18,8 @@ export interface CampaignItem {
   projectId: string;
   emailTemplateId: string;
   pdfTemplateId?: string | null;
-  smtpConnectionId: string;
+  /** Empty when the campaign is sent through the platform mailer. */
+  smtpConnectionId?: string | null;
   uploadId: string;
   emailColumn: string;
   status: CampaignStatus;
@@ -44,7 +45,8 @@ export interface CampaignRecipientItem {
 export interface CreateCampaignPayload {
   emailTemplateId: string;
   pdfTemplateId?: string;
-  smtpConnectionId: string;
+  /** Leave out to send through the platform mailer. */
+  smtpConnectionId?: string;
   uploadId: string;
   emailColumn: string;
 }
@@ -82,7 +84,12 @@ export class CampaignsService {
   }
 
   sendCampaign(projectId: string, id: string): Observable<SendCampaignResult> {
-    return this.api.post<SendCampaignResult, Record<string, never>>(`/projects/${projectId}/campaigns/${id}/send`, {});
+    // Sending lets the server decrypt the project data, so the user's consent goes with every request.
+    return this.api.post<SendCampaignResult, { consent: true }>(`/projects/${projectId}/campaigns/${id}/send`, { consent: true });
+  }
+
+  stopCampaign(projectId: string, id: string): Observable<{ campaignId: string; status: string }> {
+    return this.api.post<{ campaignId: string; status: string }, Record<string, never>>(`/projects/${projectId}/campaigns/${id}/stop`, {});
   }
 
   listRecipients(
@@ -105,9 +112,9 @@ export class CampaignsService {
   }
 
   retryRecipient(projectId: string, campaignId: string, recipientId: string): Observable<CampaignRecipientItem> {
-    return this.api.post<CampaignRecipientItem, Record<string, never>>(
+    return this.api.post<CampaignRecipientItem, { consent: true }>(
       `/projects/${projectId}/campaigns/${campaignId}/recipients/${recipientId}/retry`,
-      {},
+      { consent: true },
     );
   }
 }

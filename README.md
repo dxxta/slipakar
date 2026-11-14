@@ -22,7 +22,7 @@ The primary use case is HR, finance, or operations uploading a spreadsheet, mapp
 
 ## Features
 
-- **Projects, SMTP & Templates**: Projects organize SMTP connections, email templates, uploads, PDF templates, and campaigns. SMTP credentials are configured per project and encrypted at rest with `APP_ENCRYPTION_KEY` (never returned in API views). Email templates use safe `{{placeholder}}` substitution without evaluating expressions or code.
+- **Projects, SMTP & Templates**: Projects organize SMTP connections, email templates, uploads, PDF templates, and campaigns. SMTP credentials are configured per project and never returned in API views. Campaigns use the platform mailer by default, and a project can use its own SMTP connection instead. Uploaded data, field mappings, files and project SMTP passwords are encrypted at rest with per-user envelope encryption, see [docs/ENCRYPTION.md](docs/ENCRYPTION.md). Sending always asks for your consent. Email templates use safe `{{placeholder}}` substitution without evaluating expressions or code.
 - **Data Upload, Mapping & PDF Builder**: Upload recipient data from CSV, XLSX, or JSON files and map columns to template placeholders. Build personalized PDF templates using a visual node builder (text, table, image, and divider nodes), generated PDFs and extra shared attachments are stored in Garage.
 - **Campaigns**: Queued through RabbitMQ and sent asynchronously in the background with Redis token-bucket rate limiting per SMTP connection, per-recipient status tracking, and automatic retries for transient SMTP failures.
 - **Notifications & Announcements**: Campaign notifications (`campaign_finished`, `send_failed`) and admin announcements (`UserNotice` from broadcasts) appear in the user app with unread badges.
@@ -305,7 +305,8 @@ The API environment schema is in `apps/api/src/config/env.ts`. Compose-specific 
 
 ### Where secrets live
 
-- **Project SMTP passwords** (`SmtpConfig`) and **Admin setup integration credentials** (`IntegrationConfig` for `uptime`, `grafana`, and `mail`) are encrypted at rest in PostgreSQL using AES-256-GCM with `APP_ENCRYPTION_KEY`.
+- **User data** (uploaded rows and columns, field mappings, project files and project SMTP passwords) is encrypted with envelope encryption: a random data key per user, wrapped by a key derived from the user's password (scrypt) and by `APP_ENCRYPTION_KEY`. See [docs/ENCRYPTION.md](docs/ENCRYPTION.md) for the method, the consent step that lets the worker decrypt to send, and the limits.
+- **Admin setup integration credentials** (`IntegrationConfig` for `uptime`, `grafana`, and `mail`) are encrypted at rest in PostgreSQL using AES-256-GCM with `APP_ENCRYPTION_KEY`.
 - Credentials are write-only and are never returned in API responses or written to `AuditLog` (responses include only `hasCredentials` and a masked 4-character suffix `credentialHint`, for `mail`, non-secret settings `{host, port, secure, username, fromAddress}` are returned so the UI can prefill edits).
 - For platform mail (email change verification and broadcast emails), database-stored `mail` credentials configured via `/admin/setup` take precedence over the `AUTH_SMTP_*` / `AUTH_MAIL_FROM` environment variables (cached for 30s and invalidated immediately on `PUT`/`DELETE`).
 
@@ -313,7 +314,7 @@ The API environment schema is in `apps/api/src/config/env.ts`. Compose-specific 
 |---|---|---|---|
 | `DATABASE_URL` | API: yes | Compose builds it from `POSTGRES_PASSWORD` | PostgreSQL connection URL. |
 | `POSTGRES_PASSWORD` | Compose: yes | None | Password for the PostgreSQL Compose user. |
-| `APP_ENCRYPTION_KEY` | API/Compose: yes | None | Exactly 64 hex characters, encrypts stored SMTP credentials. |
+| `APP_ENCRYPTION_KEY` | API/Compose: yes | None | Exactly 64 hex characters. Wraps every user's data key and encrypts platform integration credentials. Back it up separately, losing it makes stored user data unrecoverable. |
 | `GOOGLE_CLIENT_ID` | API/Compose: yes | None | Google OAuth client ID. |
 | `GOOGLE_CLIENT_SECRET` | API/Compose: yes | None | Google OAuth client secret. |
 | `BETTER_AUTH_SECRET` | API/Compose: yes | None | Secret used by Better Auth for sessions and tokens. |

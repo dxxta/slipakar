@@ -4,6 +4,8 @@ import type { ErrorReporter } from '../../domain/error-reporting/interface.js';
 import type { AdminSetupRepositoryInterface } from '../../domain/admin-setup/interface.js';
 import type { StoredMailCredentials } from '../../domain/admin-setup/interface.js';
 import type { CryptoServiceInterface } from '../../services/crypto.js';
+import type { PlatformMailerInterface } from '../../domain/smtp/interface.js';
+import { isTransientError } from '../smtp/sender/smtp-sender.js';
 import type { AuthEmailSenderConfig } from './auth-email-sender.js';
 
 type CachedConfig = {
@@ -11,7 +13,7 @@ type CachedConfig = {
   expiresAt: number;
 };
 
-export class DynamicAuthEmailSender implements AuthEmailSenderInterface {
+export class DynamicAuthEmailSender implements AuthEmailSenderInterface, PlatformMailerInterface {
   private cache: CachedConfig | null = null;
   private readonly ttlMs: number = 30_000;
 
@@ -105,6 +107,21 @@ export class DynamicAuthEmailSender implements AuthEmailSenderInterface {
       }
 
       return { ok: false, error: safeError };
+    }
+  }
+
+  async sendCampaignMail(mail: Parameters<PlatformMailerInterface['sendCampaignMail']>[0]): ReturnType<PlatformMailerInterface['sendCampaignMail']> {
+    const config = await this.resolveConfig();
+    if (!config) return { ok: false, error: 'Platform mailer is not configured', transient: false };
+    const auth = config.user && config.pass ? { user: config.user, pass: config.pass } : undefined;
+    const transporter = nodemailer.createTransport({ host: config.host, port: config.port, secure: config.secure, ...(auth ? { auth } : {}) });
+    try {
+      await transporter.sendMail({ from: config.from, to: mail.to, subject: mail.subject, html: mail.html, attachments: mail.attachments });
+      return { ok: true };
+    } catch (error) {
+      const raw = error instanceof Error ? error.message : String(error);
+      const safe = config.pass ? raw.replaceAll(config.pass, '***') : raw;
+      return { ok: false, error: `Platform mailer send failed: ${safe}`, transient: isTransientError(error) };
     }
   }
 }

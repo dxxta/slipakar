@@ -233,13 +233,13 @@ describe('End-to-End Background Sending Pipeline', () => {
 
     // 7. Send campaign -> assert immediate 202 and status is sending
     const sendRes = await request(application.app)
-      .post(`/projects/${projectId}/campaigns/${campaignId}/send`);
+      .post(`/projects/${projectId}/campaigns/${campaignId}/send`).send({ consent: true });
     expect(sendRes.status).toBe(202);
     expect(sendRes.body.data.status).toBe('sending');
 
     // 8. Assert sending the same campaign again immediately returns 409
     const secondSendRes = await request(application.app)
-      .post(`/projects/${projectId}/campaigns/${campaignId}/send`);
+      .post(`/projects/${projectId}/campaigns/${campaignId}/send`).send({ consent: true });
     expect(secondSendRes.status).toBe(409);
 
     // 9. Poll (max 60s) until the campaign finishes
@@ -460,7 +460,7 @@ describe('End-to-End Background Sending Pipeline', () => {
 
     // 7. Send campaign -> 202 Accepted
     const sendRes = await request(application.app)
-      .post(`/projects/${projectId}/campaigns/${campaignId}/send`);
+      .post(`/projects/${projectId}/campaigns/${campaignId}/send`).send({ consent: true });
     expect(sendRes.status).toBe(202);
     expect(sendRes.body.data.status).toBe('sending');
 

@@ -1,5 +1,5 @@
 import type { PrismaClient } from '@prisma/client';
-import { createCampaignsDto, listCampaignsQueryDto, listRecipientsQueryDto } from '../../../domain/campaigns/dto.js';
+import { createCampaignsDto, listCampaignsQueryDto, listRecipientsQueryDto, sendConsentDto } from '../../../domain/campaigns/dto.js';
 import type {
   CampaignDetailView,
   CampaignRecipientView,
@@ -36,6 +36,12 @@ type MappingLookup = (
   uploadId: string,
 ) => Promise<Record<string, string> | null>;
 
+const requireConsent = (payload: unknown): void => {
+  if (!sendConsentDto.safeParse(payload ?? {}).success) {
+    throw new AppError(400, 'CONSENT_REQUIRED', 'Agree to let the server decrypt your data to send before sending');
+  }
+};
+
 type ProjectLookup = (projectId: string, userId: string) => Promise<boolean>;
 
 type PdfTemplateLookup = (projectId: string, id: string) => Promise<{
@@ -52,6 +58,7 @@ export function buildCampaignsUseCase({
   mappingLookup,
   projectLookup,
   pdfTemplateLookup,
+  platformMailerConfigured = async () => false,
 }: {
   repository: CampaignsRepositoryInterface;
   prisma: PrismaClient;
@@ -62,6 +69,7 @@ export function buildCampaignsUseCase({
   mappingLookup: MappingLookup;
   projectLookup: ProjectLookup;
   pdfTemplateLookup?: PdfTemplateLookup;
+  platformMailerConfigured?: () => Promise<boolean>;
 }): CampaignsUseCaseInterface {
   const assertProject = async (projectId: string, auditUserId: string): Promise<void> => {
     if (!(await projectLookup(projectId, auditUserId))) {
@@ -85,12 +93,15 @@ export function buildCampaignsUseCase({
       // Verify template, smtp, upload
       const [template, smtp, upload] = await Promise.all([
         templateLookup(projectId, body.emailTemplateId),
-        smtpLookup(projectId, body.smtpConnectionId),
+        body.smtpConnectionId ? smtpLookup(projectId, body.smtpConnectionId) : Promise.resolve(true),
         uploadLookup(projectId, body.uploadId),
       ]);
 
       if (!template || !smtp || !upload) {
         throw new AppError(404, 'NOT_FOUND', 'Required campaign resources not found');
+      }
+      if (!body.smtpConnectionId && !(await platformMailerConfigured())) {
+        throw new AppError(409, 'PLATFORM_MAILER_UNAVAILABLE', 'The platform mailer is not configured, choose an SMTP connection');
       }
 
       let pdfPlaceholders: string[] = [];
@@ -157,7 +168,7 @@ export function buildCampaignsUseCase({
             projectId,
             emailTemplateId: body.emailTemplateId,
             pdfTemplateId: body.pdfTemplateId,
-            smtpConnectionId: body.smtpConnectionId,
+            smtpConnectionId: body.smtpConnectionId ?? null,
             uploadId: body.uploadId,
             emailColumn: body.emailColumn,
             recipients,
@@ -220,17 +231,22 @@ export function buildCampaignsUseCase({
     async sendCampaignsUseCase({
       projectId,
       id,
+      payload,
       auditUserId,
     }: {
       projectId: string;
       id: string;
+      payload?: unknown;
       auditUserId: string;
     }): Promise<{ message: string; data: { campaignId: string; status: string; enqueuedCount: number }; success: true }> {
+      requireConsent(payload);
       await assertProject(projectId, auditUserId);
 
-      // Atomically mark sending
+      // Atomically mark sending and record the consent in the same step
       const updatedCount = await inTransaction(prisma, async (tx) => {
-        return repository.markSendingCampaignsRepository({ id, auditUserId, tx });
+        const count = await repository.markSendingCampaignsRepository({ id, auditUserId, tx });
+        if (count > 0) await tx.campaign.update({ where: { id }, data: { sendConsentAt: new Date() } });
+        return count;
       });
 
       if (updatedCount === 0) {
@@ -314,13 +330,16 @@ export function buildCampaignsUseCase({
       projectId,
       campaignId,
       recipientId,
+      payload,
       auditUserId,
     }: {
       projectId: string;
       campaignId: string;
       recipientId: string;
+      payload?: unknown;
       auditUserId: string;
     }): Promise<{ message: string; data: CampaignRecipientView; success: true }> {
+      requireConsent(payload);
       await assertProject(projectId, auditUserId);
 
       const { data: recipient } = await repository.findRecipientByIdCampaignsRepository({
@@ -347,6 +366,7 @@ export function buildCampaignsUseCase({
           auditUserId,
           tx,
         });
+        await tx.campaign.update({ where: { id: campaignId }, data: { sendConsentAt: new Date() } });
         return reset;
       });
 
@@ -360,6 +380,17 @@ export function buildCampaignsUseCase({
         data: (updatedRecipient ?? recipient),
         success: true,
       };
+    },
+
+    async stopCampaignsUseCase({ projectId, id, auditUserId }: { projectId: string; id: string; auditUserId: string }): Promise<{ message: string; data: { campaignId: string; status: string }; success: true }> {
+      await assertProject(projectId, auditUserId);
+      // Without consent the worker skips every remaining message, so the pending recipients stay unsent.
+      const stopped = await prisma.campaign.updateMany({
+        where: { id, projectId, status: 'sending' },
+        data: { status: 'stopped', sendConsentAt: null },
+      });
+      if (stopped.count === 0) throw new AppError(409, 'NOT_SENDING', 'Campaign is not sending');
+      return { message: 'Sending stopped and consent withdrawn', data: { campaignId: id, status: 'stopped' }, success: true };
     },
   };
 }

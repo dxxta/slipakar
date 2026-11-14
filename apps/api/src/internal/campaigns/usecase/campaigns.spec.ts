@@ -44,10 +44,13 @@ const mockRecipientFailed: CampaignRecipientView = {
   updatedAt: new Date(),
 };
 
-const fakeTx = {} as unknown as Prisma.TransactionClient;
+const consentUpdate = vi.fn().mockResolvedValue({});
+const fakeTx = { campaign: { update: consentUpdate } } as unknown as Prisma.TransactionClient;
+const stopMany = vi.fn();
 const fakePrisma = {
   $transaction: async <T>(fn: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> => fn(fakeTx),
-} as PrismaClient;
+  campaign: { updateMany: stopMany },
+} as unknown as PrismaClient;
 
 function makeFakeRepository(overrides: Partial<CampaignsRepositoryInterface> = {}): CampaignsRepositoryInterface {
   return {
@@ -369,7 +372,7 @@ describe('campaigns usecase', () => {
       ...validLookups,
     });
 
-    const result = await useCase.sendCampaignsUseCase({ projectId: 'proj-1', id: 'c-1', auditUserId: 'u-1' });
+    const result = await useCase.sendCampaignsUseCase({ projectId: 'proj-1', id: 'c-1', payload: { consent: true }, auditUserId: 'u-1' });
     expect(callOrder).toEqual(['markSending', 'publishSendEmail']);
     expect(result.data.enqueuedCount).toBe(1);
     expect(queue.publishSendEmail).toHaveBeenCalledWith({ campaignId: 'c-1', recipientId: 'r-1' });
@@ -377,7 +380,7 @@ describe('campaigns usecase', () => {
     // Second call: markSending returns 0 -> 409 CAMPAIGN_ALREADY_SENT
     repository.markSendingCampaignsRepository = vi.fn().mockResolvedValue(0);
     await expect(
-      useCase.sendCampaignsUseCase({ projectId: 'proj-1', id: 'c-1', auditUserId: 'u-1' }),
+      useCase.sendCampaignsUseCase({ projectId: 'proj-1', id: 'c-1', payload: { consent: true }, auditUserId: 'u-1' }),
     ).rejects.toMatchObject({ status: 409, code: 'CAMPAIGN_ALREADY_SENT' });
   });
 
@@ -402,7 +405,7 @@ describe('campaigns usecase', () => {
     });
 
     await expect(
-      useCase.sendCampaignsUseCase({ projectId: 'proj-1', id: 'c-1', auditUserId: 'u-1' }),
+      useCase.sendCampaignsUseCase({ projectId: 'proj-1', id: 'c-1', payload: { consent: true }, auditUserId: 'u-1' }),
     ).rejects.toThrow('Broker unreachable');
 
     expect(repository.revertToDraftCampaignsRepository).toHaveBeenCalledWith(
@@ -428,6 +431,7 @@ describe('campaigns usecase', () => {
       projectId: 'proj-1',
       campaignId: 'c-1',
       recipientId: 'r-2',
+      payload: { consent: true },
       auditUserId: 'u-1',
     });
 
@@ -447,8 +451,40 @@ describe('campaigns usecase', () => {
         projectId: 'proj-1',
         campaignId: 'c-1',
         recipientId: 'r-1',
+        payload: { consent: true },
         auditUserId: 'u-1',
       }),
     ).rejects.toMatchObject({ status: 409, code: 'NOT_RETRYABLE' });
+  });
+  it('refuses to send or retry without consent and queues nothing', async () => {
+    const repository = makeFakeRepository();
+    const queue = makeFakeQueue();
+    const useCase = buildCampaignsUseCase({ repository, prisma: fakePrisma, queue, ...validLookups });
+    await expect(useCase.sendCampaignsUseCase({ projectId: 'proj-1', id: 'c-1', auditUserId: 'u-1' })).rejects.toMatchObject({ status: 400, code: 'CONSENT_REQUIRED' });
+    await expect(useCase.sendCampaignsUseCase({ projectId: 'proj-1', id: 'c-1', payload: { consent: false }, auditUserId: 'u-1' })).rejects.toMatchObject({ code: 'CONSENT_REQUIRED' });
+    await expect(useCase.retryRecipientCampaignsUseCase({ projectId: 'proj-1', campaignId: 'c-1', recipientId: 'r-2', auditUserId: 'u-1' })).rejects.toMatchObject({ code: 'CONSENT_REQUIRED' });
+    expect(queue.publishSendEmail).not.toHaveBeenCalled();
+    expect(repository.markSendingCampaignsRepository).not.toHaveBeenCalled();
+  });
+
+  it('records the consent when sending starts', async () => {
+    consentUpdate.mockClear();
+    const repository = makeFakeRepository({
+      markSendingCampaignsRepository: vi.fn().mockResolvedValue(1),
+      findRecipientsCampaignsRepository: vi.fn().mockResolvedValue({ data: [], metadata: { total: 0 } }),
+    });
+    const useCase = buildCampaignsUseCase({ repository, prisma: fakePrisma, queue: makeFakeQueue(), ...validLookups });
+    await useCase.sendCampaignsUseCase({ projectId: 'proj-1', id: 'c-1', payload: { consent: true }, auditUserId: 'u-1' });
+    expect(consentUpdate).toHaveBeenCalledWith({ where: { id: 'c-1' }, data: { sendConsentAt: expect.any(Date) } });
+  });
+
+  it('stopCampaignsUseCase withdraws consent and stops a sending campaign, and rejects otherwise', async () => {
+    const useCase = buildCampaignsUseCase({ repository: makeFakeRepository(), prisma: fakePrisma, queue: makeFakeQueue(), ...validLookups });
+    stopMany.mockResolvedValueOnce({ count: 1 });
+    const result = await useCase.stopCampaignsUseCase({ projectId: 'proj-1', id: 'c-1', auditUserId: 'u-1' });
+    expect(result.data).toEqual({ campaignId: 'c-1', status: 'stopped' });
+    expect(stopMany).toHaveBeenCalledWith({ where: { id: 'c-1', projectId: 'proj-1', status: 'sending' }, data: { status: 'stopped', sendConsentAt: null } });
+    stopMany.mockResolvedValueOnce({ count: 0 });
+    await expect(useCase.stopCampaignsUseCase({ projectId: 'proj-1', id: 'c-1', auditUserId: 'u-1' })).rejects.toMatchObject({ status: 409, code: 'NOT_SENDING' });
   });
 });

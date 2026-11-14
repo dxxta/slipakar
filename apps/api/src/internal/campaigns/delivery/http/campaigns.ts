@@ -75,9 +75,25 @@ export function createCampaignsRouter({
       const result = await useCase.sendCampaignsUseCase({
         projectId: parameter(request, 'projectId'),
         id: parameter(request, 'id'),
+        payload: request.body,
         auditUserId: userId(response),
       });
       response.status(202).json(result);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  /** @route POST /projects/:projectId/campaigns/:id/stop
+   * @desc Withdraw consent and stop the worker for this campaign. */
+  router.post(`${base}/:id/stop`, async (request, response, next) => {
+    try {
+      const result = await useCase.stopCampaignsUseCase({
+        projectId: parameter(request, 'projectId'),
+        id: parameter(request, 'id'),
+        auditUserId: userId(response),
+      });
+      response.status(200).json(result);
     } catch (error) {
       next(error);
     }
@@ -107,6 +123,7 @@ export function createCampaignsRouter({
         projectId: parameter(request, 'projectId'),
         campaignId: parameter(request, 'campaignId'),
         recipientId: parameter(request, 'recipientId'),
+        payload: request.body,
         auditUserId: userId(response),
       });
       response.status(200).json(result);

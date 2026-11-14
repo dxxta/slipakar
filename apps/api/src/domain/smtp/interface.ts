@@ -20,6 +20,17 @@ export type SmtpSenderInterface = {
   ): Promise<{ ok: true } | { ok: false; error: string; transient: boolean }>;
 };
 
+/** The mailer the admin configured for the whole platform. Campaigns use it by default. */
+export type PlatformMailerInterface = {
+  isConfigured(): Promise<boolean>;
+  sendCampaignMail(mail: {
+    to: string;
+    subject: string;
+    html: string;
+    attachments?: { filename: string; content: Buffer; contentType: string }[];
+  }): Promise<{ ok: true } | { ok: false; error: string; transient: boolean }>;
+};
+
 export interface SmtpRepositoryInterface {
   createSmtpRepository(args: { projectId: string; payload: SmtpCreateData; auditUserId: string; tx?: Prisma.TransactionClient }): Promise<RepositoryResponse<SmtpConnection>>;
   listSmtpRepository(args: {

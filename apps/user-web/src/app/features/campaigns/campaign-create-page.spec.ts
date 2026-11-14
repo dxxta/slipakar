@@ -131,6 +131,25 @@ describe('CampaignCreatePage', () => {
     expect(navigateSpy).toHaveBeenCalledWith(['/projects', 'p-1', 'campaigns', 'camp-new-123']);
   });
 
+  it('uses the platform mailer by default and leaves smtpConnectionId out of the payload', () => {
+    const fixture = TestBed.createComponent(CampaignCreatePage);
+    fixture.detectChanges();
+
+    flushPrerequisites();
+    fixture.detectChanges();
+
+    const comp = fixture.componentInstance;
+    comp.selectedTemplateId.set('tpl-1');
+    comp.selectedUploadId.set('up-1');
+    comp.selectedEmailColumn.set('email');
+    fixture.detectChanges();
+
+    fixture.nativeElement.querySelector('[data-testid="submit-create-campaign"]').click();
+
+    const createReq = http.expectOne('/projects/p-1/campaigns');
+    expect(createReq.request.body).toEqual({ emailTemplateId: 'tpl-1', uploadId: 'up-1', emailColumn: 'email' });
+  });
+
   it('handles and displays API error on invalid recipient email format with offending rows', () => {
     const fixture = TestBed.createComponent(CampaignCreatePage);
     fixture.detectChanges();

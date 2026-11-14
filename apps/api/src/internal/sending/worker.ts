@@ -2,8 +2,8 @@ import type { PrismaClient } from '@prisma/client';
 import type { AuditRepositoryInterface } from '../../domain/audit/interface.js';
 import type { QueuePublisher, SendEmailMessage } from '../../domain/queue/interface.js';
 import type { SendWorkerInterface } from '../../domain/sending/interface.js';
-import type { SmtpSenderInterface } from '../../domain/smtp/interface.js';
-import type { CryptoServiceInterface } from '../../services/crypto.js';
+import type { PlatformMailerInterface, SmtpSenderInterface } from '../../domain/smtp/interface.js';
+import type { DataVaultInterface } from '../../services/data-vault.js';
 import type { RateLimiterInterface } from './rate-limiter.js';
 import type { StorageInterface } from '../../domain/storage/interface.js';
 import type { PdfRendererInterface } from '../../domain/pdf/interface.js';
@@ -26,7 +26,8 @@ const DEFAULT_RETRY_SCHEDULE_MS = [
 export function buildSendWorker({
   prisma,
   queue,
-  cryptoService,
+  dataVault,
+  platformMailer,
   sender,
   rateLimiter,
   engine,
@@ -42,7 +43,8 @@ export function buildSendWorker({
 }: {
   prisma: PrismaClient;
   queue: QueuePublisher;
-  cryptoService: CryptoServiceInterface;
+  dataVault: DataVaultInterface;
+  platformMailer?: PlatformMailerInterface;
   sender: SmtpSenderInterface;
   rateLimiter: RateLimiterInterface;
   engine: { renderTemplate: (template: { subject: string; bodyHtml: string }, row: Record<string, string>) => { subject: string; body: string } };
@@ -80,13 +82,15 @@ export function buildSendWorker({
       }
 
       const { campaign } = recipient;
+      // The owner must agree that the server may decrypt their data to send. Without consent the message is not sent.
+      if (!campaign.sendConsentAt) return;
       const { smtpConnection, upload, project, emailTemplate } = campaign;
       const rateLimitPerMinute = project.rateLimitPerMinute;
 
       // (2) Rate limiter wait loop
       let totalWaitMs = 0;
       while (true) {
-        const rateResult = await rateLimiter.tryAcquire(`smtp:${smtpConnection.id}`, rateLimitPerMinute);
+        const rateResult = await rateLimiter.tryAcquire(`smtp:${smtpConnection?.id ?? 'platform'}`, rateLimitPerMinute);
         if (rateResult.allowed) {
           break;
         }
@@ -98,17 +102,15 @@ export function buildSendWorker({
       }
 
       // (3) Build row data object & render template
-      const uploadRows = Array.isArray(upload.rows) ? (upload.rows as Record<string, string>[]) : [];
+      const vault = await dataVault.forProject(campaign.projectId);
+      const uploadRows = vault.decryptJson<Record<string, string>[]>(upload.rows);
       const rawRow = uploadRows[recipient.rowIndex] ?? {};
 
       const fieldMapping = await prisma.fieldMapping.findFirst({
         where: { templateId: campaign.emailTemplateId, uploadId: campaign.uploadId },
       });
 
-      const mappingObject: Record<string, string> =
-        fieldMapping && typeof fieldMapping.mapping === 'object' && fieldMapping.mapping !== null
-          ? (fieldMapping.mapping as Record<string, string>)
-          : {};
+      const mappingObject: Record<string, string> = fieldMapping ? vault.decryptJson<Record<string, string>>(fieldMapping.mapping) : {};
 
       const rowData: Record<string, string> = {};
       for (const [placeholderName, mappedColumn] of Object.entries(mappingObject)) {
@@ -150,6 +152,7 @@ export function buildSendWorker({
         });
 
         for (const shared of sharedAttachments) {
+          // The storage passed in decrypts project files, so the bytes come back readable.
           const content = await storage.getObject(shared.objectKey);
           mailAttachments.push({
             filename: shared.fileName,
@@ -246,29 +249,35 @@ export function buildSendWorker({
         }
       }
 
-      // (4) Decrypt password and send
-      const password = cryptoService.decrypt(smtpConnection.passwordEncrypted);
-      // from uses smtpConnection.fromAddress when set, otherwise the username
-      const from = smtpConnection.fromAddress ?? smtpConnection.username;
+      // (4) Send through the project SMTP connection, or through the platform mailer when none is chosen
       const to = recipient.email;
-
-      const sendResult = await sender.sendMail(
-        {
-          host: smtpConnection.host,
-          port: smtpConnection.port,
-          secure: smtpConnection.secure,
-          username: smtpConnection.username,
-          password,
-          fromAddress: smtpConnection.fromAddress ?? smtpConnection.username,
-        },
-        {
-          from,
-          to,
-          subject: rendered.subject,
-          html: rendered.body,
-          attachments: mailAttachments.length > 0 ? mailAttachments : undefined,
-        },
-      );
+      const attachments = mailAttachments.length > 0 ? mailAttachments : undefined;
+      let sendResult: { ok: true } | { ok: false; error: string; transient: boolean };
+      if (smtpConnection) {
+        const password = vault.decryptText(smtpConnection.passwordEncrypted);
+        sendResult = await sender.sendMail(
+          {
+            host: smtpConnection.host,
+            port: smtpConnection.port,
+            secure: smtpConnection.secure,
+            username: smtpConnection.username,
+            password,
+            fromAddress: smtpConnection.fromAddress ?? smtpConnection.username,
+          },
+          {
+            // from uses smtpConnection.fromAddress when set, otherwise the username
+            from: smtpConnection.fromAddress ?? smtpConnection.username,
+            to,
+            subject: rendered.subject,
+            html: rendered.body,
+            attachments,
+          },
+        );
+      } else if (platformMailer) {
+        sendResult = await platformMailer.sendCampaignMail({ to, subject: rendered.subject, html: rendered.body, attachments });
+      } else {
+        sendResult = { ok: false, error: 'Platform mailer is not configured', transient: false };
+      }
 
       // (5) On success/failure update recipient
       if (sendResult.ok) {

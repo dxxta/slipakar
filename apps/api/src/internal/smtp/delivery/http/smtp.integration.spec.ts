@@ -8,7 +8,7 @@ import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildAuditRepository } from '../../../audit/repository/audit.js';
 import { errorHandler } from '../../../../middleware/error-handler.js';
-import { createCryptoService } from '../../../../services/crypto.js';
+import { realDataVault } from '../../../../test/vault.js';
 import { buildSmtpRepository } from '../../repository/smtp.js';
 import { buildSmtpSender } from '../../sender/smtp-sender.js';
 import { buildSmtpUseCase } from '../../usecase/smtp.js';
@@ -34,7 +34,7 @@ describe('new SMTP HTTP resource', () => {
     foreignProjectId = (await prisma.project.create({ data: { ownerId: other.id, name: 'Theirs' } })).id;
     const useCase = buildSmtpUseCase({
       repository: buildSmtpRepository({ prisma, auditRepository: buildAuditRepository(prisma) }), prisma,
-      cryptoService: createCryptoService('a'.repeat(64)),
+      dataVault: realDataVault(prisma),
       sender: buildSmtpSender(() => ({ verify: async () => true })),
       projectLookup: async (id, userId) => (await prisma.project.findFirst({ where: { id, ownerId: userId } })) !== null,
     });

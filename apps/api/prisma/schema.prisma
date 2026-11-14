@@ -27,6 +27,7 @@ model User {
   integrationConfigs IntegrationConfig[]
   createdApiKeys ApiKey[] @relation("ApiKeyCreator")
   twoFactors     TwoFactor[]
+  dataKey        UserDataKey?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 }
@@ -110,6 +111,17 @@ model Project {
   apiKeys            ApiKey[]
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
+}
+
+// One random data key per user. It encrypts the user's uploads, mappings, files and SMTP passwords
+// and is stored wrapped twice: by a key derived from the user's password and by APP_ENCRYPTION_KEY.
+model UserDataKey {
+  userId          String   @id
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serverWrapped   String
+  passwordWrapped String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model SmtpConnection {
@@ -204,13 +216,16 @@ model Campaign {
   emailTemplate    EmailTemplate       @relation(fields: [emailTemplateId], references: [id])
   pdfTemplateId    String?
   pdfTemplate      PdfTemplate?        @relation(fields: [pdfTemplateId], references: [id])
-  smtpConnectionId String
-  smtpConnection   SmtpConnection      @relation(fields: [smtpConnectionId], references: [id])
+  // Null means the campaign is sent through the platform mailer configured by the admin.
+  smtpConnectionId String?
+  smtpConnection   SmtpConnection?     @relation(fields: [smtpConnectionId], references: [id])
   uploadId         String
   upload           DataUpload          @relation(fields: [uploadId], references: [id])
   // Column of the uploaded data that holds each recipient's email address.
   emailColumn      String
   status           String              @default("draft")
+  // Set when the owner agrees that the server may decrypt the data to send this campaign. Cleared on withdrawal.
+  sendConsentAt    DateTime?
   recipients       CampaignRecipient[]
   notifications    Notification[]
   attachments      Attachment[]

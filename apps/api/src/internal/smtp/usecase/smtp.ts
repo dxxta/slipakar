@@ -4,7 +4,7 @@ import type { SmtpRepositoryInterface, SmtpSenderInterface, SmtpUseCaseInterface
 import { AppError } from '../../../lib/app-error.js';
 import { inTransaction } from '../../../lib/in-transaction.js';
 import { validateAndThrow } from '../../../lib/validate-and-throw.js';
-import type { CryptoServiceInterface } from '../../../services/crypto.js';
+import type { DataVaultInterface } from '../../../services/data-vault.js';
 
 const toView = (record: SmtpConnection): SmtpView => {
   const { passwordEncrypted: _passwordEncrypted, ...view } = record;
@@ -12,10 +12,10 @@ const toView = (record: SmtpConnection): SmtpView => {
   return view;
 };
 
-export function buildSmtpUseCase({ repository, prisma, cryptoService, sender, projectLookup }: {
+export function buildSmtpUseCase({ repository, prisma, dataVault, sender, projectLookup }: {
   repository: SmtpRepositoryInterface;
   prisma: PrismaClient;
-  cryptoService: CryptoServiceInterface;
+  dataVault: DataVaultInterface;
   sender: SmtpSenderInterface;
   projectLookup: (projectId: string, userId: string) => Promise<boolean>;
 }): SmtpUseCaseInterface {
@@ -32,8 +32,9 @@ export function buildSmtpUseCase({ repository, prisma, cryptoService, sender, pr
       const body = validateAndThrow({ schema: createSmtpDto, data: payload });
       await assertOwner(projectId, auditUserId);
       const { password, ...fields } = body;
+      const passwordEncrypted = (await dataVault.forProject(projectId)).encryptText(password);
       const { data } = await inTransaction(prisma, (tx) => repository.createSmtpRepository({
-        projectId, payload: { ...fields, passwordEncrypted: cryptoService.encrypt(password) }, auditUserId, tx,
+        projectId, payload: { ...fields, passwordEncrypted }, auditUserId, tx,
       }));
       return { message: 'SMTP connection created successfully', data: toView(data), success: true };
     },
@@ -62,8 +63,9 @@ export function buildSmtpUseCase({ repository, prisma, cryptoService, sender, pr
       const body = validateAndThrow({ schema: updateSmtpDto, data: payload });
       await assertOwner(projectId, auditUserId);
       const { password, ...fields } = body;
+      const passwordEncrypted = password === undefined ? undefined : (await dataVault.forProject(projectId)).encryptText(password);
       const { data } = await inTransaction(prisma, (tx) => repository.updateSmtpRepository({
-        filter: { projectId, id }, payload: { ...fields, ...(password === undefined ? {} : { passwordEncrypted: cryptoService.encrypt(password) }) }, auditUserId, tx,
+        filter: { projectId, id }, payload: { ...fields, ...(passwordEncrypted === undefined ? {} : { passwordEncrypted }) }, auditUserId, tx,
       }));
       if (!data) throw new AppError(404, 'NOT_FOUND', 'SMTP connection not found');
       return { message: 'SMTP connection updated successfully', data: toView(data), success: true };
@@ -79,7 +81,7 @@ export function buildSmtpUseCase({ repository, prisma, cryptoService, sender, pr
       const record = await getRecord(projectId, id);
       const data = await sender.verify({
         host: record.host, port: record.port, username: record.username,
-        password: cryptoService.decrypt(record.passwordEncrypted), secure: record.secure,
+        password: (await dataVault.forProject(projectId)).decryptText(record.passwordEncrypted), secure: record.secure,
         fromAddress: record.fromAddress ?? record.username,
       });
       return { message: 'SMTP connection test completed', data, success: true };

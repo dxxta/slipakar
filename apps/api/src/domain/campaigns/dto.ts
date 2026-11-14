@@ -3,7 +3,8 @@ import { z } from 'zod';
 export const createCampaignsDto = z.strictObject({
   emailTemplateId: z.string().trim().min(1),
   pdfTemplateId: z.string().trim().min(1).optional(),
-  smtpConnectionId: z.string().trim().min(1),
+  // Leave empty to send through the platform mailer configured by the admin.
+  smtpConnectionId: z.string().trim().min(1).nullish(),
   uploadId: z.string().trim().min(1),
   emailColumn: z.string().trim().min(1),
 });
@@ -39,3 +40,6 @@ export const listCampaignsQueryDto = z.object({
 });
 
 export type ListCampaignsQuery = z.infer<typeof listCampaignsQueryDto>;
+
+// Sending lets the server decrypt the owner's data, so the owner has to agree each time.
+export const sendConsentDto = z.object({ consent: z.literal(true, { message: 'Consent is required to send' }) });

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import type { Prisma, PrismaClient, SmtpConnection } from '@prisma/client';
-import type { CryptoServiceInterface } from '../../../services/crypto.js';
+import { fakeDataVault } from '../../../test/vault.js';
 import type { SmtpRepositoryInterface, SmtpSenderInterface } from '../../../domain/smtp/interface.js';
 import { buildSmtpUseCase } from './smtp.js';
 
@@ -15,11 +15,6 @@ const mockSmtpConnection: SmtpConnection = {
   fromAddress: 'sender@example.com',
   createdAt: new Date(),
   updatedAt: new Date(),
-};
-
-const fakeCrypto: CryptoServiceInterface = {
-  encrypt: (text: string) => `enc:${text}`,
-  decrypt: (cipher: string) => (cipher.startsWith('enc:') ? cipher.slice(4) : cipher),
 };
 
 const fakeTx = { __mockTx: true } as unknown as Prisma.TransactionClient;
@@ -45,7 +40,7 @@ describe('smtp usecase', () => {
     const useCase = buildSmtpUseCase({
       repository,
       prisma: fakePrisma,
-      cryptoService: fakeCrypto,
+      dataVault: fakeDataVault,
       sender: { verify: vi.fn().mockResolvedValue({ ok: true }) },
       projectLookup: vi.fn().mockResolvedValue(true),
     });
@@ -78,7 +73,7 @@ describe('smtp usecase', () => {
     const useCase = buildSmtpUseCase({
       repository,
       prisma: fakePrisma,
-      cryptoService: fakeCrypto,
+      dataVault: fakeDataVault,
       sender: { verify: vi.fn().mockResolvedValue({ ok: true }) },
       projectLookup: vi.fn().mockResolvedValue(true),
     });
@@ -109,7 +104,7 @@ describe('smtp usecase', () => {
     const useCase = buildSmtpUseCase({
       repository,
       prisma: fakePrisma,
-      cryptoService: fakeCrypto,
+      dataVault: fakeDataVault,
       sender,
       projectLookup: vi.fn().mockResolvedValue(true),
     });
@@ -168,7 +163,7 @@ describe('smtp usecase', () => {
     const useCase = buildSmtpUseCase({
       repository,
       prisma: fakePrisma,
-      cryptoService: fakeCrypto,
+      dataVault: fakeDataVault,
       sender,
       projectLookup,
     });
@@ -219,7 +214,7 @@ describe('smtp usecase', () => {
     const useCase = buildSmtpUseCase({
       repository,
       prisma: fakePrisma,
-      cryptoService: fakeCrypto,
+      dataVault: fakeDataVault,
       sender: { verify: vi.fn().mockResolvedValue({ ok: true }) },
       projectLookup: vi.fn().mockResolvedValue(true),
     });
@@ -251,7 +246,7 @@ describe('smtp usecase', () => {
     const useCase = buildSmtpUseCase({
       repository,
       prisma: fakePrisma,
-      cryptoService: fakeCrypto,
+      dataVault: fakeDataVault,
       sender: { verify: vi.fn().mockResolvedValue({ ok: true }) },
       projectLookup: vi.fn().mockResolvedValue(true),
     });
@@ -273,7 +268,7 @@ describe('smtp usecase', () => {
     const useCase = buildSmtpUseCase({
       repository,
       prisma: fakePrisma,
-      cryptoService: fakeCrypto,
+      dataVault: fakeDataVault,
       sender: { verify: vi.fn().mockResolvedValue({ ok: true }) },
       projectLookup: vi.fn().mockResolvedValue(true),
     });
@@ -310,7 +305,7 @@ describe('smtp usecase', () => {
     const useCase = buildSmtpUseCase({
       repository,
       prisma: fakePrisma,
-      cryptoService: fakeCrypto,
+      dataVault: fakeDataVault,
       sender,
       projectLookup: vi.fn().mockResolvedValue(true),
     });
@@ -346,7 +341,7 @@ describe('smtp usecase', () => {
     const useCase = buildSmtpUseCase({
       repository,
       prisma: fakePrisma,
-      cryptoService: fakeCrypto,
+      dataVault: fakeDataVault,
       sender: { verify: vi.fn().mockResolvedValue({ ok: true }) },
       projectLookup: vi.fn().mockResolvedValue(true),
     });

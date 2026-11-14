@@ -3,7 +3,9 @@ import type { Prisma, PrismaClient } from '@prisma/client';
 import type { AuditRepositoryInterface } from '../../../domain/audit/interface.js';
 import type { QueuePublisher } from '../../../domain/queue/interface.js';
 import type { SmtpSenderInterface } from '../../../domain/smtp/interface.js';
-import type { CryptoServiceInterface } from '../../../services/crypto.js';
+import { fakeDataVault } from '../../test/vault.js';
+
+const enc = (value: unknown): string => `enc:${JSON.stringify(value)}`;
 import type { RateLimiterInterface } from './rate-limiter.js';
 import type { StorageInterface } from '../../../domain/storage/interface.js';
 import type { PdfRendererInterface } from '../../../domain/pdf/interface.js';
@@ -11,7 +13,6 @@ import type { AttachmentStoreInterface } from '../../attachments/attachment-stor
 import { buildSendWorker } from './worker.js';
 
 describe('SendWorker unit tests', () => {
-  let fakeCrypto: CryptoServiceInterface;
   let fakeEngine: { renderTemplate: ReturnType<typeof vi.fn> };
   let fakeRateLimiter: RateLimiterInterface;
   let fakeSender: SmtpSenderInterface;
@@ -34,11 +35,6 @@ describe('SendWorker unit tests', () => {
   let fakeAttachmentStore: AttachmentStoreInterface;
 
   beforeEach(() => {
-    fakeCrypto = {
-      encrypt: (v) => `enc:${v}`,
-      decrypt: () => 'decrypted-pass',
-    };
-
     fakeEngine = {
       renderTemplate: vi.fn().mockImplementation((tpl: { subject: string; bodyHtml: string }, row: Record<string, string>) => {
         if (tpl.subject.includes('{{missing}}')) {
@@ -135,13 +131,13 @@ describe('SendWorker unit tests', () => {
       id: 'r-1',
       campaignId: 'c-1',
       status: 'sent',
-      campaign: { status: 'sending' },
+      campaign: { status: 'sending', sendConsentAt: new Date() },
     });
 
     const worker = buildSendWorker({
       prisma: prismaMock,
       queue: fakeQueue,
-      cryptoService: fakeCrypto,
+      dataVault: fakeDataVault,
       sender: fakeSender,
       rateLimiter: fakeRateLimiter,
       engine: fakeEngine,
@@ -165,7 +161,7 @@ describe('SendWorker unit tests', () => {
     const worker = buildSendWorker({
       prisma: prismaMock,
       queue: fakeQueue,
-      cryptoService: fakeCrypto,
+      dataVault: fakeDataVault,
       sender: fakeSender,
       rateLimiter: fakeRateLimiter,
       engine: fakeEngine,
@@ -175,6 +171,58 @@ describe('SendWorker unit tests', () => {
     await worker.handleSendEmail({ campaignId: 'c-1', recipientId: 'r-1' });
 
     expect(fakeSender.sendMail).not.toHaveBeenCalled();
+  });
+
+  const sendingRecipient = (campaign: Record<string, unknown>) => ({
+    id: 'r-1',
+    campaignId: 'c-1',
+    status: 'pending',
+    rowIndex: 0,
+    email: 'user@example.com',
+    campaign: {
+      id: 'c-1',
+      projectId: 'p-1',
+      status: 'sending',
+      emailTemplateId: 'tpl-1',
+      uploadId: 'up-1',
+      emailTemplate: { subject: 'Hi {{name}}', bodyHtml: '<p>Hi</p>' },
+      upload: { rows: enc([{ name: 'Alice', email: 'user@example.com' }]) },
+      project: { rateLimitPerMinute: 60 },
+      ...campaign,
+    },
+  });
+
+  it('stops without sending when the owner has not given or has withdrawn consent', async () => {
+    findUniqueMock.mockResolvedValueOnce(sendingRecipient({
+      sendConsentAt: null,
+      smtpConnection: { id: 'smtp-1', host: 'smtp.test', port: 587, secure: false, username: 'sender@test', passwordEncrypted: 'enc:pass' },
+    }));
+    const platformMailer = { isConfigured: vi.fn(), sendCampaignMail: vi.fn() };
+    const worker = buildSendWorker({
+      prisma: prismaMock, queue: fakeQueue, dataVault: fakeDataVault, platformMailer, sender: fakeSender,
+      rateLimiter: fakeRateLimiter, engine: fakeEngine, auditRepository: fakeAudit,
+    });
+
+    await worker.handleSendEmail({ campaignId: 'c-1', recipientId: 'r-1' });
+
+    expect(fakeSender.sendMail).not.toHaveBeenCalled();
+    expect(platformMailer.sendCampaignMail).not.toHaveBeenCalled();
+    expect(fakeQueue.publishSendEmail).not.toHaveBeenCalled();
+  });
+
+  it('sends through the platform mailer when the campaign has no SMTP connection', async () => {
+    findUniqueMock.mockResolvedValueOnce(sendingRecipient({ sendConsentAt: new Date(), smtpConnectionId: null, smtpConnection: null }));
+    fieldMappingFindFirstMock.mockResolvedValueOnce({ mapping: enc({ name: 'name' }) });
+    const platformMailer = { isConfigured: vi.fn(), sendCampaignMail: vi.fn().mockResolvedValue({ ok: true }) };
+    const worker = buildSendWorker({
+      prisma: prismaMock, queue: fakeQueue, dataVault: fakeDataVault, platformMailer, sender: fakeSender,
+      rateLimiter: fakeRateLimiter, engine: fakeEngine, auditRepository: fakeAudit,
+    });
+
+    await worker.handleSendEmail({ campaignId: 'c-1', recipientId: 'r-1' });
+
+    expect(fakeSender.sendMail).not.toHaveBeenCalled();
+    expect(platformMailer.sendCampaignMail).toHaveBeenCalledWith(expect.objectContaining({ to: 'user@example.com', subject: 'Hello Alice' }));
   });
 
   it('campaign without pdfTemplateId behaves as before', async () => {
@@ -188,22 +236,23 @@ describe('SendWorker unit tests', () => {
         id: 'c-1',
         projectId: 'p-1',
         status: 'sending',
+        sendConsentAt: new Date(),
         smtpConnectionId: 'smtp-1',
         emailTemplateId: 'tpl-1',
         uploadId: 'up-1',
         emailTemplate: { subject: 'Hi {{name}}', bodyHtml: '<p>Hi</p>' },
         smtpConnection: { id: 'smtp-1', host: 'smtp.test', port: 587, secure: false, username: 'sender@test', passwordEncrypted: 'enc:pass' },
-        upload: { rows: [{ name: 'Alice', email: 'user@example.com' }] },
+        upload: { rows: enc([{ name: 'Alice', email: 'user@example.com' }]) },
         project: { rateLimitPerMinute: 60 },
       },
     });
 
-    fieldMappingFindFirstMock.mockResolvedValueOnce({ mapping: { name: 'name' } });
+    fieldMappingFindFirstMock.mockResolvedValueOnce({ mapping: enc({ name: 'name' }) });
 
     const worker = buildSendWorker({
       prisma: prismaMock,
       queue: fakeQueue,
-      cryptoService: fakeCrypto,
+      dataVault: fakeDataVault,
       sender: fakeSender,
       rateLimiter: fakeRateLimiter,
       engine: fakeEngine,
@@ -234,13 +283,14 @@ describe('SendWorker unit tests', () => {
         id: 'c-1',
         projectId: 'p-1',
         status: 'sending',
+        sendConsentAt: new Date(),
         smtpConnectionId: 'smtp-1',
         emailTemplateId: 'tpl-1',
         pdfTemplateId: 'pdf-tpl-1',
         uploadId: 'up-1',
         emailTemplate: { subject: 'Hi {{name}}', bodyHtml: '<p>Hi</p>' },
         smtpConnection: { id: 'smtp-1', host: 'smtp.test', port: 587, secure: false, username: 'sender@test', fromAddress: 'custom-from@test', passwordEncrypted: 'enc:pass' },
-        upload: { rows: [{ name: 'Alice', email: 'user@example.com' }] },
+        upload: { rows: enc([{ name: 'Alice', email: 'user@example.com' }]) },
         project: { rateLimitPerMinute: 60 },
       },
     });
@@ -254,12 +304,12 @@ describe('SendWorker unit tests', () => {
       nodeTree: { page: { size: 'A4', margin: 0 }, nodes: [] },
     });
 
-    fieldMappingFindFirstMock.mockResolvedValueOnce({ mapping: { name: 'name' } });
+    fieldMappingFindFirstMock.mockResolvedValueOnce({ mapping: enc({ name: 'name' }) });
 
     const worker = buildSendWorker({
       prisma: prismaMock,
       queue: fakeQueue,
-      cryptoService: fakeCrypto,
+      dataVault: fakeDataVault,
       sender: fakeSender,
       rateLimiter: fakeRateLimiter,
       engine: fakeEngine,
@@ -311,13 +361,14 @@ describe('SendWorker unit tests', () => {
         id: 'c-1',
         projectId: 'p-1',
         status: 'sending',
+        sendConsentAt: new Date(),
         smtpConnectionId: 'smtp-1',
         emailTemplateId: 'tpl-1',
         pdfTemplateId: 'pdf-tpl-1',
         uploadId: 'up-1',
         emailTemplate: { subject: 'Hi', bodyHtml: '<p>Hi</p>' },
         smtpConnection: { id: 'smtp-1', host: 'smtp.test', port: 587, secure: false, username: 'sender@test', passwordEncrypted: 'enc:pass' },
-        upload: { rows: [{ name: 'Alice' }] },
+        upload: { rows: enc([{ name: 'Alice' }]) },
         project: { rateLimitPerMinute: 60 },
       },
     });
@@ -345,7 +396,7 @@ describe('SendWorker unit tests', () => {
     const worker = buildSendWorker({
       prisma: prismaMock,
       queue: fakeQueue,
-      cryptoService: fakeCrypto,
+      dataVault: fakeDataVault,
       sender: fakeSender,
       rateLimiter: fakeRateLimiter,
       engine: fakeEngine,
@@ -385,13 +436,14 @@ describe('SendWorker unit tests', () => {
         id: 'c-1',
         projectId: 'p-1',
         status: 'sending',
+        sendConsentAt: new Date(),
         smtpConnectionId: 'smtp-1',
         emailTemplateId: 'tpl-1',
         pdfTemplateId: 'pdf-tpl-1',
         uploadId: 'up-1',
         emailTemplate: { subject: 'Hi', bodyHtml: '<p>Hi</p>' },
         smtpConnection: { id: 'smtp-1', host: 'smtp.test', port: 587, secure: false, username: 'sender@test', passwordEncrypted: 'enc:pass' },
-        upload: { rows: [{ name: 'Alice' }] },
+        upload: { rows: enc([{ name: 'Alice' }]) },
         project: { rateLimitPerMinute: 60 },
       },
     });
@@ -414,7 +466,7 @@ describe('SendWorker unit tests', () => {
     const worker = buildSendWorker({
       prisma: prismaMock,
       queue: fakeQueue,
-      cryptoService: fakeCrypto,
+      dataVault: fakeDataVault,
       sender: fakeSender,
       rateLimiter: fakeRateLimiter,
       engine: fakeEngine,
@@ -448,13 +500,14 @@ describe('SendWorker unit tests', () => {
         id: 'c-1',
         projectId: 'p-1',
         status: 'sending',
+        sendConsentAt: new Date(),
         smtpConnectionId: 'smtp-1',
         emailTemplateId: 'tpl-1',
         pdfTemplateId: 'pdf-tpl-1',
         uploadId: 'up-1',
         emailTemplate: { subject: 'Hi', bodyHtml: '<p>Hi</p>' },
         smtpConnection: { id: 'smtp-1', host: 'smtp.test', port: 587, secure: false, username: 'sender@test', passwordEncrypted: 'enc:pass' },
-        upload: { rows: [{}, { name: 'Bob' }] },
+        upload: { rows: enc([{}, { name: 'Bob' }]) },
         project: { rateLimitPerMinute: 60 },
       },
     });
@@ -473,7 +526,7 @@ describe('SendWorker unit tests', () => {
     const worker = buildSendWorker({
       prisma: prismaMock,
       queue: fakeQueue,
-      cryptoService: fakeCrypto,
+      dataVault: fakeDataVault,
       sender: fakeSender,
       rateLimiter: fakeRateLimiter,
       engine: fakeEngine,
@@ -506,6 +559,7 @@ describe('SendWorker unit tests', () => {
         id: 'c-1',
         projectId: 'p-1',
         status: 'sending',
+        sendConsentAt: new Date(),
         smtpConnectionId: 'smtp-1',
         emailTemplateId: 'tpl-1',
         pdfTemplateId: 'pdf-tpl-1',
@@ -520,7 +574,7 @@ describe('SendWorker unit tests', () => {
           passwordEncrypted: 'enc:pass',
           fromAddress: 'sender@test',
         },
-        upload: { rows: [{ name: 'Alice' }] },
+        upload: { rows: enc([{ name: 'Alice' }]) },
         project: { rateLimitPerMinute: 60 },
       },
     });
@@ -528,7 +582,7 @@ describe('SendWorker unit tests', () => {
     const workerWithoutPdf = buildSendWorker({
       prisma: prismaMock,
       queue: fakeQueue,
-      cryptoService: fakeCrypto,
+      dataVault: fakeDataVault,
       sender: fakeSender,
       rateLimiter: fakeRateLimiter,
       engine: fakeEngine,
@@ -557,12 +611,13 @@ describe('SendWorker unit tests', () => {
         id: 'c-1',
         projectId: 'p-1',
         status: 'sending',
+        sendConsentAt: new Date(),
         smtpConnectionId: 'smtp-1',
         emailTemplateId: 'tpl-1',
         uploadId: 'up-1',
         emailTemplate: { subject: 'Hi', bodyHtml: '<p>Hi</p>' },
         smtpConnection: { id: 'smtp-1', host: 'smtp.test', port: 587, secure: false, username: 'sender@test', passwordEncrypted: 'enc:pass' },
-        upload: { rows: [{ name: 'Alice' }] },
+        upload: { rows: enc([{ name: 'Alice' }]) },
         project: { rateLimitPerMinute: 60 },
       },
     });
@@ -593,7 +648,7 @@ describe('SendWorker unit tests', () => {
     const worker = buildSendWorker({
       prisma: prismaMock,
       queue: fakeQueue,
-      cryptoService: fakeCrypto,
+      dataVault: fakeDataVault,
       sender: fakeSender,
       rateLimiter: rateLimiterWithDelay,
       engine: fakeEngine,
@@ -620,6 +675,7 @@ describe('SendWorker unit tests', () => {
         id: 'c-1',
         projectId: 'p-1',
         status: 'sending',
+        sendConsentAt: new Date(),
         smtpConnectionId: 'smtp-1',
         emailTemplateId: 'tpl-1',
         uploadId: 'up-1',
@@ -633,7 +689,7 @@ describe('SendWorker unit tests', () => {
           passwordEncrypted: 'enc:pass',
           fromAddress: 'sender@test',
         },
-        upload: { rows: [{ name: 'Alice' }] },
+        upload: { rows: enc([{ name: 'Alice' }]) },
         project: { rateLimitPerMinute: 60 },
       },
     });
@@ -655,7 +711,7 @@ describe('SendWorker unit tests', () => {
       const worker = buildSendWorker({
         prisma: prismaMock,
         queue: fakeQueue,
-        cryptoService: fakeCrypto,
+        dataVault: fakeDataVault,
         sender: transientSender,
         rateLimiter: fakeRateLimiter,
         engine: fakeEngine,
@@ -699,7 +755,7 @@ describe('SendWorker unit tests', () => {
       const worker = buildSendWorker({
         prisma: prismaMock,
         queue: fakeQueue,
-        cryptoService: fakeCrypto,
+        dataVault: fakeDataVault,
         sender: transientSender,
         rateLimiter: fakeRateLimiter,
         engine: fakeEngine,
@@ -752,7 +808,7 @@ describe('SendWorker unit tests', () => {
       const worker = buildSendWorker({
         prisma: prismaMock,
         queue: fakeQueue,
-        cryptoService: fakeCrypto,
+        dataVault: fakeDataVault,
         sender: permanentSender,
         rateLimiter: fakeRateLimiter,
         engine: fakeEngine,
@@ -797,7 +853,7 @@ describe('SendWorker unit tests', () => {
       const worker = buildSendWorker({
         prisma: prismaMock,
         queue: fakeQueue,
-        cryptoService: fakeCrypto,
+        dataVault: fakeDataVault,
         sender: transientSender,
         rateLimiter: fakeRateLimiter,
         engine: fakeEngine,

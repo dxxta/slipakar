@@ -163,6 +163,10 @@ describe('CampaignDetailPage', () => {
     expect(confirmMsg.textContent).toContain('2');
 
     const confirmBtn = fixture.nativeElement.querySelector('[data-testid="confirm-send-button"]');
+    expect(confirmBtn.disabled).toBe(true);
+    fixture.nativeElement.querySelector('[data-testid="consent-checkbox"]').click();
+    fixture.detectChanges();
+    expect(confirmBtn.disabled).toBe(false);
     confirmBtn.click();
 
     const sendReq = http.expectOne('/projects/p-1/campaigns/camp-1/send');
@@ -201,6 +205,8 @@ describe('CampaignDetailPage', () => {
     fixture.detectChanges();
 
     const confirmBtn = fixture.nativeElement.querySelector('[data-testid="confirm-send-button"]');
+    fixture.nativeElement.querySelector('[data-testid="consent-checkbox"]').click();
+    fixture.detectChanges();
     confirmBtn.click();
 
     const sendReq = http.expectOne('/projects/p-1/campaigns/camp-1/send');

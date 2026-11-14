@@ -168,7 +168,7 @@ describe('campaigns HTTP delivery and flow integration', () => {
     expect(recipientsRes.body.metadata.total).toBe(2);
 
     // 2. Trigger send returns 202 with enqueuedCount = 2
-    const sendRes = await request(app).post(`/projects/${projectId}/campaigns/${campaignId}/send`);
+    const sendRes = await request(app).post(`/projects/${projectId}/campaigns/${campaignId}/send`).send({ consent: true });
     expect(sendRes.status).toBe(202);
     expect(sendRes.body.data).toMatchObject({
       campaignId,
@@ -178,7 +178,7 @@ describe('campaigns HTTP delivery and flow integration', () => {
     expect(enqueuedMessages).toHaveLength(2);
 
     // 3. Second send gives 409 CAMPAIGN_ALREADY_SENT
-    const secondSend = await request(app).post(`/projects/${projectId}/campaigns/${campaignId}/send`);
+    const secondSend = await request(app).post(`/projects/${projectId}/campaigns/${campaignId}/send`).send({ consent: true });
     expect(secondSend.status).toBe(409);
     expect(secondSend.body.error.code).toBe('CAMPAIGN_ALREADY_SENT');
   });
@@ -196,8 +196,8 @@ describe('campaigns HTTP delivery and flow integration', () => {
     const campaignId = createRes.body.data.id as string;
 
     const [send1, send2] = await Promise.all([
-      request(app).post(`/projects/${projectId}/campaigns/${campaignId}/send`),
-      request(app).post(`/projects/${projectId}/campaigns/${campaignId}/send`),
+      request(app).post(`/projects/${projectId}/campaigns/${campaignId}/send`).send({ consent: true }),
+      request(app).post(`/projects/${projectId}/campaigns/${campaignId}/send`).send({ consent: true }),
     ]);
 
     const statuses = [send1.status, send2.status].sort();
@@ -225,7 +225,7 @@ describe('campaigns HTTP delivery and flow integration', () => {
 
     // Retry on pending recipient should give 409 NOT_RETRYABLE
     const earlyRetry = await request(app)
-      .post(`/projects/${projectId}/campaigns/${campaignId}/recipients/${firstRecipientId}/retry`);
+      .post(`/projects/${projectId}/campaigns/${campaignId}/recipients/${firstRecipientId}/retry`).send({ consent: true });
     expect(earlyRetry.status).toBe(409);
     expect(earlyRetry.body.error.code).toBe('NOT_RETRYABLE');
 
@@ -243,7 +243,7 @@ describe('campaigns HTTP delivery and flow integration', () => {
     // Retry failed recipient
     enqueuedMessages.length = 0;
     const retryRes = await request(app)
-      .post(`/projects/${projectId}/campaigns/${campaignId}/recipients/${firstRecipientId}/retry`);
+      .post(`/projects/${projectId}/campaigns/${campaignId}/recipients/${firstRecipientId}/retry`).send({ consent: true });
     expect(retryRes.status).toBe(200);
     expect(retryRes.body.data.status).toBe('pending');
     expect(enqueuedMessages).toHaveLength(1);

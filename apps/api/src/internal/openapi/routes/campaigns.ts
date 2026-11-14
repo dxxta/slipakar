@@ -1,4 +1,4 @@
-import { createCampaignsDto, listCampaignsQueryDto, listRecipientsQueryDto } from '../../../domain/campaigns/dto.js';
+import { createCampaignsDto, listCampaignsQueryDto, listRecipientsQueryDto, sendConsentDto } from '../../../domain/campaigns/dto.js';
 import type { RouteDoc } from '../../../domain/openapi/interface.js';
 
 export const campaignsRoutes: RouteDoc[] = [
@@ -35,10 +35,11 @@ export const campaignsRoutes: RouteDoc[] = [
     method: 'post',
     path: '/projects/:projectId/campaigns/:id/send',
     tag: 'Campaigns',
-    summary: 'Trigger campaign sending',
+    summary: 'Trigger campaign sending. Requires consent: true, which lets the server decrypt the project data to send',
     auth: 'session',
     apiKeyScope: 'campaigns:send',
     status: 202,
+    body: sendConsentDto,
   },
   {
     method: 'get',
@@ -54,7 +55,16 @@ export const campaignsRoutes: RouteDoc[] = [
     method: 'post',
     path: '/projects/:projectId/campaigns/:campaignId/recipients/:recipientId/retry',
     tag: 'Campaigns',
-    summary: 'Retry sending to a failed recipient',
+    summary: 'Retry sending to a failed recipient. Requires consent: true',
+    auth: 'session',
+    status: 200,
+    body: sendConsentDto,
+  },
+  {
+    method: 'post',
+    path: '/projects/:projectId/campaigns/:id/stop',
+    tag: 'Campaigns',
+    summary: 'Withdraw consent and stop sending',
     auth: 'session',
     status: 200,
   },

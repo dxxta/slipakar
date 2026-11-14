@@ -66,7 +66,7 @@ import { Ripple } from '../../ui/shared/ripple';
 
       <header class="flex flex-wrap items-start gap-3">
         <div class="min-w-0 flex-1"><div class="flex items-center gap-3"><h1 class="text-3xl font-semibold tracking-tight">{{ 'Campaign #' + campaignId().slice(0, 8) }}</h1>@if (campaign(); as camp) { <span hlmBadge [variant]="badgeVariant(camp.status)" data-testid="campaign-status-badge">{{ statusLabel(camp.status) }}</span> }</div><p class="mt-2 text-sm text-muted-foreground">View real-time delivery status and recipient list.</p></div>
-        <div class="ml-auto flex shrink-0 items-center gap-2"><app-back-button class="max-md:hidden" [link]="['/projects', projectId(), 'campaigns']" label="Back to campaigns" /><app-row-actions class="md:hidden" [solid]="true" label="Campaign actions" [items]="mobileActions()" (actionSelect)="onMobileAction($event)" />@if (campaign()?.status === 'draft' && (!embed.isEmbedMode() || embed.hasScope('campaigns:send'))) { <button hlmBtn type="button" class="max-md:hidden" data-testid="send-campaign-button" (click)="openSendConfirm()">Send campaign</button> }</div>
+        <div class="ml-auto flex shrink-0 items-center gap-2"><app-back-button class="max-md:hidden" [link]="['/projects', projectId(), 'campaigns']" label="Back to campaigns" /><app-row-actions class="md:hidden" [solid]="true" label="Campaign actions" [items]="mobileActions()" (actionSelect)="onMobileAction($event)" />@if ((campaign()?.status === 'draft' || campaign()?.status === 'stopped') && (!embed.isEmbedMode() || embed.hasScope('campaigns:send'))) { <button hlmBtn type="button" class="max-md:hidden" data-testid="send-campaign-button" (click)="openSendConfirm()">{{ campaign()?.status === 'stopped' ? 'Resume sending' : 'Send campaign' }}</button> } @if (campaign()?.status === 'sending') { <button hlmBtn variant="outline" type="button" class="max-md:hidden" data-testid="stop-campaign-button" (click)="showConfirmStop.set(true)">Stop sending</button> }</div>
       </header>
 
       @if (actionError()) {
@@ -87,7 +87,11 @@ import { Ripple } from '../../ui/shared/ripple';
         </div>
       }
 
-      <app-confirm-modal [open]="showConfirmSend()" title="Confirm Campaign Delivery" [message]="'Are you sure you want to send this campaign to all ' + (campaign()?.counts?.total ?? 0) + ' recipient(s)?'" [confirmLabel]="isSending() ? 'Sending…' : 'Yes, Send Now'" dialogTestId="send-confirm-dialog" messageTestId="confirm-send-message" confirmTestId="confirm-send-button" (cancelled)="showConfirmSend.set(false)" (confirmed)="confirmSend()" />
+      <app-confirm-modal [open]="showConfirmSend()" title="Confirm Campaign Delivery" [message]="'Are you sure you want to send this campaign to all ' + (campaign()?.counts?.total ?? 0) + ' recipient(s)?'" [confirmLabel]="isSending() ? 'Sending…' : 'Yes, Send Now'" [consentLabel]="consentText" dialogTestId="send-confirm-dialog" messageTestId="confirm-send-message" confirmTestId="confirm-send-button" (cancelled)="showConfirmSend.set(false)" (confirmed)="confirmSend()" />
+
+      <app-confirm-modal [open]="retryTargetId() !== null" title="Retry delivery" message="Send this message again?" confirmLabel="Retry" [consentLabel]="consentText" dialogTestId="retry-confirm-dialog" confirmTestId="confirm-retry-button" (cancelled)="retryTargetId.set(null)" (confirmed)="confirmRetry()" />
+
+      <app-confirm-modal [open]="showConfirmStop()" title="Stop sending" message="Sending stops now and your consent is withdrawn. Messages not sent yet stay pending, and you can send again later." confirmLabel="Stop sending" dialogTestId="stop-confirm-dialog" confirmTestId="confirm-stop-button" (cancelled)="showConfirmStop.set(false)" (confirmed)="confirmStop()" />
 
       @if (loading()) {
         <div data-testid="campaign-detail-skeleton" class="space-y-4 animate-pulse">
@@ -174,7 +178,7 @@ import { Ripple } from '../../ui/shared/ripple';
                         </td>
                         <td data-label="Actions" class="px-6 py-3 text-right">
                           @if (rec.status === 'failed' && !embed.isEmbedMode()) {
-                            <app-row-actions [attr.data-testid]="'recipient-actions-' + rec.id" [label]="'Actions for ' + rec.email" [items]="recipientActions(rec.id)" (actionSelect)="retryRecipient(rec.id)" />
+                            <app-row-actions [attr.data-testid]="'recipient-actions-' + rec.id" [label]="'Actions for ' + rec.email" [items]="recipientActions(rec.id)" (actionSelect)="retryTargetId.set(rec.id)" />
                           }
                         </td>
                       </tr>
@@ -207,6 +211,9 @@ export class CampaignDetailPage implements OnInit, OnDestroy {
   readonly recipientsError = signal<string | null>(null);
   readonly isSending = signal(false);
   readonly showConfirmSend = signal(false);
+  readonly showConfirmStop = signal(false);
+  readonly retryTargetId = signal<string | null>(null);
+  protected readonly consentText = 'I agree that Slipakar may decrypt this project data on the server only to send these emails. I can withdraw this at any time by stopping the campaign.';
 
   readonly actionError = signal<string | null>(null);
   readonly actionSuccess = signal<string | null>(null);
@@ -224,10 +231,12 @@ export class CampaignDetailPage implements OnInit, OnDestroy {
 
   protected readonly mobileActions = computed<RowActionItem[]>(() => [
     { id: 'back', label: 'Back to campaigns', icon: 'back' },
-    ...(this.campaign()?.status === 'draft' && (!this.embed.isEmbedMode() || this.embed.hasScope('campaigns:send')) ? [{ id: 'send', label: 'Send campaign', icon: 'send' } as RowActionItem] : []),
+    ...((this.campaign()?.status === 'draft' || this.campaign()?.status === 'stopped') && (!this.embed.isEmbedMode() || this.embed.hasScope('campaigns:send')) ? [{ id: 'send', label: this.campaign()?.status === 'stopped' ? 'Resume sending' : 'Send campaign', icon: 'send' } as RowActionItem] : []),
+    ...(this.campaign()?.status === 'sending' ? [{ id: 'stop', label: 'Stop sending', icon: 'power' } as RowActionItem] : []),
   ]);
   protected onMobileAction(action: RowActionItem): void {
     if (action.id === 'send') this.openSendConfirm();
+    else if (action.id === 'stop') this.showConfirmStop.set(true);
     else void this.router.navigate(['/projects', this.projectId(), 'campaigns']);
   }
   readonly retryingRecipientId = signal<string | null>(null);
@@ -367,6 +376,27 @@ export class CampaignDetailPage implements OnInit, OnDestroy {
           this.actionError.set('Network error while triggering campaign send.');
         }
       },
+    });
+  }
+
+  confirmRetry(): void {
+    const id = this.retryTargetId();
+    this.retryTargetId.set(null);
+    if (id) this.retryRecipient(id);
+  }
+
+  confirmStop(): void {
+    const pid = this.projectId();
+    const cid = this.campaignId();
+    this.showConfirmStop.set(false);
+    if (!pid || !cid) return;
+    this.actionError.set(null);
+    this.campaignsService.stopCampaign(pid, cid).subscribe({
+      next: () => {
+        this.campaign.update((c) => (c ? { ...c, status: 'stopped' } : null));
+        this.actionSuccess.set('Sending stopped. Your consent is withdrawn.');
+      },
+      error: (error: unknown) => this.actionError.set(error instanceof ApiError ? error.message || 'Could not stop sending.' : 'Could not stop sending.'),
     });
   }
 

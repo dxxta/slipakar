@@ -58,6 +58,7 @@ import type { FeatureFlagsInterface } from './domain/system-config/interface.js'
 import { createAttachmentsRouter } from './internal/attachments/delivery/http/attachments.js';
 import { buildAttachmentsRepository } from './internal/attachments/repository/attachments.js';
 import { buildAttachmentsUseCase } from './internal/attachments/usecase/attachments.js';
+import { buildEncryptedStorage } from './internal/storage/encrypted-storage.js';
 import { buildStorage } from './internal/storage/storage.js';
 import { createSystemConfigRouter } from './internal/system-config/delivery/http/system-config.js';
 import { requireAdmin } from './internal/system-config/middleware/require-admin.js';
@@ -101,6 +102,8 @@ import { fileParser } from './internal/uploads/parser/file-parser.js';
 import { buildUploadsRepository } from './internal/uploads/repository/uploads.js';
 import { buildUploadsUseCase } from './internal/uploads/usecase/uploads.js';
 import { createCryptoService } from './services/crypto.js';
+import { buildDataVault } from './services/data-vault.js';
+import { createEnvelopeService } from './services/envelope.js';
 import { buildApiKeysRepository } from './internal/apikeys/repository/api-keys.js';
 import { buildApiKeysUseCase } from './internal/apikeys/usecase/api-keys.js';
 import { createApiKeysRouter } from './internal/apikeys/delivery/http/api-keys.js';
@@ -156,6 +159,8 @@ export function buildApplication({
   redis: redisOverride,
 }: CompositionDeps): Application {
   const cryptoService = createCryptoService(env.APP_ENCRYPTION_KEY);
+  const envelopeService = createEnvelopeService(cryptoService);
+  const dataVault = buildDataVault({ prisma, envelope: envelopeService });
   const auditRepository = buildAuditRepository(prisma);
   const adminSetupRepository = new AdminSetupRepository(prisma, auditRepository);
 
@@ -204,6 +209,7 @@ export function buildApplication({
     loginActivityUseCase,
     adminEmails: env.ADMIN_EMAILS,
     errorReporter: errorReporterOverride,
+    dataVault,
   });
 
   const requireAuth =
@@ -244,7 +250,7 @@ export function buildApplication({
     prisma,
     auditRepository,
   });
-  const uploadsRepository = buildUploadsRepository({ prisma, auditRepository });
+  const uploadsRepository = buildUploadsRepository({ prisma, auditRepository, dataVault });
 
   const findOwnedProject = async (projectId: string, userId: string) =>
     (
@@ -266,7 +272,7 @@ export function buildApplication({
   const smtpUseCase = buildSmtpUseCase({
     repository: smtpRepository,
     prisma,
-    cryptoService,
+    dataVault,
     sender: smtpSender,
     projectLookup: ownsProject,
   });
@@ -306,7 +312,12 @@ export function buildApplication({
       ? { placeholders: extractPdfPlaceholders(data.nodeTree) }
       : null;
   };
-  const mappingRepository = buildMappingRepository({ prisma, auditRepository });
+  const mappingRepository = buildMappingRepository({
+    prisma,
+    auditRepository,
+    dataVault,
+    projectIdOfTemplate: async (templateId) => (await prisma.emailTemplate.findUniqueOrThrow({ where: { id: templateId }, select: { projectId: true } })).projectId,
+  });
   const mappingUseCase = buildMappingUseCase({
     repository: mappingRepository,
     prisma,
@@ -347,6 +358,8 @@ export function buildApplication({
       }),
       bucket: env.S3_BUCKET,
     });
+  // Project files (attachments, generated PDFs, images) are encrypted with the owner's data key.
+  const projectStorage = buildEncryptedStorage({ storage, dataVault });
   // Errors always land in the MinIO log (source of truth); an external reporter such as Sentry is optional and may be rate limited.
   const errorLogSink = errorLogSinkOverride ?? buildErrorLogSink({ storage });
   const errorReporter = errorReporterOverride ?? buildErrorReporter({ sink: errorLogSink });
@@ -356,7 +369,7 @@ export function buildApplication({
         await attachmentsRepository.findByIdAttachmentsRepository({
           filter: { projectId, id: attachmentId },
         });
-      return data ? storage.getObject(data.objectKey) : null;
+      return data ? projectStorage.getObject(data.objectKey) : null;
     },
   });
   const pdfTemplatesUseCase = buildPdfTemplatesUseCase({
@@ -373,14 +386,14 @@ export function buildApplication({
   });
   const attachmentStore = buildAttachmentStore({
     prisma,
-    storage,
+    storage: projectStorage,
     auditRepository,
     repository: attachmentsRepository,
   });
   const attachmentsUseCase = buildAttachmentsUseCase({
     repository: attachmentsRepository,
     prisma,
-    storage,
+    storage: projectStorage,
     projectLookup: ownsProject,
     quotaLookup: async (projectId, userId) => {
       const project = await findOwnedProject(projectId, userId);
@@ -428,6 +441,7 @@ export function buildApplication({
     repository: campaignsRepository,
     prisma,
     queue,
+    platformMailerConfigured: () => dynamicAuthEmailSender.isConfigured(),
     pdfTemplateLookup,
     templateLookup: async (projectId, id) => {
       const { data } = await templatesRepository.getTemplateRepository({
@@ -524,7 +538,8 @@ export function buildApplication({
   const sendWorker = buildSendWorker({
     prisma,
     queue,
-    cryptoService,
+    dataVault,
+    platformMailer: dynamicAuthEmailSender,
     sender: smtpSender,
     rateLimiter: buildRateLimiter({
       redis: new Redis(env.REDIS_URL, { lazyConnect: true }),
@@ -534,7 +549,7 @@ export function buildApplication({
     metrics,
     pdfRenderer,
     attachmentStore,
-    storage,
+    storage: projectStorage,
     errorReporter,
     ...sendRetry,
   });

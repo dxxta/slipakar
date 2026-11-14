@@ -9,6 +9,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { errorHandler } from '../../../../middleware/error-handler.js';
 import { buildAuditRepository } from '../../../audit/repository/audit.js';
 import { fileParser } from '../../parser/file-parser.js';
+import { realDataVault } from '../../../../test/vault.js';
 import { buildUploadsRepository } from '../../repository/uploads.js';
 import { buildUploadsUseCase } from '../../usecase/uploads.js';
 import { createUploadsRouter } from './uploads.js';
@@ -36,7 +37,7 @@ describe('clean architecture uploads API', () => {
     const settingsLookup = async (id: string, userId: string): Promise<{ maxUploadBytes: number; maxRows: number } | null> =>
       prisma.project.findFirst({ where: { id, ownerId: userId }, select: { maxUploadBytes: true, maxRows: true } });
     const useCase = buildUploadsUseCase({
-      repository: buildUploadsRepository({ prisma, auditRepository: buildAuditRepository(prisma) }), prisma,
+      repository: buildUploadsRepository({ prisma, auditRepository: buildAuditRepository(prisma), dataVault: realDataVault(prisma) }), prisma,
       parser: fileParser, settingsLookup, projectLookup,
     });
     app = express();
@@ -60,7 +61,7 @@ describe('clean architecture uploads API', () => {
     expect(created.body.data).not.toHaveProperty('rows');
     const id = (created.body.data as { id: string }).id;
     const stored = await prisma.dataUpload.findUniqueOrThrow({ where: { id } });
-    expect(stored.rows).toEqual([{ name: 'Ada', email: 'ada@example.com' }, { name: 'Bob', email: 'bob@example.com' }]);
+    expect((await realDataVault(prisma).forProject(stored.projectId)).decryptJson(stored.rows)).toEqual([{ name: 'Ada', email: 'ada@example.com' }, { name: 'Bob', email: 'bob@example.com' }]);
 
     const listed = await request(app).get(`/projects/${projectId}/uploads`);
     expect(listed.status).toBe(200);
@@ -70,14 +71,14 @@ describe('clean architecture uploads API', () => {
     expect(found.body.data.preview).toEqual([{ name: 'Ada', email: 'ada@example.com' }, { name: 'Bob', email: 'bob@example.com' }]);
 
     const createAudit = await prisma.auditLog.findMany({ where: { entity: 'DataUpload', entityId: id, action: 'create' } });
-    expect(createAudit.map((entry) => entry.fieldName).sort()).toEqual(['fileName', 'rowCount']);
+    expect(createAudit.map((entry) => entry.fieldName).sort()).toEqual(['rowCount']);
     expect(JSON.stringify(createAudit)).not.toContain('ada@example.com');
 
     const deleted = await request(app).delete(`/projects/${projectId}/uploads/${id}`);
     expect(deleted.status).toBe(200);
     expect(deleted.body).toEqual({ message: 'Upload deleted successfully', data: null, success: true });
     const deleteAudit = await prisma.auditLog.findMany({ where: { entity: 'DataUpload', entityId: id, action: 'delete' } });
-    expect(deleteAudit.map((entry) => entry.fieldName).sort()).toEqual(['fileName', 'rowCount']);
+    expect(deleteAudit.map((entry) => entry.fieldName).sort()).toEqual(['rowCount']);
   });
 
   it('returns 404 for another user’s project and 400 for malformed rows', async () => {

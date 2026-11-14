@@ -9,6 +9,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildAuditRepository } from '../../../audit/repository/audit.js';
 import { errorHandler } from '../../../../middleware/error-handler.js';
 import { extractPlaceholders, renderTemplate } from '../../../templates/renderer/template-renderer.js';
+import { realDataVault } from '../../../../test/vault.js';
 import { buildMappingRepository } from '../../repository/mapping.js';
 import { buildMappingUseCase } from '../../usecase/mapping.js';
 import { createMappingRouter } from './mapping.js';
@@ -37,7 +38,10 @@ describe('clean mapping API', () => {
     uploadId = (await prisma.dataUpload.create({ data: { projectId, fileName: 'rows.json', columns: ['first', 'second'], rows: [{ first: 'Ada', second: '<Lin>' }], rowCount: 1 } })).id;
     const guard: RequestHandler = (_req, res, next): void => { res.locals.userId = owner.id; next(); };
     const useCase = buildMappingUseCase({
-      repository: buildMappingRepository({ prisma, auditRepository: buildAuditRepository(prisma) }), prisma,
+      repository: buildMappingRepository({
+        prisma, auditRepository: buildAuditRepository(prisma), dataVault: realDataVault(prisma),
+        projectIdOfTemplate: async (templateId) => (await prisma.emailTemplate.findUniqueOrThrow({ where: { id: templateId }, select: { projectId: true } })).projectId,
+      }), prisma,
       engine: { extractPlaceholders, renderTemplate },
       projectLookup: async (id, userId) => Boolean(await prisma.project.findFirst({ where: { id, ownerId: userId } })),
       templateLookup: async (id, tid) => prisma.emailTemplate.findFirst({ where: { id: tid, projectId: id } }),
