@@ -86,8 +86,8 @@ h1, h2, h3 { text-wrap: balance; }
 .header-nav a:hover, .footer-links a:hover { color: var(--warm); }
 .header-actions { --header-control: 40px; gap: 1.2rem; }
 .header-actions .button-small { min-height: var(--header-control); }
-.language-toggle { box-sizing: border-box; width: 6.5rem; min-height: 50px; display: inline-flex; align-items: stretch; padding: 3px; gap: 3px; border: 3px solid var(--border-strong); border-radius: 999px; background: var(--surface); box-shadow: 3px 3px 0 var(--shadow-color); }
-.language-option { flex: 1 1 0; min-width: 44px; min-height: 38px; display: inline-flex; align-items: center; justify-content: center; padding: 0.35rem 0.45rem; border: 0; border-radius: 999px; color: var(--text); background: transparent; font-family: var(--font-display); font-size: 0.8rem; font-weight: 800; text-decoration: none; cursor: pointer; }
+.language-toggle { box-sizing: border-box; width: 6.5rem; height: var(--header-control, 40px); min-height: var(--header-control, 40px); display: inline-flex; align-items: stretch; padding: 3px; gap: 3px; border: 3px solid var(--border-strong); border-radius: 999px; background: var(--surface); box-shadow: 3px 3px 0 var(--shadow-color); }
+.language-option { flex: 1 1 0; min-width: 44px; min-height: 0; display: inline-flex; align-items: center; justify-content: center; padding: 0.35rem 0.45rem; border: 0; border-radius: 999px; color: var(--text); background: transparent; font-family: var(--font-display); font-size: 0.8rem; font-weight: 800; text-decoration: none; cursor: pointer; }
 .language-option:hover { color: var(--text); background: var(--line); }
 .language-option-active, .language-option-active:hover { color: var(--ink); background: var(--lime); }
 .language-option:focus-visible { border-radius: 999px; }
@@ -270,7 +270,7 @@ h1 { max-width: 13ch; margin-bottom: 1.45rem; font-size: clamp(2.85rem, 5.5vw, 5
   .header-actions { --header-control: 44px; gap: 0.5rem; }
   .header-actions .button-small { padding-inline: 0.75rem; }
   .language-toggle { flex: 0 0 auto; }
-  .language-option { min-width: 44px; min-height: 44px; padding-inline: 0.5rem; }
+  .language-option { min-width: 44px; padding-inline: 0.5rem; }
   .hero { grid-template-columns: 1fr; padding-top: 3.7rem; }
   h1 { max-width: 12ch; font-size: clamp(2.75rem, 13vw, 4.15rem); }
   .hero-proof { width: 100%; max-width: 520px; margin: 0 auto; }
