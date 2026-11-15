@@ -11,8 +11,8 @@ export const contentEn: LandingDictionary = {
     },
     nav: { how: 'How it works', features: 'Features', signIn: 'Sign in' },
     hero: {
-      title: 'Personalized email, with privacy built in.',
-      description: 'Send through your own SMTP server and deployment. Uploaded data and project files are encrypted at rest with a per-user data key, and every send requires your consent.',
+      title: 'Personalized payslip email, with privacy built in.',
+      description: 'Send payslip through your own SMTP server and deployment. Uploaded data and project files are encrypted at rest with a per-user data key, and every send requires your consent.',
       signIn: 'Sign in',
       selfHost: 'Self-hosting guide',
       connectionStatus: { connected: 'Connected', disconnected: 'Disconnected', checking: 'Checking' },

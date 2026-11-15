@@ -11,8 +11,8 @@ export const contentId: LandingDictionary = {
     },
     nav: { how: 'Cara kerja', features: 'Fitur', signIn: 'Masuk' },
     hero: {
-      title: 'Email personal, dengan privasi sejak awal.',
-      description: 'Kirim melalui server SMTP dan deployment sendiri. Data yang diunggah dan file proyek dienkripsi saat tersimpan dengan kunci data per pengguna, dan setiap pengiriman memerlukan persetujuan Anda.',
+      title: 'Email slip gaji personal, dengan privasi sejak awal.',
+      description: 'Kirim slip gaji melalui server SMTP dan deployment sendiri. Data yang diunggah dan file proyek dienkripsi saat tersimpan dengan kunci data per pengguna, dan setiap pengiriman memerlukan persetujuan Anda.',
       signIn: 'Masuk',
       selfHost: 'Panduan self-hosting',
       connectionStatus: { connected: 'Terhubung', disconnected: 'Terputus', checking: 'Memeriksa' },
