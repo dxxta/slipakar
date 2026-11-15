@@ -1,1 +1,4 @@
 :host { display: block; min-height: 100vh; }
+.signin-notice-backdrop { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 1rem; background: rgb(12 18 16 / 55%); }
+.signin-notice { width: min(100%, 28rem); padding: 1.5rem; border: 1px solid var(--line, #d8ded9); border-radius: 1rem; background: var(--surface, #fff); color: var(--text, #17211b); box-shadow: 0 1rem 3rem rgb(0 0 0 / 18%); }
+.signin-notice button { display: block; margin: 1.25rem 0 0 auto; padding: .6rem 1.1rem; border: 0; border-radius: .5rem; background: var(--ink, #17211b); color: white; cursor: pointer; }

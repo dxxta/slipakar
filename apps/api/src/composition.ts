@@ -617,6 +617,7 @@ export function buildApplication({
       // reject non-admins on every router mounted after it.
       createSystemConfigRouter({
         guards: [...guards, requireAdmin(env.ADMIN_EMAILS)],
+        flags,
         useCase: systemConfigUseCase,
       }),
     ],

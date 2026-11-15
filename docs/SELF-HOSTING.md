@@ -208,6 +208,7 @@ Set these public URLs in `.env` before starting or rebuilding the service:
 | `LANDING_REPO_URL` | Public source repository link. |
 | `LANDING_DOCS_URL` | Public self-hosting guide link. |
 | `LANDING_STATUS_URL` | Optional public Uptime Kuma status page URL (`https://status.example.com/status/<slug>`), leave empty to show the status as checking without a link. |
+| `LANDING_API_URL` | Public API base URL the website uses to check whether sign-in is disabled by the administrator. |
 
 The Express server reads these values at runtime and places them in an SSR-rendered metadata element, the Angular app reads that value through an injection token rather than a `window` global. Missing values use localhost defaults. The landing site serves a dynamic `robots.txt` that disallows the listed AI model crawlers while allowing general crawling and search crawlers. Express also returns `403` for requests whose user-agent matches the block list. These checks only guide or stop honest clients, user agents can be spoofed, so use a CDN or WAF if access must be enforced.
 

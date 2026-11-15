@@ -17,6 +17,7 @@ services:
       LANDING_REPO_URL: "${LANDING_REPO_URL:-http://localhost:8082/#open-source}"
       LANDING_DOCS_URL: "${LANDING_DOCS_URL:-http://localhost:8082/#self-host}"
       LANDING_STATUS_URL: "${LANDING_STATUS_URL:-}"
+      LANDING_API_URL: "${LANDING_API_URL:-http://localhost:3000}"
     healthcheck:
       test: ["CMD", "busybox", "wget", "-q", "-O", "-", "http://127.0.0.1:8082/healthz"]
       interval: 30s

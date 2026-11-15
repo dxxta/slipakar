@@ -13,12 +13,23 @@ function parameter(request: Request, name: string): string {
 
 export function createSystemConfigRouter({
   guards,
+  flags,
   useCase,
 }: {
   guards: RequestHandler[];
+  flags: { isEnabled(key: 'signin_disabled'): Promise<boolean> };
   useCase: SystemConfigUseCaseInterface;
 }): Router {
   const router = Router();
+
+  router.get('/public/config/signin', async (_request, response, next) => {
+    try {
+      response.status(200).json({ enabled: await flags.isEnabled('signin_disabled') });
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.use(...guards);
 
   /**

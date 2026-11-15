@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const SYSTEM_CONFIG_KEYS = ['scalar_docs', 'pdf_builder', 'self_signup', 'api_access_enabled', 'embed_enabled'] as const;
+export const SYSTEM_CONFIG_KEYS = ['scalar_docs', 'pdf_builder', 'self_signup', 'signin_disabled', 'api_access_enabled', 'embed_enabled'] as const;
 
 export const systemConfigKeySchema = z.enum(SYSTEM_CONFIG_KEYS);
 export type SystemConfigKey = z.infer<typeof systemConfigKeySchema>;

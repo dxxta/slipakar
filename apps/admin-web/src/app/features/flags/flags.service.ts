@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { map, type Observable } from 'rxjs';
 import { ApiClient } from '../../core/api-client';
 
-export type FeatureFlagKey = 'scalar_docs' | 'pdf_builder' | 'self_signup';
+export type FeatureFlagKey = 'scalar_docs' | 'pdf_builder' | 'self_signup' | 'signin_disabled';
 export type FeatureFlags = Record<FeatureFlagKey, boolean>;
 export type SystemConfigItem = { key: FeatureFlagKey; value: boolean };
 
@@ -28,6 +28,11 @@ export const FEATURE_FLAG_DEFINITIONS: FeatureFlagMeta[] = [
     label: 'Self sign-up',
     description: 'lets new users sign up',
   },
+  {
+    key: 'signin_disabled',
+    label: 'Disable user sign-in',
+    description: 'Prevents users from signing in',
+  },
 ];
 
 function isFeatureFlagKey(key: string): key is FeatureFlagKey {
@@ -41,7 +46,7 @@ export class FlagsService {
   getConfig(): Observable<FeatureFlags> {
     return this.api.get<SystemConfigItem[]>('/admin/config').pipe(
       map((items) => {
-        const flags: FeatureFlags = { scalar_docs: false, pdf_builder: false, self_signup: false };
+        const flags: FeatureFlags = { scalar_docs: false, pdf_builder: false, self_signup: false, signin_disabled: false };
         for (const item of items) {
           if (isFeatureFlagKey(item.key)) flags[item.key] = item.value;
         }

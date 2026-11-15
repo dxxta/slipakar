@@ -105,6 +105,7 @@ export class FlagsPage implements OnInit {
     scalar_docs: false,
     pdf_builder: false,
     self_signup: false,
+    signin_disabled: false,
   });
 
   readonly errorAlert = signal<string | null>(null);
@@ -113,6 +114,7 @@ export class FlagsPage implements OnInit {
     scalar_docs: false,
     pdf_builder: false,
     self_signup: false,
+    signin_disabled: false,
   });
 
   private readonly savedTimers = new Map<FeatureFlagKey, ReturnType<typeof setTimeout>>();

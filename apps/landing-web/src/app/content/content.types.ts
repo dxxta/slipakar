@@ -52,4 +52,5 @@ export interface LandingDictionary {
   home: HomeCopy;
   terms: LegalCopy;
   notFound: NotFoundCopy;
+  signInDisabled: string;
 }

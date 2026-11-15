@@ -7,6 +7,7 @@ export interface LandingRuntimeConfig {
   repoUrl: string;
   docsUrl: string;
   statusUrl: string;
+  apiUrl: string;
 }
 
 export const DEFAULT_LANDING_CONFIG: LandingRuntimeConfig = {
@@ -15,6 +16,7 @@ export const DEFAULT_LANDING_CONFIG: LandingRuntimeConfig = {
   repoUrl: 'http://localhost:8082/#open-source',
   docsUrl: 'http://localhost:8082/#self-host',
   statusUrl: '',
+  apiUrl: 'http://localhost:3000',
 };
 
 export function createLandingRuntimeConfig(environment: Readonly<Record<string, string | undefined>>): LandingRuntimeConfig {
@@ -25,6 +27,7 @@ export function createLandingRuntimeConfig(environment: Readonly<Record<string, 
     repoUrl: safeAbsoluteUrl(environment['LANDING_REPO_URL'], `${siteUrl}/#open-source`),
     docsUrl: safeAbsoluteUrl(environment['LANDING_DOCS_URL'], `${siteUrl}/#self-host`),
     statusUrl: safeAbsoluteUrl(environment['LANDING_STATUS_URL'], DEFAULT_LANDING_CONFIG.statusUrl),
+    apiUrl: safeAbsoluteUrl(environment['LANDING_API_URL'], DEFAULT_LANDING_CONFIG.apiUrl),
   };
 }
 
@@ -69,6 +72,7 @@ export function readLandingConfigFromDocument(document: Document): LandingRuntim
       LANDING_REPO_URL: value.repoUrl,
       LANDING_DOCS_URL: value.docsUrl,
       LANDING_STATUS_URL: value.statusUrl,
+      LANDING_API_URL: value.apiUrl,
     });
   } catch {
     return DEFAULT_LANDING_CONFIG;
